@@ -2,29 +2,29 @@ Template: dwww/docrootdir
 Type: string
 Default: /var/www
 _Description: Location of web server's document root.
- dwww now needs to know where is the directory which contains the document
- root for your web server. The web standard suggests /var/www.
+ dwww needs to know the path of the directory which contains your web server's
+ document root. The web standard suggests /var/www.
 
 Template: dwww/cgidir
 Type: string
 Default: /usr/lib/cgi-bin
 _Description: Location of web server's cgi directory.
- dwww now needs to know where the directory which contains the CGI scripts
- for your web server exists.  The web standard suggests /usr/lib/cgi-bin,
- but your web server may already be configured for a different location.
+ dwww needs to know the path of the directory which contains your web server's
+ CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your web server
+ may already be configured for a different location.
 
 Template: dwww/cgiuser
 Type: string
 Default: www-data
 _Description: Name of CGI user.
- dwww now needs to know what user will be running the dwww CGI script,
- since that user needs to have ownership of the cache directory.
+ dwww needs to know what user will be running the dwww CGI script, as the cache
+ directory must be owned by that user.
 
 Template: dwww/servername
 Type: string
 Default: localhost
 _Description: Host name of the web server.
- dwww needs to know what the host name of your web server is.
+ dwww needs to know the host name of your web server.
 
 Template: dwww/serverport
 Type: string
@@ -35,13 +35,13 @@ _Description: Web server's port.
 
 Template: dwww/nosuchdir
 Type: note
-_Description: Directory does not exists!
- Directory ${dir} does not exists.
+_Description: Directory does not exist!
+ Directory ${dir} does not exist.
 
 Template: dwww/nosuchuser
 Type: note
 _Description: User not found!
- User ${user} does not exists.
+ User ${user} does not exist.
 
 Template: dwww/badport
 Type: note

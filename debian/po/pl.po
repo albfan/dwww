@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dwww 1.9.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-03-14 20:56+0100\n"
+"POT-Creation-Date: 2004-08-23 21:07+0200\n"
 "PO-Revision-Date: 2003-03-16 13:03+0100\n"
 "Last-Translator: Robert Luberda <robert@debian.org>\n"
 "Language-Team: Polish <pl@li.org>\n"
@@ -33,8 +33,8 @@ msgstr "Lokalizacja g³ównego katalogu dokumentów serwera www."
 #. Description
 #: ../dwww.templates:4
 msgid ""
-"dwww now needs to know where is the directory which contains the document "
-"root for your web server. The web standard suggests /var/www."
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
 msgstr ""
 "dwww musi wiedzieæ, gdzie znajduje siê katalog bêd±cy g³ównym katalogiem "
 "serwera www. Standardowo jest to katalog /var/www."
@@ -49,9 +49,9 @@ msgstr "Lokalizacja katalogu CGI serwera."
 #. Description
 #: ../dwww.templates:11
 msgid ""
-"dwww now needs to know where the directory which contains the CGI scripts "
-"for your web server exists.  The web standard suggests /usr/lib/cgi-bin, but "
-"your web server may already be configured for a different location."
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
 msgstr ""
 "dwww musi znaæ lokalizacjê katalogu zawieraj±cego skrypty CGI.  W "
 "standardowej konfiguracji jest to katalog /usr/lib/cgi-bin, ale Twój serwer "
@@ -67,8 +67,8 @@ msgstr "Nazwa u¿ytkownika wykonuj±cego programy CGI."
 #. Description
 #: ../dwww.templates:19
 msgid ""
-"dwww now needs to know what user will be running the dwww CGI script, since "
-"that user needs to have ownership of the cache directory."
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
 msgstr ""
 "dwww musi znaæ nazwê u¿ytkownika, który bêdzie wykonywa³ skrypty CGI u¿ywane "
 "przez program dwww. U¿ytkownik bêdzie w³a¶cicielem katalogu cache dwww."
@@ -82,7 +82,7 @@ msgstr "Nazwa sieciowa serwera www."
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "dwww needs to know what the host name of your web server is."
+msgid "dwww needs to know the host name of your web server."
 msgstr "dwww musi znaæ nazwê sieciow± Twojego serwera www."
 
 #. Type: string
@@ -104,13 +104,13 @@ msgstr ""
 #. Type: note
 #. Description
 #: ../dwww.templates:38
-msgid "Directory does not exists!"
+msgid "Directory does not exist!"
 msgstr "Katalog nie istnieje!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
-msgid "Directory ${dir} does not exists."
+msgid "Directory ${dir} does not exist."
 msgstr "Katalog ${dir} nie istnieje."
 
 #. Type: note
@@ -122,7 +122,7 @@ msgstr "Nie znaleziono u¿ytkownika!"
 #. Type: note
 #. Description
 #: ../dwww.templates:43
-msgid "User ${user} does not exists."
+msgid "User ${user} does not exist."
 msgstr "U¿ytkownik ${user} nie istnieje."
 
 #. Type: note

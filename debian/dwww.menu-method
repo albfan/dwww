@@ -1,6 +1,6 @@
 #!/usr/sbin/install-menu
 # I need menu-1!
-# $Id: dwww.menu-method,v 1.8 2004/04/29 22:48:24 robert Exp $
+# $Id: dwww.menu-method,v 1.9 2004/11/23 19:51:25 robert Exp $
 #
 # Dwww compatibility menu-method to create
 # in /var/lib/dwww/menu-method directory docbase-like
@@ -50,7 +50,7 @@ endmenu=        "";
 mainmenutitle=  "";
 submenutitle=   "";
 rootsection=    "";
-repeat_lang=    "";
+outputlanguage= "C";
 
 prerun=         "find " prefix() " -type f -exec rm -f {} \\;";
 postrun=        "/usr/sbin/dwww-build-menu";

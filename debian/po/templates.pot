@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-03-14 20:56+0100\n"
+"POT-Creation-Date: 2004-08-23 21:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,8 +34,8 @@ msgstr ""
 #. Description
 #: ../dwww.templates:4
 msgid ""
-"dwww now needs to know where is the directory which contains the document "
-"root for your web server. The web standard suggests /var/www."
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
 msgstr ""
 
 #. Type: string
@@ -48,9 +48,9 @@ msgstr ""
 #. Description
 #: ../dwww.templates:11
 msgid ""
-"dwww now needs to know where the directory which contains the CGI scripts "
-"for your web server exists.  The web standard suggests /usr/lib/cgi-bin, but "
-"your web server may already be configured for a different location."
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
 msgstr ""
 
 #. Type: string
@@ -63,8 +63,8 @@ msgstr ""
 #. Description
 #: ../dwww.templates:19
 msgid ""
-"dwww now needs to know what user will be running the dwww CGI script, since "
-"that user needs to have ownership of the cache directory."
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
 msgstr ""
 
 #. Type: string
@@ -76,7 +76,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "dwww needs to know what the host name of your web server is."
+msgid "dwww needs to know the host name of your web server."
 msgstr ""
 
 #. Type: string
@@ -96,13 +96,13 @@ msgstr ""
 #. Type: note
 #. Description
 #: ../dwww.templates:38
-msgid "Directory does not exists!"
+msgid "Directory does not exist!"
 msgstr ""
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
-msgid "Directory ${dir} does not exists."
+msgid "Directory ${dir} does not exist."
 msgstr ""
 
 #. Type: note
@@ -114,7 +114,7 @@ msgstr ""
 #. Type: note
 #. Description
 #: ../dwww.templates:43
-msgid "User ${user} does not exists."
+msgid "User ${user} does not exist."
 msgstr ""
 
 #. Type: note

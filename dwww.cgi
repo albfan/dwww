@@ -1,7 +1,13 @@
 #!/usr/bin/perl -T
 # vim:ft=perl:cindent
 #
-# $Id: dwww.cgi,v 1.16 2003/03/08 16:23:18 robert Exp $
+#              IF YOU SEE THIS TEXT
+#         PLEASE MAKE SURE YOUR WEB SERVER
+#           HAS THE CGI SUPPORT ENABLED
+#  (if you are using apache2, see /usr/share/doc/dwww/README)
+#
+#
+# $Id: dwww.cgi,v 1.17 2004/08/26 17:40:40 robert Exp $
 #
 
 $doc2html 	= '/usr/sbin/dwww-convert'; # Document-to-HTML converter

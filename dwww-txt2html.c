@@ -1,6 +1,6 @@
 /* vim:ts=4
  * dwww-txt2html.c
- * "@(#)dwww:$Id: dwww-txt2html.c,v 1.18 2004/04/18 16:10:37 robert Exp $"
+ * "@(#)dwww:$Id: dwww-txt2html.c,v 1.19 2004/07/29 21:44:48 robert Exp $"
  *
  * A very simple converter from formatted manual pages to HTML. Handles
   * backspace characters. Converts `<', `>', and `&' properly. Does _NOT_ add
@@ -49,7 +49,7 @@
 			  || (c) == '.' || isalnum(c))
 #define isdirname(c)	((c) == '_' || (c) == '-' || (c) == ':' || (c) == '+' \
 			  || (c) == '.' || (c) == '/' || isalnum(c))
-#define ismailname(c)	((c) == '_' || (c) == '-' || (c) == '.' || isalnum(c))
+#define ismailname(c)	((c) == '_' || (c) == '-' || (c) == '.' || (c) == '+' || isalnum(c))
 #define iswwwname(c)	((c) == '_' || (c) == '-' || (c) == ':' \
 			  || (c) == '.' || (c) == '/' || isalnum(c) || (c) == '?' || (c) == '&' \
 			  || (c) == '%' || (c) == '=' || (c) == '#' || (c) == '~' \

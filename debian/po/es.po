@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-03-14 20:56+0100\n"
+"POT-Creation-Date: 2004-08-23 21:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,8 +33,8 @@ msgstr "Ubicación del documento raíz del servidor web."
 #. Description
 #: ../dwww.templates:4
 msgid ""
-"dwww now needs to know where is the directory which contains the document "
-"root for your web server. The web standard suggests /var/www."
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
 msgstr ""
 "dwww necesita que se le indique dónde se encuentra el direcotrio que "
 "contiene el documento raíz del servidor web. El estándar web sugiere /var/"
@@ -50,9 +50,9 @@ msgstr "Ubicación del directorio cgi del servidor web."
 #. Description
 #: ../dwww.templates:11
 msgid ""
-"dwww now needs to know where the directory which contains the CGI scripts "
-"for your web server exists.  The web standard suggests /usr/lib/cgi-bin, but "
-"your web server may already be configured for a different location."
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
 msgstr ""
 "dwww necesita conocer cuál es el directorio que contiene los scripts cgi del "
 "servidor web. El estándar web sugiere /usr/lib/cgi-bin, pero puede que haya "
@@ -68,8 +68,8 @@ msgstr "Nombre del usuario que ejecuta el CGI."
 #. Description
 #: ../dwww.templates:19
 msgid ""
-"dwww now needs to know what user will be running the dwww CGI script, since "
-"that user needs to have ownership of the cache directory."
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
 msgstr ""
 "dwww tiene que saber qué usuario va a ejecutar el script CGI dwww, porque "
 "ese usuario tiene que ser el propietario del directorio de caché."
@@ -83,7 +83,7 @@ msgstr "Nombre del sistema que aloja el servidor web."
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "dwww needs to know what the host name of your web server is."
+msgid "dwww needs to know the host name of your web server."
 msgstr ""
 "dwww necesita saber el nombre de la máquina en la que se encuentra el "
 "servidor web."
@@ -107,13 +107,13 @@ msgstr ""
 #. Type: note
 #. Description
 #: ../dwww.templates:38
-msgid "Directory does not exists!"
+msgid "Directory does not exist!"
 msgstr "¡No existe el directorio!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
-msgid "Directory ${dir} does not exists."
+msgid "Directory ${dir} does not exist."
 msgstr "El directorio ${dir} no existe."
 
 #. Type: note
@@ -125,7 +125,7 @@ msgstr "¡Usuario no encontrado!"
 #. Type: note
 #. Description
 #: ../dwww.templates:43
-msgid "User ${user} does not exists."
+msgid "User ${user} does not exist."
 msgstr "El usuario ${user} no existe."
 
 #. Type: note

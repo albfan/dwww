@@ -11,8 +11,23 @@ dwww requires running a web server with CGI support (i.e. apache,
 boa, roxen, wn, etc., but NOT dhttpd or fnord.)
 Sorry.
 
+    <===================================================>
+    |     Using dwww with the APACHE2 web server        |
+    |    ----------------------------------------       |
+    |                                                   |
+    |  For some unknown reason the apache2 web server   |
+    |  has the CGI support DISABLED by default          |
+    |                                                   |
+    |  Therefore to use dwww you have to enable the     |
+    |  CGI module by giving the following command:      |
+    |        a2enmod cgi                                |
+    |                                                   |
+    +===================================================+
+
+
 For more information, read the manual page dwww(8), and the other
 manual pages it refers to.
+
 
 
   Automatic fancy index of documents
@@ -20,14 +35,17 @@ manual pages it refers to.
 
 Debian now has a "doc-base" package that provides a uniform way of
 registering documentation; it supports other documentation systems besides 
-dwww. Please read install-docs(8) for futher reference.
-	 _				      _
+dwww. Please read install-docs(8) for further reference.
 
-	| 				       |
-	    dwww is still under development!
-	|_   				      _|
+
+         _                                    _
+        |                                      |
+            dwww is still under development!
+        |_                                    _|
 
 
 dwww is already quite usable, however.  Please use it, and report
 bugs via the Debian bug tracking system so that they can be fixed.
 
+
+vim:ts=4:et:ai

@@ -1,3 +1,40 @@
+dwww (1.9.16) unstable; urgency=low
+
+  * dwww.menu-method: rename repeat_lang to outputlanguage (closes: #282494).
+  * lib/menu.end: temporaily removed link to the "errors & warnings" page 
+    (but the page itself is still generated); I will restore it after sarge is
+    released. 
+    BTW. I think it should be lintian (or linda) job to report errors in 
+    doc-base files.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 23 Nov 2004 20:25:02 +0100
+
+dwww (1.9.15) unstable; urgency=low
+
+  * Rebuild for unstable.
+
+ -- Robert Luberda <robert@debian.org>  Thu, 26 Aug 2004 20:48:05 +0200
+
+dwww (1.9.14) testing-proposed-updates; urgency=low
+
+  * Fix bad English grammar in debconf templates (closes: #265658).
+    Thanks to Julian Mehnle <julian@mehnle.net> for the patch!
+  * Run debconf-updatepo and manually remove any `#,fuzzy' marks.
+  * README: added short note about the cgi module disabled by default
+    in apache2 (closes: #262328).
+  * Put some stupid ;-) comment at the top of dwww.cgi in case of
+    it would be displayed instead of executed...
+
+ -- Robert Luberda <robert@debian.org>  Thu, 26 Aug 2004 19:39:54 +0200
+
+dwww (1.9.13) unstable; urgency=low
+
+  * New, simplified front page layout (closes: #253403)
+    Many thanks to August Mayer <amayer@cosy.sbg.ac.at> for this!
+  * Allow `+' in mail addresses (closes: #261215).
+
+ -- Robert Luberda <robert@debian.org>  Thu, 29 Jul 2004 23:42:39 +0200
+
 dwww (1.9.12) unstable; urgency=medium
 
   * `realpath -s' works with relative pathnames again (closes: #253494).
