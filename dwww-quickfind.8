@@ -1,0 +1,35 @@
+.TH DWWW-QUICKFIND 8 "August 29th, 2001" "Debian" "Debian"
+.SH NAME
+dwww\-quickfind \- find quickly which package a program belongs to.
+.SH SYNOPSIS
+.BI "dwww-quickfind --build " "dbfile"
+.br
+.BI "dwww-quickfind " "program"
+.I "dbfile"
+.SH DESCRIPTION
+.B dwww-quickfind
+is part of the dwww package,
+which provides access to on-line documentation on a Debian system via WWW.
+.PP
+.B dwww-quickfind
+searches for
+.I program
+using the database file
+.I dbfile.
+If used with
+.IR "--build" ,
+.B dwww-quickfind
+builds programs database and stores it in  the file
+.I dbfile.
+.SH FILES
+.IP /var/lib/dwww/quickfind.dat
+Default file used as the database file.
+.SH "SEE ALSO"
+.BR dwww (8),
+.BR dwww-find (8).
+.SH AUTHOR
+Lars Wirzenius.
+See
+.BR dwww (8)
+for copyrights and stuff.
+

@@ -1,0 +1,85 @@
+.\" "@(#)dwww:$Id: dwww-cache.8,v 1.8 2002/03/17 13:01:58 robert Exp $"
+.\"
+.TH dwww-cache 8 "March 16th, 2002" "dwww 1.7.3" "Debian"
+.SH NAME
+dwww-cache \- manage the dwww cache of converted documents
+.SH SYNOPSIS
+.BI "dwww-cache --lookup " "type location"
+.br
+.BI "dwww-cache --store " "type location"
+.br
+.BI "dwww-cache --list " "type location"
+.br
+.BI "dwww-cache --list-all"
+.br
+.BI "dwww-cache --clean"
+.SH "DESCRIPTION"
+.B dwww-cache
+manages the cache of converted documents; it is part of
+.BR dwww (8).
+An option (the first argument) specifies the operation.
+Some operations operate on the whole cache, and need no other arguments.
+Others need the second and third argument to specify the type and 
+pathname of the original document.
+(See
+.BR dwww-convert (8)
+for more information about the arguments.)
+.PP
+The operations are:
+.IP --lookup
+If the document is in the cache, output it to the standard output.
+Otherwise, output nothing and return a non-zero status.
+.IP --store
+Read the document from the standard input, output it to the standard output
+and store it into the cache.
+If there was an older version already in the cache, remove it.
+.IP --list
+Output information about one document in the cache to the standard output.
+The information is one line, with four space delimited fields:
+type, pathname of original, pathname of cached, and permanent flag (y or n).
+.IP --list-all
+Like --list, but for all documents.
+.IP --clean
+Forget all cached documents that have been deleted.
+.B dwww-cache
+maintains a database with information of the cached documents.
+The documents themselves are stored in separate files in the cache
+directory.
+When old documents are removed from the cache by a suitable crontab
+entry, they will still exist in the database.
+This operation removes all entries from the database where either the
+original or the converted file is now missing.
+.PP
+To stop the cache from growing too large, an entry in root's
+.B crontab
+should remove cached files that have not been accessed for a while.
+For example, the following commands remove all documents that have not
+been accessed for ten days:
+.PP
+.RS
+find /var/cache/dwww -atime +10 | xargs rm -f
+.br
+dwww-cache --clean
+.RE
+.PP
+The idea is to first delete the old cached files and then clean up
+the database.
+The policy of cleaning the cache has been kept outside of
+.B dwww-cache
+to keep the program simple, and to allow maximum flexibility.
+.SH FILES
+.IP /var/cache/dwww
+The cache directory.
+.IP /var/cache/dwww/.cache_db
+The database with information about all cached documents.
+This is a binary file, specially encoded for small size and
+high speed, and should not be touched by anyone but
+.BR dwww-cache .
+.SH "SEE ALSO"
+.BR dwww (8),
+.BR dwww-convert (8).
+.SH AUTHOR
+Lars Wirzenius <liw@iki.fi>.
+See
+.BR dwww (8)
+for copyrights and stuff.

@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+            "http://www.w3.org/TR/html40/loose.dtd">
+<html>
+<head>
+<title>
+Documents for system administrators
+</title>
+</head>
+<body>
+
+<h1>Documents for system administrators</h1>
+
+This page contains some links to documents that are of use for system
+administrators.  Not all of the documents are necessarily installed.<p>
+
+Sysadmins should look especially at manual page 
+<a href="man-in-section-8.html">section 8</a>.
+The LDP books Network Administrators' Guide and System Administrators'
+Guide (draft) are important.
+<p>
+
+<h2>Software installation</h2>
+
+	The Debian package management tools are
+	<a href="/cgi-bin/dwww?type=man&amp;location=dselect/8">dselect</a>,
+	and 
+	<a href="/cgi-bin/dwww?type=man&amp;location=dpkg/8">dpkg</a>.
+	With them, it is quite simple to install, upgrade, and uninstall
+	programs.
+	<p>
+	
+	For programs installed from source, you usually need to use
+	<a href="/cgi-bin/dwww?type=man&amp;location=make/1">make</a>
+	or
+	<a href="/cgi-bin/dwww?type=man&amp;location=imake/1x">imake</a>.
+	You may need some programming skills to compile some programs,
+	if they haven't been ported to Linux already.  Read the README
+	or other documentation for each package for closer details.
+	<p>
+
+<h2>Backups and archives</h2>
+
+	Traditional tools for making backups are
+	<a href="/cgi-bin/dwww?type=man&amp;location=tar/1">tar</a>,
+	<a href="/cgi-bin/dwww?type=man&amp;location=cpio/1">cpio</a>, and
+	<a href="/cgi-bin/dwww?type=man&amp;location=dump/8">dump</a>.
+	Also available for Debian are 
+	<a href="/cgi-bin/dwww?type=man&amp;location=afio/1">afio</a>,
+	<a href="/cgi-bin/dwww?type=man&amp;location=tob/1">tob</a>, and
+	<a href="/cgi-bin/dwww?type=man&amp;location=taper/1">taper</a>.
+	These tools can also be used for archiving.  They're mostly intended
+	for tape drives.
+	<p>
+	
+<h2>User administration</h2>
+
+	Users are created with
+	<a href="/cgi-bin/dwww?type=man&amp;location=adduser/8">adduser</a>,
+	groups with
+	<a href="/cgi-bin/dwww?type=man&amp;location=addgroup/8">addgroup</a>.
+	There are currently no good tools for removing either, you have
+	to edit /etc/passwd and /etc/group by hand.<p>
+	
+	In Debian, each user `foo' has his own group `foo'.
+	Most other Unix systems are different.  You may want to read
+	<a href="per-user-group-reason.html">the reason for this</a>.<p>
+
+<hr>
+This page is part of dwww.
+</body>
+</html>

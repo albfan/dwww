@@ -1,0 +1,663 @@
+#!/bin/sh
+# vim: ts=4
+# dwww-convert -- convert docs to HTML if necessary
+#
+# Some types of files (e.g. UNIX manpages) are typically not handled by most
+# webbrowser setups; we convert these to HTML. Other types (e.g. PDF files
+# or PNG images) are best handled by or via the user's webbrowser.
+#
+# Simple usage: $0 <type> <location>
+# 	<type> is document type: text, man, html, ps, and so on
+#	<location> is full pathname to original document
+#
+# In future versions, the converted HTML will be stored into a cache.
+#
+# Part of the Debian dwww package.  Written by Lars Wirzenius.
+# Modified by Robert Luberda
+# "@(#)dwww:$Id: dwww-convert,v 1.25 2002/04/07 17:51:53 robert Exp $"
+
+#
+# Setup defaults.
+#
+DWWW_MAN2HTML=builtin_man2html
+DWWW_DIR2HTML=builtin_dir2html
+DWWW_TEXT2HTML=builtin_text2html
+DWWW_HTML2HTML=builtin_html2html
+DWWW_INFO2HTML=builtin_info2html
+
+################################################################
+#
+# Initialization
+#
+
+DATE=`LC_ALL=C date`
+
+. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+
+
+################################################################
+#
+# Local dwww-cache functions
+#
+
+
+#
+# Are we allowed to show this file?
+#
+# Note: getting this check wrong compromises security.
+#
+badfile() {
+	d="$1"
+	[ -z "$d" ] && return 0
+
+	dw_path=`echo $DWWW_DOCPATH | tr : ' '`
+	for i in `realpath $dw_path 2>/dev/null`
+	do
+	  if [ -d "$i" ]; then
+		case "$d/" in
+		"$i"/*) return 1 ;;
+		esac
+	  fi
+	done
+	return 0
+}
+
+#
+# Checks if original_file is a symlink from file in directory included in
+# $DWWW_DOC_PATH to file from $DWWW_ALLOWEDLINKPATH
+#
+# Please note that orig_f must not containts /../ (eg. this can be output
+# of `realpath -s`)
+# 
+bad_symlink() {
+	orig_f="$1"
+
+	badfile "$orig_f" && return 0
+
+	all_sym_path=`echo "$DWWW_ALLOWEDLINKPATH" | tr : ' '`
+	for i in `realpath $all_sym_path 2>/dev/null`
+	do
+		if [ -d "$i" ]; then
+			case "$orig_f/" in
+				"$i"/*) return 1 ;;
+			esac
+		fi
+	done
+
+	return 0
+}
+
+
+#######################################################################
+#
+# Builtin converters
+#
+
+
+#
+# Create a directory listing in HTML.
+#
+builtin_dir2html() {
+	dir="$1"
+
+	if [ -r "$dwww_libdir/dwww-convert.dir.start" ] ; then
+	                sed "s|TITLE|Files in $dir|g" \
+                        "$dwww_libdir/dwww-convert.dir.start"
+	else
+		echo "<html><head><title>Files in $dir</title></head><body>"
+		echo "<h1>Files in $dir</h1>"
+	fi
+
+	case "$1" in
+		*[!a-zA-Z0-9/_.-]*)
+			j_d="`urlencode $dir`"
+			;;
+		*)
+			j_d="$dir"
+			;;
+	esac
+
+#	Files:
+	find "$dir" -type f -follow -maxdepth 1 -printf "%f\n" 2>/dev/null | sort |
+	while read i
+	do
+			case "$i" in
+				*[!a-zA-Z0-9/_.-]*)
+					j="$j_d/`urlencode \"$i\"`"
+					;;
+				*)
+					j="$j_d/$i"
+					;;
+			esac
+
+			case "$i" in
+				*.htm*)
+					if [ -n "$DWWW_USEFILEURL" ] ; then
+						echo "<a href=\"file://localhost$j\">$i</a>"
+					else
+						echo "<a href=\"/cgi-bin/dwww?type=file&location=$j\">$i</a>"
+					fi
+					;;
+				*)
+						echo "<a href=\"/cgi-bin/dwww?type=file&location=$j\">$i</a>"
+					;;
+			esac
+	done | table_it
+
+# Subdirectores
+	if  find "$dir/." -type d -follow -maxdepth 1 ! -name . ! -name .. 2>/dev/null| grep . > /dev/null
+	then
+		echo "<p><h2>Subdirectories:</h2>"
+		find "$dir/." -type d  -follow -maxdepth 1 ! -name . ! -name .. -printf "%f\n" 2>/dev/null | sort |
+		while read i
+		do
+			case $i in
+				*[!a-zA-Z0-9/_.-]*)
+					j="$j_d/`urlencode \"$i\"`"
+					;;
+				*)
+					j="$j_d/$i"
+					;;
+			esac
+
+			if [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.html" ]; then
+				echo "<a href=\"file://localhost$j/index.html\">$i</a>"
+			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.html.gz" ]; then
+				echo "<a href=\"file://localhost$j/index.html.gz\">$i</a>"
+			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.htm" ]; then
+				echo "<a href=\"file://localhost$j/index.htm\">$i</a>"
+			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.htm.gz" ]; then
+				echo "<a href=\"file://localhost$j/index.htm.gz\">$i</a>"
+			else
+				echo "<a href=\"/cgi-bin/dwww?type=file&location=$j\">$i</a>"
+			fi
+		done | table_it
+	fi
+
+	if [ -r "$dwww_libdir/dwww-convert.dir.end" ] ; then
+		sed "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" \
+            "$dwww_libdir/dwww-convert.dir.end"
+	else
+		echo "<hr>Created automatically: $DATE</body></html>"
+	fi
+}
+
+
+#
+# Convert a manual page source code file to HTML.
+#
+builtin_man2html() {
+
+	if [ -r "$dwww_libdir/dwww-convert.start" ] ; then
+	                sed "s|TITLE|${2:-$1}|g" \
+                        "$dwww_libdir/dwww-convert.start"
+	else
+		echo "<html><head><title>${2:-1}</title></head><body>"
+	fi
+
+	dir=`dirname "$1"`
+	cd "$dir/.."
+	man -P/bin/cat -l "$1" | dwww-txt2html --man
+	cd /
+
+	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then
+		sed "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" \
+            "$dwww_libdir/dwww-convert.end"
+	else
+		echo "</body></html>"
+	fi
+}
+
+
+#
+# Convert plain text to HTML.  This is really trivial, and buggy.
+# Input from stdin.
+#
+builtin_text2html() {
+	if [ -r "$dwww_libdir/dwww-convert.start" ] ; then
+	                sed "s|TITLE|$1|g" \
+                        "$dwww_libdir/dwww-convert.start"
+	else
+		echo "<html><head><title>$1</title></head><body>"
+	fi
+
+	$decompress "$1" | dwww-txt2html
+
+	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then
+		sed "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" \
+            "$dwww_libdir/dwww-convert.end"
+	else
+		echo "</body></html>"
+	fi
+}
+
+
+#
+# Convert info file to HTML using info2www
+#
+builtin_info2html() {
+	/usr/lib/cgi-bin/info2www "$1"
+}
+
+#
+# Convert links in an HTML documents, to be able to use the automatic
+# decompression and conversion features.
+#
+
+builtin_html2html() {
+# Use the following hairy perl script to convert links in the html
+# document to links to the cgi script
+
+# Note that this isn't very sophisticated, and can be fooled by text
+# inside <pre></pre> blocks, and probably other ways too
+
+        $decompress "$1" | perl -0777ne '
+
+$file = '\'$1\'';
+
+# urlencode $file
+$file =~ s/([^A-Za-z0-9\ \_\-\.\/])/"%" . unpack("H*", $1)/eg;
+$file =~ tr/ /+/;
+
+($directory = $file) =~ s/^[^\/]*(\/.*\/)[^\/]*$/$1/;
+$cgi = "/cgi-bin/dwww?type=file&location=";
+
+# A. Modify <A HREF=""> & <LINK HREF=""> tags
+# Ignore tags with a colon, to prevent external pointing links conversion
+
+# A.1- absolute links (ie. starts with /) - we shouldnt really have these
+
+# A.1.1 quoted address
+
+s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
+
+# A.1.2 no quotes
+
+s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
+
+# A.2- relative links (ie. doesnt start with /, nor #)
+
+# A.2.1 quoted address
+
+s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
+
+# A.2.2 no quotes
+
+s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
+
+# A.3- fragments (ie starting with #)
+
+# A.3.1 quoted address
+
+s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(["'\''])(\s*#[^>:\2]+\2[^>]*>)/$1$2$cgi$file$3/igs;
+
+# A.3.2 no quotes
+
+s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(#[^>:\s]+(?:\s[^>]*)?>)/$1$cgi$file$2/igs;
+
+# B. Modify <IMG SRC=""> & <FRAME SRC=""> tags
+# Ignore tags with a colon, to prevent external pointing links conversion
+
+# B.1- absolute links (ie. starts with /) - we shouldnt really have these
+
+# B.1.1 quoted address
+
+s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
+
+# B.1.2 no quotes
+
+s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
+
+# B.2- relative links (ie. doesnt start with /, nor #)
+
+# B.2.1 quoted address
+
+s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
+
+# B.2.2 no quotes
+
+s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
+
+# C. Modify <BODY BACKGROUND=""> tags
+# Ignore tags with a colon, to prevent external pointing links conversion
+
+# C.1- absolute links (ie. starts with /) - we shouldnt really have these
+
+# C.1.1 quoted address
+
+s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
+
+# C.1.2 no quotes
+
+s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
+
+# C.2- relative links (ie. doesnt start with /, nor #)
+
+# C.2.1 quoted address
+
+s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
+
+# C.2.2 no quotes
+
+s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
+
+# D. Modify <META HTTP-EQUIV=REFRESH...> tags 
+# Ignore tags with a colon, to prevent external pointing links conversion
+
+# D.1- absolute links (ie. starts with /) - we shouldnt really have these
+
+# D.1.1 no quotes
+
+s/(<META[^>]*REFRESH[^>]*URL\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
+
+# D.2- relative links (ie. doesnt start with /, nor #)
+
+# D.2.1 no quotes
+
+s/(<META[^>]*REFRESH[^>]*URL\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
+
+# E. Modify <APPLET ARCHIVE=""> tags
+# Ignore tags with a colon, to prevent external pointing links conversion
+
+# E.1- absolute links (ie. starts with /) - we shouldnt really have these
+
+# E.1.1 quoted address
+
+s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
+
+# E.1.2 no quotes
+
+s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
+
+# E.2- relative links (ie. doesnt start with /, nor #)
+
+# E.2.1 quoted address
+
+s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
+
+# E.2.2 no quotes
+
+s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
+
+
+print $_;
+
+        '
+	echo "<!-- Generated by dwww $dwww_version on $DATE -->"
+	exit 0
+
+
+}
+
+################################################################
+#
+# Main program
+#
+
+
+if [ "$1" = "" -o "$2" = "" ]
+then
+	echo "Error: invalid arguments" 1>&2
+	echo "Usage: $0 <type> <location>" 1>&2
+	exit 1
+fi
+
+if [ -n "$DWWW_DEBUG" ] ; then
+	echo "--- dwww-convert $1 $2 ---" 1>&2
+	set -x
+fi
+
+type="$1"
+file="$2"
+orig_file="$file"
+# anchor=$(echo $file | sed -e "s/^*\(#.*$\)/$1/")
+file=$(echo $file | sed -e "s/#.*$//")
+
+# Check for directory
+if [ -d "$file" ] ; then
+	type="dir"
+
+	# search for HTML indexes
+	for comp in "" ".gz" ".bz2" ; do
+		for suff in ".html" ".htm"; do
+			if [ -f  "$file/index$suff$comp" ] ; then
+				file="$file/index$suff$comp"
+				type="html"
+				break 2
+			fi
+		done
+	done
+
+elif [ "$type" = dir ]; then
+		type="file"	
+fi		
+
+# Check	info file
+if [ "$type" = "info" -a ! -x /usr/lib/cgi-bin/info2www ] ; then
+	echo "Status: 500 dwww error"
+	echo "Content-type: text/html; charset=iso-8895-1"
+	echo ""
+	echo "<html><head><title>Cannot convert info files</title></head><body>"
+	echo "<h1>Converter for info files not installed</h1>dwww could not find the"
+	echo "<b>info2www</b> program, which is required to convert the info files.</body></html>"
+	exit 1
+fi
+		 
+	
+		
+# Check for manpage
+if [ "$type" = "runman" ]; then
+
+	type="man"
+	name="`echo \"$orig_file\" | sed 's/\/.*//'`"
+	section="`echo \"$orig_file\" | sed 's/.*\///'`"
+	file="`man --location -e \"$section\" \"$name\" | sed 's/ .*//;1q'`"
+
+	if [ "X$file" = "X" -o ! -f "$file" ] ; then
+		# Manpage doesn't exist
+		echo "Status: 404 Manpage not found"
+		echo "Content-type: text/html; charset=iso-8895-1"
+		echo ""
+		echo "<html><head><title>Manpage not found</title></head><body>"
+		echo "<h1>Manpage not found.</h1>dwww could not find the"
+		echo "manpage $name($section)</body></html>"
+		exit 1
+	fi
+
+
+# Check to see if html file exists
+elif [ \( "$type" = "html" -o "$type" = "text/html" \) -a ! -e "$file" ]; then
+	# A link may have referred to a .html file
+	# when only a .html.gz file exists.  So check
+	# to see if alternate file exists, and use
+	# that one if it does
+	basefile=$(echo $file | sed -e "s/\.htm.*$//")
+
+	for comp in "" ".gz" ".bz2" ; do
+		for suff in ".html" ".htm"; do
+			if [ -f  "$basefile$suff$comp" ] ; then
+				file="$basefile$suff$comp"
+				type="html"
+				break 2
+			fi
+		done
+	done
+
+# Check for compressed file
+elif [ ! -e "$file" ]; then
+	if [ -f "${file}.gz" ]; then
+		file="${file}.gz"
+	elif [ -f "${file}.bz2" ]; then
+		file="${file}.bz2"
+	fi
+	
+fi		
+
+
+
+if [ -e "$file" ]; then
+	real_file="`realpath \"$file\"`"
+	file="`realpath -s \"$file\"`"
+else
+	real_file=""
+	file="`realpath -s \"$file\"`"
+fi
+
+if badfile "$real_file"  ; then
+	if bad_symlink "$file" ; then
+		echo "Status: 403 Access denied"
+		echo "Content-type: text/html; charset=iso-8859-1"
+		echo ""
+		echo "<html><head><title>Access denied</title></head><body>"
+		echo "<h1>Access denied.</h1>dwww will not allow you to read"
+		echo "file $orig_file</body></html>"
+		exit 1
+	fi
+fi
+
+# Check to see if file exists
+if [ ! -e "$real_file" ]; then
+	# File doesn't exist
+	echo "Status: 404 File not found"
+	echo "Content-type: text/html; charset=iso-8859-1"
+	echo ""
+	echo "<html><head><title>File not found</title></head><body>"
+	echo "<h1>File not found.</h1>dwww could not find the"
+	echo "file $orig_file</body></html>"
+	exit 1
+fi
+
+
+# identify the compression algorithm used for non-directories
+# then, calculate the name of the uncompressed file (in extension)
+if [ "$type" != "dir" -a -e "$real_file" ]; then
+
+	case `file -Lb "$real_file"` in
+		gzip*)
+			decompress="zcat"
+			base_name=`basename "$real_file" .gz`
+			;;
+
+		GNUzip*)
+			decompress="zcat"
+			base_name=`basename "$real_file" .gz`
+			;;
+
+		bzip2*)
+			decompress="bzcat"
+			base_name=`basename "$real_file" .bz2`
+			;;
+		*)
+			decompress="cat"
+			base_name="$real_file"
+			;;
+	esac
+else
+	base_name=`basename "$real_file"`
+fi
+
+
+
+# identify the file type from the file extension
+# or using the "file" command.
+
+if [ "$type" = "file" -a -e "$real_file" ] ; then
+
+# first find the file extension
+
+	noslash=$(echo "$base_name" | sed -e "s/[^\/]*\///g" | tr A-Z a-z )
+	extension=$(echo "$noslash" | sed -e "s/[^\.]*\.//g" )
+
+	if [ "$noslash" = "$extension" ] ; then
+		extension=""
+	fi
+
+	# then guess the file type depending on the extension
+	# if the extension is of size 0 or more than 4
+	# text is assumed.
+
+	if [ "$extension" = "txt" -o "$extension" = "text" ] ; then
+		type="text/plain"
+	elif [ "$extension" = "htm" -o "$extension" = "html" ] ; then
+		type="text/html"
+	elif `/usr/bin/test -z "$extension" -o -l "$extension" -gt 4` ; then
+		type="text/plain"
+	else
+		type="`"$decompress" "$real_file" | file -b - | magic2mime`"
+	fi
+fi
+
+
+case "$type" in
+	html)
+		converter="$DWWW_HTML2HTML"
+		;;
+	text/html)
+		converter="$DWWW_HTML2HTML"
+		type=html
+		;;
+	man)
+		converter="$DWWW_MAN2HTML"
+		;;
+	runman)	# impossible
+		converter="$DWWW_MAN2HTML"
+		type=man
+		;;
+	dir)
+		converter="$DWWW_DIR2HTML"
+		;;
+	info)
+		converter="$DWWW_INFO2HTML"
+		;;
+	text/plain)
+		converter="$DWWW_TEXT2HTML"
+		;;
+	*)	
+		converter=""
+esac
+
+
+if [ "X$converter" = "X"  ]; then
+	echo "Content-type: $type"
+	echo ""
+	"$decompress" "$real_file"
+	exit 0
+fi
+
+# Check to see if user wants to access HTML files directly.
+
+if [ "$type" = "html" -a -n "$DWWW_USEFILEURL" ]; then
+        echo "Content-type: text/html; charset=iso-8859-1"
+        echo ""
+        "$decompress" "$real_file"
+        exit 0
+fi
+
+
+
+# Print the header
+echo "Content-type: text/html; charset=iso-8859-1"
+echo "Content-Disposition: inline; filename=\"$base_name.html\""
+echo ""
+
+case "$DWWW_USE_CACHE" in
+	[Yy][Ee][Ss]*)
+		# Store the file in the cache unless it is already stored
+		if ! dwww-cache --lookup "$type" "$real_file" ; then
+			if [ "$converter" = builtin_man2html ] ; then
+				"$converter" "$file" "$orig_file" | dwww-cache --store "$type" "$real_file"
+			else
+				"$converter" "$file"  | dwww-cache --store "$type" "$real_file"
+			fi
+		fi
+		;;
+	*)			
+		if [ "$converter" = builtin_man2html ] ; then
+			"$converter" "$file" "$orig_file" 
+		else
+			"$converter" "$file"
+		fi
+		;;
+esac				
+
+exit 0

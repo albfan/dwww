@@ -1,0 +1,783 @@
+dwww (1.7.6.woody.1) woody-proposed-updates; urgency=low
+
+  * Upload to woody, no changes in source.
+    The current dwww version in woody is 1.7.4, but I'd like to see 1.7.6
+    there: it has fixed a few of bugs and no new bug has been reported
+    for 6 weeks. So it really is worth including in woody, I think.
+
+ -- Robert Luberda <robert@debian.org>  Mon, 24 Jun 2002 23:23:25 +0200
+
+dwww (1.7.6) unstable; urgency=low
+
+  * dwww-quickfind.c: don't allow package names to contain spaces or commas
+    (closes: #146116).
+  * dwww-find: show info for all packages returned by dwww-quickfind, not only
+    the first one.
+  * dwww-find, dwww-build: signal handling with `trap' command.
+
+ -- Robert Luberda <robert@debian.org>  Wed,  8 May 2002 08:47:22 +0200
+
+dwww (1.7.5) unstable; urgency=medium
+
+  * dwww-find: removed bashism (closes: #144253).
+  * dwww.cgi: Allow `[' character (closes: #142019).
+  * dwww(1) now uses DWWW_BROWSER or DWWW_X11_BROWSER, if defined in
+    /etc/dwww/dwww.conf, to load the dwww page. Also if the variables are not
+    defined, we prefer mozilla over netscape (closes: #143850, #130500).
+  * Minor fixes in html templates.
+
+ -- Robert Luberda <robert@debian.org>  Thu, 25 Apr 2002 08:58:12 +0200
+
+dwww (1.7.4) unstable; urgency=low
+
+  * dwww-find:
+    + call tmpfile to create temporary files insted of putting them in 
+      /var/cache/dwww.
+    + it now can display packages' description (using apt-cache for that).
+    + to speedup use dlocate, if found.
+  * debian/control: recommend dlocate and apt.
+  * Modified and cleaned up templates, esp. changed foot of generated pages.
+  * dwww-convert:
+    + generate Content-Disposition header.
+    + readed support for type=info; new builtin_info2html just calls info2www.
+  * dwww-daily, dwww-format-man: call su with option -s to override
+    user www-data's shell (closes: #141459).
+  * Closing old bugs, which seem to have been already fixed:
+    closes: #36088, #15767.
+
+ -- Robert Luberda <robert@debian.org>  Sun,  7 Apr 2002 19:41:25 +0200
+
+dwww (1.7.3) unstable; urgency=low
+
+  * dwww-txt2html.c: it now supports references divided into two lines,
+    when converting manpages.
+
+  * Added Spanish translation of template file (closes: #136482).
+    Thanks to Carlos Valdivia Yagüe <valyag@hotpop.com>.
+  * Added French translation of template file (closes: #137055).
+    Thanks to Philippe Batailler <pbatailler@teaser.fr>.
+
+  * debian/control: dwww recommends doc-base.
+  * dwww-daily: added `set -e'.
+  * realpath -s does not check if file exists.
+
+  * Modified maintainer scripts (dwww.config, dwww.postinst, dwww.preinst)
+    to better handle upgrading from potato (dwww version 1.4.3.5-1.9):
+    + read settings from dwww.conf and don't ask about them (closes: #103329).
+    + remove /etc/*/dwww files unless modified.
+
+  * dwww(8) updated and reformated:
+    + described missing configuration variables.
+    + added information how to configure dwww to use man2html to convert
+      manapges (closes: #61802).
+    + added dwww.conf(5) as symlink to dwww(8).
+
+ -- Robert Luberda <robert@debian.org>  Tue, 19 Mar 2002 08:07:04 +0100
+
+dwww (1.7.2) unstable; urgency=low
+
+  * It seeems the boa webserver sets strange umask (0177) and closes stderr
+    for spawned cgi programs. Because of that, dwww-cache had wroten its error
+    messages to .cache_db and than segfaulted on such broken database file.
+    To fix the problem (closes: #134382):
+    + functions.sh: added dwww_initialize function, which i.a. sets default
+      umask 022 for all dwww scripts.
+    + added utils.c with dwww_initialize, which sets umask and reopens stdin,
+      stdout and stderr.
+    + dwww-cache.c: s/sprintf/snprintf/ almost all.
+ 
+  * dwww-convert:
+    + builtin_html2html no longer uses DWWW_SERVERNAME when converting
+      anchors. Now it outputs anchors like "/cgi-bin/dwww....", not 
+      "http://$DWWW_SERVERNAME/cgi-bin/dwww..." (closes: #112843).
+    + it also converts <APPLET ARCHIVE=""> links.
+    + correctly handles case when type=dir and location=/path/to/not/dir.
+
+  * dwww-quickfind rewroten, now it stores informations about packages,
+    not only programs (closes: #132000). 
+    + removed an item from TODO, updated dwww(1) manpage.
+
+  * dwww.template: rewroten by William Clifford <wobh@yahoo.com>, so it now
+    uses CSS and validates with w3's html validator.
+    Thanks, William!
+
+  * cron.daily/dwww: set maxdepth in find expression to 2, so now cache dir
+    will get cleaned.
+
+ -- Robert Luberda <robert@debian.org>  Fri, 22 Feb 2002 08:47:54 +0100
+
+dwww (1.7.1) unstable; urgency=low
+
+  * dwww-txt2html partially rewroten to adds anchors for more types of URIs:
+    + http and ftp sites (e.g. ftp.somewhere.com)
+    + mail addresses (foo@bar.com)
+    + documentation references in /usr{/|/share|/local}/{doc|man} dirs
+    + closes: #bug_no statetments
+  * Option --man is ignored, dwww-txt2html converts manual page references in
+    all documents.
+
+  * Cache also text/plain documents.
+  * Added new file /usr/share/dwww/functions.sh with common functions.
+
+  * Do better output formatting using <TABLE> tags in dwww-find and function
+    builtin_dir2html from dwww-convert.
+  * dwww-convert:builtin_man2html now displays manpages which contains '.so'
+    requests like lastb(1).
+  * dwww-convert: added /usr/share/common-licenses/ to DWWW_DOCPATH.
+
+  * dwww.cgi, dwww-convert: handle filenames with spaces like "Readme
+    Win32.txt" in /usr/share/doc/overkill.
+
+  * Ups, dwww-format-man got broken in 1.7.0 :(. Now is OK, I think.
+  * Updated dwww-txt2html(8) and some other manpages.
+  * Removed items about packaging style from TODO file.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 29 Jan 2002 21:15:21 +0100
+
+dwww (1.7.0) unstable; urgency=low
+
+  * Cache improvements (closes: #113529, #128263):
+    + when a document is stored in the cache, set its mtime to mtime of
+      original file.
+    + create lock on cache database with flock.
+    + added DWWW_USE_CACHE variable, so cache mechanism can be turned off
+      if somebody doesn't like it.
+    + action --store does not only store file in the cache, but also it
+      outputs the file into the stdout.
+    + cached documents are stored in subdirectories.
+    + minor other modifications.
+  * Applied patch from Chris Tillman (closes: #126851).
+  * dwww-format-man: su to $DWWW_USER.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 15 Jan 2002 09:05:10 +0100
+
+dwww (1.6.12) unstable; urgency=low
+
+  * Fixed long description of realpath package (closes: #125306, #124253). 
+
+ -- Robert Luberda <robert@debian.org>  Sat, 22 Dec 2001 21:52:27 +0100
+
+dwww (1.6.11) unstable; urgency=low
+
+  * realpath moved to a separate package (closes: #52483).
+  * dwww-convert: handle <META HTTP-EQUIV=REFRESH...> (closes: #121909).
+  * debian/config: fixed perl warning (closes:#113891).
+
+ -- Robert Luberda <robert@debian.org>  Sat,  8 Dec 2001 08:47:03 +0100
+
+dwww (1.6.10) unstable; urgency=low
+
+  * Added suport for apache-ssl (closes: #111377).
+
+ -- Robert Luberda <robert@debian.org>  Sun, 23 Sep 2001 22:26:18 +0200
+
+dwww (1.6.9) unstable; urgency=low
+
+  * Fix problem with permissions of /var/cache/dwww, introduced in 1.6.7 (closes: #110692).
+
+ -- Robert Luberda <robert@debian.org>  Mon,  3 Sep 2001 00:35:10 +0200
+
+dwww (1.6.8) unstable; urgency=low
+
+  * dwww: added support from more browsers, including X11 browsers, based on script from
+    dpkg-www package (closes: #110549).
+  * We suggests links|www-browser since now.
+  * Some fixes in manpages.
+
+ -- Robert Luberda <robert@debian.org>  Wed, 29 Aug 2001 22:55:58 +0200
+
+dwww (1.6.7) unstable; urgency=low
+
+  * Fix "argument list too long" bug in postinst script (closes: #110377).
+  * dwww-build: added --verbose option; print all "bad file ... skipped" warnings only
+    in --verbose mode (closes: #110364).
+  * Fix question in debconf template (closes: #110136).
+
+ -- Robert Luberda <robert@debian.org>  Tue, 28 Aug 2001 20:32:55 +0200
+
+dwww (1.6.6) unstable; urgency=low
+
+  * realpath.c: added a -s option.
+  * dwww-convert: corrected DWWW_ALLOWEDLINKPATH code, so this feature
+    should work now (closes: #106819).
+  * dwww-convert: code cleanups.
+
+ -- Robert Luberda <robert@debian.org>  Thu, 23 Aug 2001 23:49:23 +0200
+
+dwww (1.6.5) unstable; urgency=low
+
+  * dwww-convert: Removed debugging code left by my mistake.
+
+ -- Robert Luberda <robert@debian.org>  Fri, 17 Aug 2001 07:41:17 -0400
+
+dwww (1.6.4) unstable; urgency=low
+
+  * Added a Brazilian portuguese debconf template translation.
+    Thanks to Andre Luis Lopes <andrelop@ig.com.br>. (Closes: #108525).
+
+  * dwww-convert: added a DWWW_ALLOWEDLINKPATH variable (default to /usr/share:
+    /usr/lib). This allows dwww to display a file, which is a symlink which
+    points from file in directory included in DWWW_DOCPATH to file in a
+    directory from DWWW_ALLOWEDLINKPATH (closes: #106819).
+
+  * dwww.template: change location of documentation folders, really this time.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 14 Aug 2001 00:18:28 +0200
+
+dwww (1.6.3) unstable; urgency=low
+
+  * Added support for thhtpd (closes: #103664) and roxen (closes: #104035).
+  * menu-method: Encode URLs in generated menu file (closes: #106817).
+  * Standards-Version: 3.5.6.
+  * dwww.template: Change location of documentation folders
+    to /usr/share/doc (closes: #107664).
+  * Fix a typo in templates files.
+  * Commented out unused parts of dwww-build.
+  * Added dependency on awk, changed dependency on man to man-db.
+
+ -- Robert Luberda <robert@debian.org>  Mon, 13 Aug 2001 01:09:05 +0200
+
+dwww (1.6.2) unstable; urgency=low
+
+  * Added German translation of debconf templates (closes: #99453)
+    Thanks to Sebastian Feltel <sebastian@feltel.de>.
+  * Added Polish translation of templates.
+  * dwww-build: more fixes with building of manpages.
+  * dwww-build: set $PATH explicity (closes: #101339).
+  * Changed debian logo (closes: #100016).
+  * Do not install unused *.html files from lib/editorials.
+
+ -- Robert Luberda <robert@debian.org>  Wed,  4 Jul 2001 23:47:35 +0200
+
+dwww (1.6.1) unstable; urgency=low
+
+  * dwww-convert: encode URL in dir2html and html2html functions
+     (closes: #98396).
+  * dwww-build: fix bug in building indexes of manpages.
+
+ -- Robert Luberda <robert@debian.org>  Thu, 24 May 2001 19:34:22 +0200
+
+dwww (1.6.0) unstable; urgency=low
+
+  * Drop support for .dwww-index files, dwww-doc-index script removed too.
+      (closes: #67739)
+  * The menu method is now only method of generating documentation's index,
+    so increased dependency on a menu package from `Recommends:' to `Depends:'.
+  * Updated README file.
+
+  * Debconf support added, old dwwwconfig script removed. New debconf
+    config script should fix the problems listed below:
+      + "dwww produces lots of output at installation time"    (closes: #11897)
+      + "dwww postinstall emits diagnostic but does not fail!" (closes: #29272)
+      + "dwwwconfig does not honour SERVERTYPE setting..."     (closes: #62605)
+      + "wrong heuristic for finding active www server"        (closes: #94297).
+
+  * Modified dwww's html templates and Debian logo added (closes: #29015).
+  * debian/prerm, debian/postrm: remove & purge cleany (closes: #96059).
+  * Wrote missing manpages: dwww-find.8, dwww-quickfind.8, dwww-txt2html.8
+     (closes: #23315).
+  * dwww works with wn again (closes: #26074).
+  * dwww-build, dwww.cgi, dwww-text2html: do proper URL encoding.
+
+  * Include /var/www/dwww symlink in the package as /var/www is a standard
+    Debian `web document root' (closes: #9365).
+  * The above mentioned symlink must be absolute (because /var/www can be
+    a symlink itself), so override lintian complains about that.
+
+  * Standards-Version: 3.5.4
+
+ -- Robert Luberda <robert@debian.org>  Sun, 20 May 2001 17:02:10 +0200
+
+dwww (1.5.2) unstable; urgency=low
+
+  * dwww.cgi: convert %XX to alphanumeric *before* checking for invalid
+    characters (closes: #93764).
+  * dwww-build: we don't run update-menus, so we need to copy and save the
+    menu.html file.
+  * menu-method: remove generated menudefs.hook in postrun.
+  * Added menu entry.
+  * Updated debian/copyright.
+
+ -- Robert Luberda <robert@debian.org>  Wed, 18 Apr 2001 23:23:23 +0200
+
+dwww (1.5.1) unstable; urgency=low
+
+  * dwww-convert: Applied patch from Jean-Philippe Guerard
+    <jean-philippe.guerard@mail.dotcom.fr>:
+    + Several fixes in the HTML URLs conversion Perl script used in
+      "dwww-convert". Should now correctly handle all URLs, including
+      fragments, links splited over several lines, and unquoted URLs.
+    + The HTML URLs conversion code used in "dwww-convert" is now in the
+      "builtin_html2html" subroutine.
+    + The HTML URLs conversion code in "dwww-convert" now handle
+      <FRAME SRC=""> tags (closes: #11535).
+    + In "dwww-convert", when trying to find out the file type, the file
+      extension is checked to guess the file type, then, if unsucessful,
+      the "file" command is used (closes: #62735).
+  Many thanks for the patch, Jean.
+
+  * dwww-convert: minor other improvements.
+  * debian/postinst: dwww's database is built in the background (closes: #8907).
+
+  * Fixes in menu-method:
+    + make it compatible with menu-2 (closes: #37378).
+    + add "runonlyasroot" option (closes: #51206).
+    + add support for external links with "url" entry (closes: #14041).
+
+  * dwww-build: do not call update-menus. There is no such need since every
+    package which provides menu entry file, should call updates-menu in its
+    postinst script (closes: #29502, #54694, #64263, #77331).
+
+  * Closing NMU fixed bugs: closes:  #8940, #10042, #10756, #17478, #19054,
+    closes: #30058, #34432, #34855, #37856, #38317, #38821, #43904, #45902,
+    closes: #45375, #47469, #48892, #49072, #49336, #49664, #51177, #53355,
+    closes: #59185, #60557, #60664, #62158, #62394, #62596, #62726.
+
+ -- Robert Luberda <robert@debian.org>  Sun,  8 Apr 2001 22:42:02 +0200
+
+dwww (1.5.0) unstable; urgency=low
+
+  * New maintainer (closes: #90877).
+  * realpath: accept multiple arguments as documented in manpage
+    (closes: #65628).
+  * dwww-convert: check if we are allowed to show a file before checking if
+    the file exists (closes: #69968).
+  * dwww-convert: if requested file does not exist, check if we can show
+    compressed file (closes: #67916, #67917, #9338).
+  * dwww-txt2html.c: dots and colons are allowed in manual pages names
+    (closes: #9694, #26794, #41106).
+  * dwww.cgi: if called without arguments, send redirect to dwww main page
+    (closes: #76622).
+  * dwwwconfig: fix typo in regular expression (closes: #63983).
+  * dwww: added support for links and w3m browsers (closes: #23786).
+  * Repackaged with debhelper v3.
+  * Added Build-Depends (closes: #70364).
+  * Supports DEB_BUILD_OPTIONS=debug,nostrip.
+  * Updated manpages.
+  * FHS updates: move cache dir to /var/cache/dwww, dwww templates to
+    /usr/share/dwww.
+
+ -- Robert Luberda <robert@debian.org>  Mon, 26 Mar 2001 22:56:32 +0200
+
+dwww (1.4.3.5-1.9) frozen unstable; urgency=medium
+
+  * Non-maintainer upload on behalf of Jean-Philippe Guerard
+    <jean-philippe.guerard@mail.dotcom.fr>.
+  * Really solve the relative link bug in html documents.
+    dwww-convert now take into account links starting with
+    "#" that are references to the current document.
+
+ -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Sun, 14 May 2000 14:15:05 +0200
+
+dwww (1.4.3.5-1.8) frozen unstable; urgency=medium
+
+  * Non maintainer upload.
+  * Updated the search pattern to include files in /usr/share/doc/.
+    (Closes: #62726)
+  * Empty arguments for dwww-build are now equivalent to --default.
+    (Closes: #62596)
+  * If the file is a link, overall file type is found by looking
+    at the file, not at the file link. (Closes: #62394, #30058)
+  * dwww now points only to /usr/doc, but lists also symlinks to
+    /usr/share/doc. (Closes: #62158, #50260, #49664)
+  * Rephrased the document root selection dialog. (Closes: #59185)
+  * Updated dpkg-build to accept dates containing "/" characters.
+    Patch by Mike Charlton. (Closes: #51177, #60664)
+  * Added support for method HEAD in dwww.cgi.
+    Patch by Jon Nelson. (Closes: #17478)
+  * These bugs seem to be already fixed !
+    (Closes: #48892, #49060, #49132, #49336, #10756, #37250, #42979)
+    (Closes: #45151, #53424, #38317, #37856, #34855, #9338) 
+
+ -- Jean-Philippe Guerard <jean-philippe.guerard@mail.dotcom.fr>  Mon,  8 May 2000 21:26:54 +0000
+
+dwww (1.4.3.5-1.7) frozen unstable; urgency=medium
+
+  * Non maintainer upload. I think dwww should be considered orphaned.
+  * Fixed browsing of directories. Support both /usr/doc and
+    /usr/share/doc. More consistent "type" handling in dwww-convert.
+    Patch by Jean-Philippe Guérard. (Fixes: #55858, #57791)
+  * Added /usr/share/info and /usr/local/info to dwww-convert's DWWW_DOCPATH.
+  * Have both /usr/doc and /usr/share/doc in the top file.
+  * Install postrm.
+  * FHS migration. (Fixes: #48885)
+  * Updated Standards-Version and made it lintian-clean.
+  * Cleaned up the source archive.
+  * Fixed HTML files and added DOCTYPE; they now validate using nsgmls.
+  * Updated locations in copyright file.
+  * Remove /etc/dwww/dwww.conf on purge. (Fixes: #37621)
+  * Some bug reports are no longer applicable/reproducable. 
+    (Fixes: #10449, #34398, #25477, #26492, #32556, #32032, #34447, #36701, #46697)
+
+ -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Sun,  5 Mar 2000 15:45:34 +0100
+
+dwww (1.4.3.5-1.6) frozen unstable; urgency=low
+
+  * Non maintainer upload.
+  * Corrected MIME type returned for converted manual pages using Roland
+    Rosenfeld's patch. (Fixes: #53355, #54220, #58021)
+
+ -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Wed, 23 Feb 2000 20:23:12 +0100
+
+dwww (1.4.3.5-1.4) unstable; urgency=low
+
+  * Non maintainer upload.
+  * [dwww-convert] Determine file types using file + magic2mime rather than
+    guessing on the basis of a filename extension. (introduces dependency on
+    file). Handle compression of non-HTML files.
+  * [dwww-convert] Handle more types of links:
+    * LINK HREF, so style-sheets like in wdg-html-reference's
+      "html40/index.html" works.
+    * BODY BACKGROUND. (Closes: #8940)
+  * Fixed links to "undocumented" manpage. (Closes: #51045)
+
+ -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Sat,  4 Dec 1999 11:51:32 +0100
+
+dwww (1.4.3.5-1.3) unstable; urgency=low
+
+  * Non maintainer upload.
+  * [debian/rules] Added removal of debian/files to clean target 
+    (closes: #49072).
+
+ -- Torsten Landschoff <torsten@debian.org>  Mon,  8 Nov 1999 19:33:23 +0100
+
+dwww (1.4.3.5-1.2) unstable; urgency=low
+
+  * Fixing small thinko, really closing #43094
+
+ -- Martin Bialasinski <martinb@debian.org>  Tue,  2 Nov 1999 21:47:28 +0100
+
+dwww (1.4.3.5-1.1) unstable; urgency=low
+
+  * NMU.
+  * Recompiled against fixed publib-dev; fixes dwww-txt2html crashes.
+    (Closes: #38821, #45092, #45375).
+  * [dwwwconfig] Fixed chown call to protect against whole system chown in
+    case of pilot error. (Closes: #43094).
+  * [dwww-find] use /bin/sh rather than bash. (Closes: #19054).
+  * [dwww.cgi] Fixed filename match regexp as per Mark Summerfield's
+    suggestion. Makes dwww deal with perl module manpages properly. 
+    (Closes: #26794, #34015, #34456, #35788, #41106)
+  * [Makefile] Use '!' as negator in character-class glob to remove '^'
+    bashism. (Closes: #47469)
+  * Applied AMAZING CURE 4 HAIR LOSS to README and make it go boldly.
+    (Closes: #34432)
+  * Put in a note in the README to point to doc-base as the uniform
+    documentation registration system. 
+  * My older NMU has been acknowledged implictly. (Closes: #37378)
+  * The cron job cds to a known-good directory since 1.4.1-1 (Closes: #10042)
+  * The cron job does not seem to call update-menus anymore. (Closes: #29502)
+  * Call update-menus in postinst and postrm (Lintian).
+
+ -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Sat, 30 Oct 1999 15:57:54 +0200
+
+dwww (1.4.3.5-1) unstable; urgency=low
+
+  * Change dependency to perl5.
+
+ -- Jim Pick <jim@jimpick.com>  Mon,  5 Jul 1999 21:36:14 -0700
+
+dwww (1.4.3.4-0.3) unstable; urgency=low
+
+  * Use new-style menu-methods file (from menu's examples), as menu's
+    handling of old-style menu-methods is currently broken (#37379).
+    Fixes #37378.
+
+ -- J.H.M. Dassen (Ray) <jdassen@wi.LeidenUniv.nl>  Mon, 24 May 1999 12:18:56 +0200
+
+dwww (1.4.3.4-0.2) frozen unstable; urgency=high
+
+  * Remove reference to i386 and make it build on "any" again
+  * Fix postrm to make purge really work this time.
+
+ -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Thu, 25 Jun 1998 16:51:52 +0200
+
+dwww (1.4.3.4-0.1) frozen unstable; urgency=high
+
+  * Fix detection of wn webserver to make it work with newer version.  
+    (Bug#23790)
+
+ -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Tue, 23 Jun 1998 11:55:20 +0200
+
+dwww (1.4.3.3-0.1) frozen unstable; urgency=high
+
+  * Back out chowning group of /var/spool/dwww in /usr/sbin/dwwwconfig.
+    (Bug#237716)
+
+ -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Mon, 22 Jun 1998 09:29:40 +0200
+
+dwww (1.4.3.2-0.1) frozen unstable; urgency=high
+
+  * Fix use of /tmp for tempfiles in a lot of places: tempfiles are now 
+    created in /var/spool/dwww.  Also fixed earlier "fix" that used 
+    /var/lib/dwww for tempfiles.  This should fix the errors from various
+    dwww-* tools that also caused cron.daily/dwww to send a daily complaint 
+    mail to root.  (Bug#16212) 
+  * Install the dwww cgi script in /usr/lib/cgi-bin instead of /usr/lib/dwww.  
+    Changed dwwwconfig to create a copy instead of a symlink of the dwww cgi 
+    script to the effective cgi-bin directory if it is in a non-standard 
+    location.  (Bug#11584,22018,22153,22173,23439) 
+  * Fix $ENV{PATH} in /usr/lib/dwww/dwww.cgi ; don't be so paranoid that 
+    dwww's children can't find basic stuff like grep and awk anymore.  
+    (Bug#16506,19045)
+  * The "_" character is not a real security hazard. But it is used in a 
+    surprisingly high number of documentation filenames. 
+    (Bug#18203,18356,22229,23440)
+  * Actually install dwww.1 manpage.  (Bug#9366,9369,9817)
+  * Remove old backup file dwww.cgi~ from the source
+  * Fixed the following reported lintian errors & warnings: 
+     - binaries w/o manpages (linked to undocumented.7.gz);  (Bug#8327)
+     - don't compress copyright file; 
+     - do compress manpages;  (Bug#15706)
+     - made symlinks to cgidir and webroot absolute. 
+    This should leave only the warning about the standards version, which 
+    is a good reminder to really audit dwww sometime soon. (Bug#6356)
+  * No need to use the anti-social bashist "function" keyword in a /bin/sh 
+    script. ;-) (Bug#23624,10713)
+  * Added descriptions for manpages in section 3thr (Bug#8875) and section 1db. 
+  * Added postrm script that can purge /etc/dwww/dwww.conf.  (Bug#18110)
+  * Added perl to the Depends: because dwwwconfig uses Getopts::Long which 
+    is only available in perl.  (Bug#9101)
+  * Added Suggests: lynx.  (Bug#23546)
+  * Upped the upstreams version number. 
+
+ -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Thu, 18 Jun 1998 9:25:58 +0200 
+
+dwww (1.4.3-1) unstable; urgency=high
+
+  * Another CGI security bug that allowed execution of arbitrary
+    commands.  I am now specifying a set of acceptable characters, rather
+    than excluding certain ones and using perl -T.  Fixes bug #18107
+    (Thanks to Martin Bialasinksi)
+  * I know there are lots of other non-security bugs outstanding.  They will
+    be fixed in an upcoming, more substantial release.
+  * libc6 version.
+
+ -- Jim Pick <jim@jimpick.com>  Thu, 12 Feb 1998 00:51:17 -0800
+
+dwww (1.4.2-1) stable; urgency=high
+  
+    * Another CGI security bug that allowed execution of arbitrary
+      commands.  I am now specifying a set of acceptable characters, rather
+      than excluding certain ones and using perl -T.  Fixes bug #18107
+      (Thanks to Martin Bialasinksi)
+    * I know there are lots of other non-security bugs outstanding.  They will
+      be fixed in an upcoming, more substantial release.
+    * Compiled for libc5 for bo-updates.
+  
+   -- Jim Pick <jim@jimpick.com>  Wed, 11 Feb 1998 23:22:37 -0800
+  
+dwww (1.4.1-1.1) unstable; urgency=high
+  
+  * libc6 compile
+  * non-maintainer release
+  * changed filelist="/tmp/dwww-find.list.$$" in dwww-find to
+    filelist="/var/lib/dwww/find.list.$$" (Fixes: Bug#11830)
+
+ -- Joel Klecker <jk@espy.org>  Wed, 31 Dec 1997 12:13:36 -0800
+
+dwww (1.4.1-1) frozen unstable; urgency=high
+
+  * Fixed major security flaw: dwww.cgi would accept backquotes
+    and '$' characters, then pass them on to bash.  This enables
+    people to execute commands as the CGI user.  Particularily
+    dangerous if someone configures their web server to run
+    CGI programs as root. dwww.cgi was modified to convert all
+    backquotes and dollar signs into underscores.
+  * dwww.cgi: don't convert '+' characters into spaces - fixes
+    bug #8563 (Thanks Lars Wirzenius and Joost Witteveen)
+  * dwwwconfig: place quotes around DWWW_SERVERTYPE in 
+    /etc/dwww/dwww.conf to cope with server names with space
+    such as CERN httpd - fixes bug #8525
+  * /etc/cron.daily/dwww: added line to cd to /var/spool/dwww
+    to prevent error message that someone was having (not me)
+    - fixed bug #8591
+
+ -- Jim Pick <jim@jimpick.com>  Tue, 8 Apr 1997 12:00:21 -0700
+
+dwww (1.4-1) unstable; urgency=low
+
+  * Added emacs lines to changelog
+  * dwww-convert: accepts HTML files that end in .htm  - previously 
+    only .html was supported) 
+    (Thanks to Susan G. Kleinmann)
+  * dwww-convert: properly handles files that do not exist
+  * dwww-convert: checks for a .html.gz file if a .html file does 
+    not exist, and vice-versa  
+    (Thanks to Brian C. White)
+  * dwww-convert: modified perl code in script to do replacements
+    over the entire HTML file instead of doing it line by line
+  * added full path to dwww-cache in /etc/cron.daily/dwww
+    (Thanks to Herbert Xu for reporting the bug, and Henrik
+    Wallin for the fix) - fixes bug #7088
+  * made fixes to dwww-find and dwww-doc-index to make dwww work
+    with bash 2.0 - fixes bugs #7103, #7143 and #7156
+    (Thanks to Szymon M. Rusinkiewicz and Joey Hess)
+  * dwww-convert: fixed small bug which confused newlines with
+    contents of href tags
+  * dwww-convert: recognize when filename is a directories.  It it
+    is, then check for index.htm* files, and display them as 
+    standard files if found.  Removed code from
+    builtin_dir2html() that would display index.htm* files.
+  * dwww-convert: optimized builtin_dir2html() by using new
+    feature of accessing directories using 'file' type.  Removed
+    sed scripts.  Massive performance boost.  :-)
+  * dwww-convert: fixed builtin_dir2html() to do file links to
+    all types of *.htm* files when using DWWW_USEFILEURL
+  * dwww-convert: added code to check for .htm, .html, .htm.gz,
+    and .html.gz files when file not found.  Also, strip off
+    HTML anchors.
+  * Makefile, debian/rules: reworked directories, added 
+    /var/lib/dwww/html.  Changed documentation files to be mode
+    0644.  Removed sticky bit from /var/spool/dwww directory and
+    removed /var/spool/dwww/.cache_db file.
+  * dwww-doc-index: changed function names to be compatible with
+    sh and bash - fixes bug #7267
+    (Thanks Bill Wohler)
+  * adminlinks.htm, docintro.html, search-docs.html: removed these
+    incomplete .html files to ./lib/editorial directory
+  * dwww-build, dwww.template: Make more lynx friendly -- build man 
+    page indexes in separate directories.  Put search engine first.  
+    Remove link to docintro.html (it's incomplete).  Add link to
+    menu.html.
+  * dwww, dwww-build, dwww.1, dwww.8, postinst:  Change location of
+    main index page from http://localhost/dwww/dwww.html to 
+    http://localhost/dwww/index.html.
+  * dwww-build, html templates: modified so that there are new
+    indexes to the man pages, and they are in separate directories
+    (much like how Yahoo is set up).
+  * dwww-build, dwww.8: Make title configurable.
+  * Added Joost Witteveen's Debian Documentation Menu (Thanks!).
+  * change location for /etc/dwww.conf to /etc/dwww/dwww.conf
+  * control: added Recommends: menu (>= 0.11)
+  * dwwwconfig, Makefile, rules: moved dwwwconfig from debian
+    directory in source to main directory
+  * added /var/www/dwww and /usr/lib/cgi-bin/dwww symlinks - to
+    conform to web standard
+  * removed INSTALL.Debian file and removed many items from to do
+    list
+  * dwww-build: modified it to create index files for wn web server
+
+ -- Jim Pick <jim@jimpick.com>  Sat, 22 Mar 1997 17:12:55 -0800
+
+dwww (1.3-1) unstable; urgency=low
+
+  * Removed references to localhost in dwww.template
+  * Replaced references to file://localhost with
+    reference to '/cgi-bin/dwww?type=file\&location=/usr/doc'
+  * modified dwww-doc-index so that it doesn't complain if
+    /usr/local/doc doesn't exist
+  * added Perl code to dwww-convert to make links in html
+    files point to cgi-script
+  * added MIME headers to dwww-convert and removed them
+    from cgi-script
+  * added DWWW_SERVERNAME, DWWW_CGIUSER, and DWWW_USEFILEURL
+    options to /etc/dwww.conf.  Modified dwww.8 man page.
+  * modified dwww script, and dwww-convert script to use
+    DWWW_SERVERNAME instead of localhost
+  * if DWWW_USEFILEURL is set, revert back to old behaviour
+    of using file:// URL's for performance
+  * modified dwww-build so that it doesn't complain about
+    directories in the manpath that don't exist
+  * modified dwww-daily (/etc/cron.daily/dwww) to use
+    DWWW_CGIUSER when calling dwww-cache --clean
+  * tested dwww against five different web servers and wrote
+    INSTALL.Debian file
+
+ -- Jim Pick <jim@jimpick.com>  Sun, 19 Jan 1997 20:28:51 -0800
+
+dwww (1.2.1-1) unstable; urgency=low
+  
+  * New maintainer, Jim Pick <jim@jimpick.com>
+  * Added dwww-txt2html, dwww-doc-index and dwww-format-man to 
+    /usr/sbin directory - this should fix bugs #5604, #5674, #5785
+  * Added set -e to postinst, prerm - fixes bug #5975
+  * Modified dwww-daily, postinst to use www-data user when
+    modifying /var/spool/dwww/.cache_db and set www-data to be
+    owner of that file - fixes bug #5603
+
+ -- Jim Pick <jim@jimpick.com>  Sun, 15 Dec 1996 23:25:55 -0800
+
+dwww (1.2-1) unstable; urgency=low
+
+  * Added debian/* into upstream source. This changelog now works for
+    upstream source as well.
+  * Moved dwwwconfig into debian/dwwwconfig.
+  * Added /usr/local/doc and /usr/share/doc into dwww front page.
+  * Fixed dwww-cache's --list and --list-all show that they don't show
+    out-of-date documents.
+  * Changed "Package specific directories" into a normal "dir" request
+    to dwww.cgi. This makes new packages immediately visible.
+  * Removed "Copyrights" and "Examples" from front page. They're now
+    inside package specific directories.
+  * Added a C program to convert text to HTML. Much faster than the old
+    sed jungle, and works better, too. Does manual pages too. However,
+    doesn't remove headers and footers yet (and the old shell script
+    code was buggy, so I removed it).
+  * Removed package specific directory listing and copyrights from
+    front page (and dwww-build). The latter is no longer needed, the
+    former is better done with dir2html and caching.
+  * Removed support for Info files (use info2www instead, since it
+    actually works).
+  * Removed support for compressed files in the cache. It slowed things
+    too much, and wasn't all that useful, unless you were _really_
+    short on disk space.
+  * Fixed bug in dwww-quickfind: now searching for "sh" doesn't find
+    tkdesksh (for example), but always finds something that ends in
+    /sh, i.e., /bin/sh. Still a problem if there is both a /bin/sh
+    and a /usr/bin/sh.
+  * dwww-quickfind: Reads output of "dpkg --search '*'" instead of
+    /var/lib/dpkg/info/*.list. This gives more portability, but makes
+    dwww-daily somewhat slower. Only looks at files that contain
+    /bin/, /sbin/, /usr/games/, for speed reasons.
+  * dwww-cache: strip unnecessary .html end from files in /var/spool/dwww.
+  * Added dwww-format-man: batch format manual pages into the cache.
+  * Added dependency on man, for obvious reasons.
+  * Added lists of documents (dwww-doc-linux).
+  * Added GPL as file COPYING.
+  * Fixed man-sections.html.
+  * dwww-cache: Added prefix compression.
+  * dwww-build: fixed suffix removal from name (in.telnetd.8 used to
+    result in "in", now in "in.telnetd")
+  * dwww-build: doesn't find non-English manual pages (because they
+    make lists confusing; a future version will create separate lists
+    for each language)
+
+ -- Lars Wirzenius <liw@iki.fi>  Sun, 17 Nov 1996 01:44:19 +0200
+
+dwww (1.1-3) unstable; urgency=low
+
+  * Previous upload failed due to bad .changes file.
+
+ -- Lars Wirzenius <liw@iki.fi>  Wed, 9 Oct 1996 03:33:07 +0300
+
+dwww (1.1-2) unstable; urgency=low
+
+  * Updated to recognize new Apache setup.
+  * Moved dwww link updating from postinst to /usr/sbin/dwwwconfig.
+  * Upgrade does not require rebuild of dwww pages.
+
+ -- Lars Wirzenius <liw@iki.fi>  Fri, 4 Oct 1996 23:52:00 +0300
+
+dwww (1.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * Fixed compilation bug: cern-httpd no longer needs to be installed.
+  * Fixed postinst bug: now works if Apache is the only httpd installed.
+
+ -- Lars Wirzenius <liw@iki.fi>  Wed, 2 Oct 1996 17:15:51 +0300
+
+dwww (1.0-2) unstable; urgency=low
+
+  * Added recommendation for info2www.
+  * Fixed build-time dependency on cern-httpd (/home/httpd-data).
+
+ -- Lars Wirzenius <liw@iki.fi>  Tue, 24 Sep 1996 21:26:46 +0300
+
+dwww (1.0-1) unstable; urgency=low
+
+  * First release.
+
+ -- Lars Wirzenius <liw@iki.fi>  Tue, 24 Sep 1996 16:00:57 +0300
+
+vim: ts=2 et

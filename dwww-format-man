@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Script to format all manual pages in one or more directories into the
+# dwww cache (/var/cache/dwww).
+#
+# Usage: $0 directory ...
+# Example: $0 /usr/share/man/man1 /usr/local/man3
+# Example: $0 `manpath -q | tr : ' '`
+#
+# Lars Wirzenius
+# "@(#)dwww:$Id: dwww-format-man,v 1.7 2002/04/07 17:51:53 robert Exp $"
+#
+
+. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+
+if [ -z "$1" ] ; then 
+	echo "Usage: $0 directory ..." 1>&2
+	exit 1
+fi
+
+exec su "$DWWW_CGIUSER" -s /bin/sh -c "
+PATH=$PATH" '
+for i in ' "$@" '
+do
+	find "$i" -type f |
+	while read f
+	do
+		dwww-convert man "$f" > /dev/null
+	done
+done
+'

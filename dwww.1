@@ -1,0 +1,52 @@
+.TH dwww 1 "April 25th, 2002" "dwww 1.7.5" "Debian"
+.SH NAME
+dwww \- access documentation via WWW
+.SH SYNOPSIS
+http://localhost/dwww/index.html
+.br
+.B dwww
+.br
+.B dwww
+.IR "programname"  "|" "packagename"
+.SH DESCRIPTION
+A typical Linux system has documentation in many formats (manual pages,
+Info files, READMEs, and so on).
+dwww makes it possible to access all of these via the same interface,
+a WWW browser.
+This makes it easier to use the documentation.
+.PP
+To use dwww, load the URL given in the SYNOPSIS.
+If you have a web browser installed, you can also just run the dwww command
+which loads the URL.
+.B dwww
+uses program specified in BROWSER variable.
+If the program cannot be executed,
+.B dwww
+first tries to use browser specified by 
+DWWW_BROWSER or DWWW_X11_BROWSER configuration variable (cf.
+.BR dwww (8)),
+than will try to load the URL with some other installed browser.
+.PP
+If optional argument
+.IR "programname"  " or " "packagename"
+is specified,
+.B dwww
+will search all documentation related to given program or package.
+.SH ENVIRONMENT
+.IP BROWSER
+Program used to load the above mentioned URL.
+.SH FILES
+.IP /etc/dwww/dwww.conf
+Configuration file for dwww.
+.SH "SEE ALSO"
+.BR dwww-find (8),
+.BR dwww (8).
+.SH AUTHOR
+Lars Wirzenius <liw@iki.fi>. Modified by Robert Luberda <robert@debian.org>.
+.br
+Bugs should be reported via the  Debian Bug Tracking System at
+<URL:http://bugs.debian.org/>.
+.PP
+dwww is licensed via the GNU General Public License.
+While it has been written for Debian, porting it to other
+systems is strongly encouraged.

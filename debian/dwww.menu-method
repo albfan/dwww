@@ -1,0 +1,64 @@
+#!/usr/sbin/install-menu
+#I need menu-1!
+#
+#NOTE: the first line of this script _must_ be
+# equal to "#!/usr/sbin/install-menu", otherwise update-menus
+# will feed this script old-compat-mode data.
+#
+#More info: /usr/share/doc/menu/html.
+#
+#The output of this script still isn't quite right, but it starts
+#to be acceptable.
+#
+compat="menu-1"
+
+!include menu.h
+
+compat="menu-2"
+
+# replaces all characters which are not a letter or a number with %<hex-code>
+# bug: we should not replace `/' and `.' ...
+function url_encode($url) = replacewith(cppesc($url), "$", "%");
+
+# prints $longtile if defined, else $title.
+function dwww_title() =  ifelse($longtitle, $longtitle, $title);
+
+supported;
+  dwww =      "<li><a href=\"/cgi-bin/dwww?type="
+		ifelse($dwwwtype,$dwwwtype,"file")
+	       "&location=" url_encode($command) "\">" 
+		dwww_title() "</a>"
+		ifnempty($description,"<br><font size=\"-1\">"$description "</font>")
+	      "\n";
+  url =      "<li><a href=\"" $command "\">" dwww_title() "</a>"
+	      ifnempty($description,"<br><font size=\"-1\">"$description "</font>")
+	      "\n";
+endsupported;
+
+
+startmenu=    "<P><font size=\"+2\"><b><a name=\"" url_encode($section) "\">"
+               $title
+	      "</a></b></font>\n<P><ul type=disc>"
+	      ifnempty($description,"<br><font size=\"-1\">" $description "</font>")
+	      "\n";
+
+endmenu=      "</ul>\n\n";
+
+submenutitle="<li><font size=\"2\"><a href=\"#" url_encode($section) "\">"
+              dwww_title() "</a></font>"
+	      ifnempty($description,"<br><font size=\"-1\">"$description "</font>")	
+	      "\n";
+
+genmenu=      "/var/lib/dwww/html/menudefs.hook";
+# remove generated file after run
+postrun="rm -f " prefix() "/var/lib/dwww/html/menudefs.hook";
+
+rcfile=       "/var/lib/dwww/html/menu.html";
+examplercfile="/usr/share/dwww/menu.html-menu";
+rootprefix=   "/";
+# userprefix=   ".dwww/";
+# dwww does not support user's menus
+onlyrunasroot= true;
+treewalk="(mc)";
+mainmenutitle="Debian information";
+preoutput="<!-- automatically generated file. Do not edit (see /usr/share/doc/menu/html)-->\n\n";

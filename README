@@ -1,0 +1,32 @@
+    README for dwww
+                              ``To boldly go where no doc has gone before''
+---------------------------------------------------------------------------
+
+dwww is a web interface to all on-line documentation on a
+Debian system.  It builds some web pages that list all installed
+documents, and converts all documents to HTML. The conversion
+is done when the user requests the document.  A future version
+will support several ways of searching for documents.
+
+dwww requires running a web server. Sorry.
+
+For more information, read the manual page dwww(8), and the other
+manual pages it refers to.
+
+
+  Automatic fancy index of documents
+--------------------------------------
+
+Debian now has a "doc-base" package that provides a uniform way of
+registering documenation; it supports other documentation systems besides 
+dwww. Please read install-docs(8) for futher reference.
+	 _				      _
+
+	| 				       |
+	    dwww is still under development!
+	|_   				      _|
+
+
+dwww is already quite usable, however.  Please use it, and report
+bugs via the Debian bug tracking system so that they can be fixed.
+

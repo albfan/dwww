@@ -1,0 +1,92 @@
+# Common functions used by dwww shell scripts
+#
+# $Id: functions.sh.in,v 1.2 2002/04/13 08:34:07 robert Exp $
+#
+
+readonly dwww_config="/etc/dwww/dwww.conf"
+readonly dwww_libdir="/usr/share/dwww"
+readonly dwww_version="#VERSION#"
+
+#
+# Initialize dwww: set default variables, read config file, set umask & PATH
+#
+dwww_initialize() {
+
+	
+	DWWW_DOCPATH="/usr/share/doc:/usr/doc:/usr/share/info:/usr/info:/usr/share/man:/usr/man:/usr/X11R6/man:/usr/local/man:/usr/local/doc:/usr/local/info:/usr/share/common-licenses"
+	DWWW_ALLOWEDLINKPATH="/usr/share:/usr/lib"
+	DWWW_HTMLDIR="/var/lib/dwww/html"
+	DWWW_USE_CACHE=yes
+	DWWW_KEEPDAYS=10
+	DWWW_QUICKFIND_DB="/var/lib/dwww/quickfind.dat"
+	DWWW_CGIUSER=www-data
+
+	
+	
+	if [ -r "$dwww_config" ]  ; then
+		. "$dwww_config"
+	fi
+
+	umask 022
+	PATH="/usr/sbin:/usr/bin:/bin:$PATH"
+}
+
+#
+# Encode URLs
+#
+urlencode() {
+	echo "$@" | perl -pe 'chomp(); s/([^A-Za-z0-9\ \_\-\.\/])/"%" . unpack("H*", $1)/eg; tr/ /+/;'
+}
+
+
+#
+# Format as table
+#
+table_it()
+{
+	state=A
+	w1=' WIDTH="33%"'
+	w2=''
+	
+	echo '<TABLE BORDER="0" WIDTH="95%" ALIGN="center">'
+	
+	while read line ; do
+		
+		case "$state" in
+			A)
+				state=B
+				echo "<TR>"
+				echo "<TD$w1 ALIGN=\"LEFT\">$line</TD>"
+			;;
+			B)
+				state=C
+				echo "<TD$w1 ALIGN=\"LEFT\">$line</TD>"
+				w1=""
+			;;
+			C)
+				state=A
+				echo "<TD$w2 ALIGN=\"LEFT\">$line</TD>"
+				echo "</TR>"
+				w2=""
+			;;
+		esac
+		
+	done
+
+	case "$state" in
+		A)
+		;;
+		B)
+			echo "<TD$w1></TD><TD$w2></TD></TR>"
+		;;
+		C)
+			echo "<TD$w2></TD></TR>"
+		;;
+	esac
+	
+	if [ "$first_line" != A ]; then
+		echo '</TABLE>'
+	fi		
+}
+
+

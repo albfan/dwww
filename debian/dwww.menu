@@ -1,0 +1,10 @@
+?package(dwww):needs="x11" \
+ section="Help" \
+ title="Dwww" \
+ command="/usr/bin/dwww"
+
+?package(dwww):needs="text" \
+ section="Help" \
+ title="Dwww" \
+ command="/usr/bin/dwww"
+

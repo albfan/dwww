@@ -1,0 +1,53 @@
+.TH DWWW-BUILD 8 "August 28th, 2001" "Debian" "Debian"
+.SH NAME
+dwww-build \- build dwww index lists
+.SH SYNOPSIS
+.B dwww-build 
+.RB [ --verbose ]
+.B --default
+.br
+.B "dwww-build " 
+.RB [ --verbose ]
+.I html-directory
+.SH DESCRIPTION
+.B dwww-build
+builds the index lists of all available documents
+(manual pages, Info files, and so on);
+it should be run whenever documentation is installed or removed.
+.BR dwww (8)
+does not work unless
+.B dwww-build
+has been run at least once;
+when the package is installed, it is run automatically.
+The default
+.B dwww
+installation creates a
+.IR /etc/cron.daily/dwww ,
+which automatically updates the pages each day.
+.PP
+The
+.I html-directory
+argument specifies the directory where all the
+.B dwww
+HTML files will be stored.
+No other files should be stored there.
+If
+.B --default
+is used, the location is checked in
+.IR /etc/dwww/dwww.conf ,
+and if not specified there, the default directory
+.I /var/lib/dwww
+is used.
+.SH FILES
+.IP /etc/dwww/dwww.conf
+Configuration file for
+.BR dwww (8).
+.IP /var/lib/dwww
+Where all dwww HTML files are stored, if nothing else is specified.
+.SH "SEE ALSO"
+.BR dwww (8).
+.SH AUTHOR
+Lars Wirzenius.
+See
+.BR dwww (8)
+for copyrights and stuff.

@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# "@(#)dwww:$Id: dwww,v 1.8 2002/04/25 07:04:09 robert Exp $"
+#
+# based on dpkg-www
+
+
+X11_BROWSERS="\
+    mozilla netscape konqueror gzilla gnome-help-browser arena chimera chimera2 amaya"
+TXT_BROWSERS="\
+    links w3m lynx lynx-ssl"
+
+
+#
+# Initialization
+#
+. /usr/share/dwww/functions.sh || exit 1
+dwww_initialize
+
+www_browser=""
+if [ -n "$DISPLAY" ] ; then
+	for i in "$BROWSER" "$DWWW_X11_BROWSER" $X11_BROWSERS ; do
+		if test -n "$i" && command -v "$i" >/dev/null 2>&1; then
+			www_browser="$i"
+			break
+		fi
+	done
+fi
+
+
+if [ -z "$www_browser" ] ; then
+	for i in "$BROWSER" "$DWWW_BROWSER" $TXT_BROWSERS ; do
+		if test -n "$i" && command -v "$i" >/dev/null 2>&1; then
+			www_browser="$i"
+			break
+		fi
+	done
+fi
+
+
+if [ -z "$www_browser" ] ; then
+	echo "$0: no BROWSER found" 2>&1
+fi
+
+if [ -z "$DWWW_SERVERNAME" ]
+then
+	DWWW_SERVERNAME=localhost
+fi
+
+if [ -n "$DWWW_SERVERPORT" ]
+then
+	DWWW_SERVERNAME="$DWWW_SERVERNAME:$DWWW_SERVERPORT"
+fi
+
+if [ -z "$1" ]
+then
+	exec "$www_browser" "http://$DWWW_SERVERNAME/dwww/"
+else
+	uri="`urlencode $1`"
+	exec "$www_browser" "http://$DWWW_SERVERNAME/cgi-bin/dwww?search=$uri"
+fi

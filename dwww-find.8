@@ -1,0 +1,34 @@
+.\" "@(#)dwww:$Id: dwww-find.8,v 1.3 2002/01/29 00:26:23 robert Exp $"
+.\"
+.TH dwww-find 8 "January 29th, 2002" "dwww 1.7.1" "Debian"
+.SH NAME
+dwww\-find \- find documentation related to a program.
+.SH SYNOPSIS
+.BI "dwww-find" " program"
+.I ...
+.SH DESCRIPTION
+.B dwww-find
+is part of the dwww package,
+which provides access to on-line documentation on a Debian system via WWW.
+.PP
+.B dwww-find
+searches for documentation  (man pages, info files, etc.) related to
+.I program
+It uses
+.BR dwww-quickfind (8)
+to find which Debian package a
+.I program
+belongs to, and then returns a HTML-formatted document, which contains
+a list of manual pages and other documentation included in that package.
+.SH FILES
+.IP /etc/dwww/dwww.conf
+Configuration file for dwww.
+.SH "SEE ALSO"
+.BR dwww (8),
+.BR dwww-quickfind (8).
+.SH AUTHOR
+Lars Wirzenius.
+See
+.BR dwww (8)
+for copyrights and stuff.
+

@@ -1,0 +1,58 @@
+Things to do to dwww
+====================
+
+Improve Navigation
+  - Navigation bar
+
+Faster
+  - searching should be much faster
+
+More MIME Types
+  - postscript, PDF, etc., etc.
+  - separate config file
+
+Full Text Index
+  - check out various engines
+    - ht://Dig
+    - WebGlimpse / GlimpseHTTP
+    - Harvest
+    - Ferret
+    - Swish
+    - cl-httpd
+
+More Data
+  - bug-reports
+  - mailing list archives
+  - links to FAQs, HOWTOs
+  - index of packages - ordered by
+     - distribution category
+     - menu placement
+     - available packages ie. /var/lib/dpkg/available
+     - control files and scripts ie. /var/lib/dpkg/info
+  - ability to view documentation for non-installed packages
+  - Debian specific information 
+     - newbie guide 
+         - FAQ, Installation Guide, Unix tutorial 
+  - System administration interface (probably in another
+      package)
+  - better documentation for system programmers
+      - Perl, Java, Python, shells, libc, lisp, etc. 
+      - "smart" search engine
+
+Improve Looks
+  - different look based on keyword "Mozilla" in User-Agent string
+  - configurable background colour
+  - configurable lightweight graphics 
+
+Multiple Language Support
+  - manpages for german, spanish, french, italian 
+
+Known Bugs
+  (please submit bugs for these if they are causing you
+   problems)
+  - hyperlinks in man pages don't work
+  - 'dwww gnus' doesn't pull up index to info file
+  - text to html doesn't do proper quoting
+
+---
+Comments?  Ideas?  Send a wishlist bug to Debian Bug Tracking System (http://bugs.debian.org)

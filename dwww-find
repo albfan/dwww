@@ -1,0 +1,191 @@
+#!/bin/sh
+# vim: ts=4
+#
+# Find all docs related to one program.
+# "@(#)dwww:$Id: dwww-find,v 1.14 2002/05/08 07:07:05 robert Exp $"
+#
+
+DATE=`LC_ALL=C date`
+
+if [ -x /usr/bin/dlocate -a -s /var/lib/dlocate/dlocatedb -a -s /var/lib/dlocate/dpkg-list ]
+then
+	DPKG=dlocate
+else
+	DPKG=dpkg
+fi
+
+trace() { 
+#	(echo -n "$@  "; date) 1>/dev/null
+true
+}
+
+trace beginning
+
+. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+
+
+#########################################################################
+#
+# Local functions
+#
+
+
+findpkg() {
+	if [ -f "$DWWW_QUICKFIND_DB" ]
+	then
+		dwww-quickfind "$1" "$DWWW_QUICKFIND_DB"
+	else
+		$DPKG -S "$1" | sed -ne "/bin.*\/$1\$/{;s/:.*//p;q;}"
+	fi
+}
+
+mans_in_pkg() {
+	echo "<STRONG>Manual pages:</STRONG> "
+	grep '/man/man[1-9n]/' < $filelist |
+	while read file
+	do
+	  x="`basename $file | sed 's/\.gz$//;s/\.\([^.]*\)$/(\1)/'`"	
+	  if [ -f "$file" ] ; then
+		uri="`urlencode $file`"
+	  	echo "<a href=\"/cgi-bin/dwww?type=man&location=$uri\">$x</a>"
+	  fi	
+	done | tee $temp | table_it
+	if [ ! -s $temp ]
+	then
+		echo "none." | table_it
+	fi
+	echo '<p align="left">'
+}
+
+infos_in_pkg() {
+	echo "<STRONG>Info files:</STRONG> "
+	grep -E '/info/.*info(\.gz)?$' < $filelist | 
+	while read file
+	do
+		base="`basename $file | sed 's/\..*//'`"
+		uri="`urlencode $file`"
+		echo "<a href=\"/cgi-bin/info2www?$uri\">$base</a>"
+	done | tee $temp | table_it
+	if [ ! -s $temp ]
+	then
+		echo "none." | table_it
+	fi
+	echo '<p align="left">'
+}
+
+docs_in_pkg() {
+	echo "<STRONG>Other documents:</STRONG><BR> "
+	grep -E '^/usr(/share)?/doc/' < $filelist |
+	while read file
+	do
+	  if [ -d "$file" ] ;then
+		  uri="`urlencode $file`"
+		  echo "<a href=\"/cgi-bin/dwww?type=dir&location=$uri\">$file</a><BR>"
+	  fi
+	done | tee $temp
+	if [ ! -s $temp ]
+	then
+		echo "none." | table_it
+	fi
+	echo '<p align="left">'
+}
+
+apropos() {
+	echo "<STRONG>Manual page search:</STRONG> "
+	man -k "$1" | sort | perl -e '
+		while (<STDIN>)
+		{
+			chomp();
+			if (s/^(\S+)\s\(([1-9]\S+)\).*-.*$/$1\/$2/) 
+			{
+				$file="$1($2)";			
+				s/(\W)/"%" . unpack("H*", $1)/eg;
+				$have_it = 1;
+				print "<a href=\"/cgi-bin/dwww?type=runman&location=$_\">$file</a>\n"
+			}
+		}
+		print "nothing.\n" unless defined $have_it; ' | table_it
+		
+}
+
+
+pkg_description () {
+	if [ -x /usr/bin/apt-cache ] 
+	then
+		apt-cache show -o 'APT::Cache::AllVersions=0' "$1" 2>/dev/null  \
+			| sed -ne '/^Description/,${;p;/^$/q;}' \
+			| /usr/sbin/dwww-txt2html \
+			| sed -e 's/<\/*pre>//;
+					  s/^ *\. */<BR>/;
+					  s|^\(Description\)\(.*\)$|<STRONG>\1</STRONG>\2<BR>|'
+		echo '<BR><BR>'
+	fi
+	
+}
+#########################################################################
+#
+# Main program
+#
+
+
+trace beginning2
+
+if [ "$1" = "" ]
+then
+	echo "usage: $0 programname" 1>&2
+	exit 1
+fi
+
+set -e
+temp=`tempfile -p dwww -s .dwww-find`
+filelist=`tempfile -p dwww -s .dwww-find`
+set +e
+trap "rm -f '$temp' '$filelist' ; exit 1" HUP INT QUIT TERM 
+
+
+if [ -r "$dwww_libdir/dwww-find.start" ]; then
+	sed -e "s|TITLE|Search results|g" \
+			"$dwww_libdir/dwww-find.start"
+else
+	echo "<html> <head> <title>Search results</title> </head> <body>"
+	echo "<h1>Search results</h1>"
+fi
+
+trace before for loop
+for arg in $*
+do
+	echo "<h2>Documentation related to <EM>$arg</EM></h2>"
+
+	for bin in $arg # `type -path -all $arg`
+	do
+        for pkg in `findpkg "$bin"`
+        do
+            if [ "$pkg" != "" ]
+            then
+                echo "<STRONG>Package:</STRONG> $pkg<p align=\"left\">"
+                trace before description
+                pkg_description "$pkg"
+                trace before listfiles
+                $DPKG -L "$pkg" > "$filelist"
+                trace before man_in_pkg
+                mans_in_pkg "$pkg"
+                trace before infos_in_pkg
+                infos_in_pkg "$pkg"
+                trace before docs_in_pkg
+                docs_in_pkg "$pkg"
+                trace after docs_in_pkg
+            fi
+        done
+    done
+	trace before apropos
+	apropos "$arg"
+	trace after apropos
+done
+
+if [ -r "$dwww_libdir/dwww-find.end" ] ;then
+	sed -e "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" "$dwww_libdir/dwww-find.end"
+else
+	echo "</body></html>"
+fi
+
+rm -f "$temp" "$filelist"

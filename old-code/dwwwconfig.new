@@ -1,0 +1,736 @@
+#!/usr/bin/perl
+$|=1;
+
+# This is the replacement for the dwwwconfig script
+#
+# Copyright by Jim Pick <jim@jimpick.com>
+#
+# This script is now written in Perl, and now scans
+# the configuration scripts of the known web servers
+# to determine where to place the symlinks for the
+# dwww cgi-script and the html directory.
+#
+# This script is only intelligent enough to understand
+# one web server installed at a time.
+#
+# Distributed under the terms of the GPL.
+
+# --------------- Invocation ---------------------------
+
+my $usage = "Usage:\n\ndwwwconfig --auto --remove\n\n";
+
+use Getopt::Long;
+$Getopt::Long::ignorecase = 0;  # distinct Upper
+
+die $usage unless &GetOptions ('auto', 'remove');
+
+# --------------- Subroutines --------------------------
+
+# Subroutine to Scan Apache Configuration Files
+# Also works for boa and NCSA (which are similar)
+sub ScanApacheConfFile ($) {
+  # Configfile to parse is the argument to the subroutine
+
+  if ( ! -r "$_[0]" ) { exit; };
+  open(HTCONFFILE,"<$_[0]") || die "Could not open $_[0]";
+
+  # First, do not consider any entries between
+  # VirtualHost directives
+  $virtualhost=0;
+  while (<HTCONFFILE>) {
+    if (/^\s*<\s*VirtualHost.*>/i) {
+      $virtualhost=1;
+    } 
+    elsif (/^\s*<\s*\/VirtualHost.*>/i) {
+      $virtualhost=0;
+    }
+    elsif ($virtualhost==0) {
+      # OK, consider directives
+
+      # Check for DocumentRoot (for symlink to /var/lib/dwww/html)
+      if( s/^\s*DocumentRoot\s+//i) {
+	  s/^\s*(.*)\/\s*$/$1\n/;
+	  chomp($httpd_docrootdir=$_);
+      }
+      
+      # Check for ScriptAlias (to copy dwww.cgi to)
+      if( s/^\s*ScriptAlias\s+\/cgi-bin\/\s+//i) {
+	  s/^\s*(.*)\/\s*$/$1\n/;
+	  chomp($httpd_cgidir=$_);
+      }
+      
+      # Check for User (for ownership of /var/cache/dwww)
+      if( s/^\s*User\s+//i) {
+	chomp($httpd_cgiuser=$_);
+      }
+      
+      # Check for ServerName (for DWWW_SERVERNAME)
+      if( s/^\s*ServerName\s+//i) {
+	chomp($httpd_servername=$_);
+      }
+      
+      # Check for Port (for DWWW_SERVERNAME)
+      if( s/^\s*Port\s+//i) {
+	chomp($httpd_port=$_);
+      }
+    }
+  }
+  close HTCONFFILE;
+}
+
+# Subroutine to Scan CERN-httpd Configuration Files
+sub ScanCERNConfFile ($) {
+  # Configfile to parse is the argument to the subroutine
+
+  if ( ! -r "$_[0]" ) { exit; };
+  open(HTCONFFILE,"<$_[0]") || die "Could not open $_[0]";
+
+  while (<HTCONFFILE>) {
+      # OK, consider directives
+
+      # Check for default location of documents
+      # (for symlink to /var/lib/dwww/html)
+      if( s/^\s*Pass\s+\/\*\s+//i) {
+	  s/^\s*(.*)\*\s*$/$1\n/;
+	  s/^\s*(.*)\/\s*$/$1\n/;
+	  chomp($httpd_docrootdir=$_);
+      }
+      
+      # Check for Exec (to copy dwww.cgi to)
+      if( s/^\s*Exec\s+\/cgi-bin\/\*\s+//i) {
+	  s/^\s*(.*)\*\s*$/$1\n/;
+	  s/^\s*(.*)\/\s*$/$1\n/;
+	  chomp($httpd_cgidir=$_);
+      }
+      
+      # Check for User (for ownership of /var/cache/dwww)
+      if( s/^\s*UserId\s+//i) {
+	  chomp($httpd_cgiuser=$_);
+      }
+      
+      # Check for ServerName (for DWWW_SERVERNAME)
+      if( s/^\s*HostName\s+//i) {
+	  chomp($httpd_servername=$_);
+      }
+      
+      # Check for Port (for DWWW_SERVERNAME)
+      if( s/^\s*Port\s+//i) {
+	  chomp($httpd_port=$_);
+      }
+    
+  }
+  close HTCONFFILE;
+}
+
+# Subroutine to Scan Dwww configuration file
+sub ScanDwwwConfFile ($) {
+  # Configfile to parse is the argument to the subroutine
+
+  if ( ! -r "$_[0]" ) { exit; };
+  open(DWWWCONFFILE,"<$_[0]") || die "Could not open $_[0]";
+
+  while (<DWWWCONFFILE>) {
+      # Check for DWWW_DOCROOTDIR
+      if( s/^\s*DWWW_DOCROOTDIR=//) {
+	chomp($dwwwconf_docrootdir=$_);
+      }
+      
+      # Check for DWWW_CGIDIR
+      if( s/^\s*DWWW_CGIDIR=//) {
+	chomp($dwwwconf_cgidir=$_);
+      }
+      
+      # Check for DWWW_CGIUSER
+      if( s/^\s*DWWW_CGIUSER=//) {
+	chomp($dwwwconf_cgiuser=$_);
+      }
+      
+      # Check for DWWW_SERVERNAME
+      if( s/^\s*DWWW_SERVERNAME=//) {
+	chomp($dwwwconf_servername=$_);
+      }
+
+      # Check for DWWW_SERVERTYPE
+      if( s/^\s*DWWW_SERVERTYPE=//) {
+	s/\"//g; # Kill quotes
+	s/\'//g; # Kill quotes
+	chomp($dwwwconf_servertype=$_);
+      }
+  }
+  close DWWWCONFFILE;
+}
+
+# I stole these 
+sub asky {
+        print @_,"? [Yes] ";
+        $answer=<STDIN>;
+        return ( !($answer =~ /^[nN].*/) );
+}
+
+sub askn {
+        print @_,"? [No] ";
+        $answer=<STDIN>;
+        return ( $answer =~ /^[yY].*/ );
+}
+
+# ------------------ Main Program -----------------------
+
+# Read command line parameters
+
+# Check to see if dwww.conf is in /etc directory (where
+# it used to be in dwww_1.3 and earlier) -- if it is, 
+# well move it!  to the /etc/dwww directory
+
+if ( -f "/etc/dwww.conf" ) {
+    # Make sure we don't overwrite nothin'
+    if ( -f "/etc/dwww/dwww.conf" ) {
+        print "Moving /etc/dwww.conf to /etc/dwww/dwww.conf.old-etc\n\n";
+	system("mv -f /etc/dwww.conf /etc/dwww/dwww.conf.old-etc");
+    } else {
+	# Here's your real normal-like case
+	print "Moving /etc/dwww.conf to /etc/dwww/dwww.conf\n\n";
+	system("mv /etc/dwww.conf /etc/dwww/dwww.conf");
+    }
+}
+
+# Check out where the web servers think everything is
+print "\nScanning web server configuration files...\n";
+
+# Clear variables (what the hey!)
+$httpd_serverfound="(No webserver found)";
+$httpd_docrootdir="(none specified)";
+$httpd_cgidir="(none specified)";
+$httpd_servername="(none specified)";
+$httpd_port="(none specified)";
+$httpd_cgiuser="(none specified)";
+$httpd_webstd=0;
+
+# Scan for Apache
+if ( -x "/usr/sbin/apache" || -x "/usr/sbin/apache-httpd" ) {
+    $httpd_serverfound="Apache";
+    ScanApacheConfFile("/etc/apache/httpd.conf");
+    ScanApacheConfFile("/etc/apache/srm.conf");
+}
+
+# Scan for CERN-httpd
+elsif ( -x "/usr/sbin/cern-httpd" ) {
+    $httpd_serverfound="CERN httpd";
+    ScanCERNConfFile("/etc/cern-httpd.conf");
+}
+
+# Scan for boa
+elsif ( -x "/usr/sbin/boa" ) {
+    $httpd_serverfound="Boa";
+    ScanApacheConfFile("/etc/boa/boa.conf");
+}
+
+# Scan for NCSA
+elsif ( -x "/usr/sbin/ncsa" ) {
+    $httpd_serverfound="NCSA httpd";
+    ScanApacheConfFile("/etc/ncsa/httpd.conf");
+    ScanApacheConfFile("/etc/ncsa/srm.conf");
+}
+
+# Scan for wn
+elsif ( ( -x "/usr/sbin/wnd" ) or ( -x "/usr/sbin/wnsd" ) ) {
+    $httpd_serverfound="wn";
+    $httpd_docrootdir="/var/www";
+    $httpd_cgidir="/var/lib/cgi-bin/wn";
+    $httpd_cgiuser="nobody";
+}
+
+# Scan for dhttpd
+elsif ( -x "/usr/bin/dhttpd" ) {
+    print "dhttpd detected: dhttpd does not support CGI scripts.\n";
+}
+
+# Let's print the results!
+print " Server Found: $httpd_serverfound\n";
+print " HTML Document Root Directory: $httpd_docrootdir\n";
+print " cgi-bin Directory: $httpd_cgidir\n";
+print " Server Name: $httpd_servername\n";
+print " Server Port: $httpd_port\n";
+print " CGI User: $httpd_cgiuser\n";
+if ( $httpd_docrootdir eq "/var/www" && $httpd_cgidir eq "/usr/lib/cgi-bin" ) {
+    print " Congratulations! Web server is configured to Web Standard\n";
+    $httpd_webstd=1;
+}
+
+# Now that we know where the files are supposed to be, let's
+# see where /etc/dwww/dwww.conf thinks they are
+
+print "Scanning /etc/dwww/dwww.conf...\n";
+
+# Clear variables
+$dwwwconf_servertype="(none specified)"; 
+$dwwwconf_docrootdir="(none specified)";
+$dwwwconf_cgidir="(none specified)";
+$dwwwconf_servername="(none specified)";
+$dwwwconf_cgiuser="(none specified)";
+$dwwwconf_servernamenoport="(none specified)";
+$dwwwconf_port="(none specified)";
+
+# Do the actual scanning
+if ( -f "/etc/dwww/dwww.conf" ) {
+    ScanDwwwConfFile("/etc/dwww/dwww.conf");
+}
+else {
+    print "/etc/dwww/dwww.conf file doesn't exist yet - using defaults\n";
+}
+
+# Let's print the results!
+print " Previously Installed Server: $dwwwconf_servertype\n";
+print " HTML Document Root Directory: $dwwwconf_docrootdir\n";
+print " cgi-bin Directory: $dwwwconf_cgidir\n";
+print " Server Name (and Port): $dwwwconf_servername\n";
+print " CGI User: $dwwwconf_cgiuser\n";
+
+# Now let's verify the locations on the disk
+
+print "Scanning directories...\n";
+
+# Clear variables 
+$actual_docrootdir = "";
+$actual_cgidir = "";
+
+# Check link to html directory
+if ( $dwwwconf_docrootdir ne "(none specified)" ) {
+    if ( -d "$dwwwconf_docrootdir" ) {
+	if ( -l "$dwwwconf_docrootdir/dwww" ) {
+	    $actual_docrootdir = $dwwwconf_docrootdir;
+	}
+    }
+}
+# Scan for other "standard" locations
+if ( $actual_docrootdir eq "" ) {
+    # Note: Web Standard location (/var/www/dwww) is implemented
+    # statically (ie. it's a part of the dwww package)
+    if ( -l "/home/httpd-data/dwww" ) {
+	$actual_docrootdir = "/home/httpd-data"; # Old CERN
+    } elsif ( -l "/var/web/webspace/dwww" ) {
+	$actual_docrootdir = "/var/web/webspace"; # Really Old Apache
+    } elsif ( -l "/home/www-data/webspace/dwww" ) {
+	$actual_docrootdir = "/home/www-data/webspace"; # Old Apache
+    }   
+}
+
+# Check link to cgi directory
+if ( $dwwwconf_cgidir ne "(none specified)" ) {
+    if ( -d "$dwwwconf_cgidir" ) {
+	if ( -l "$dwwwconf_cgidir/dwww" ) {
+	    $actual_cgidir = $dwwwconf_cgidir;
+	}
+    }
+}
+# Scan for other "standard" locations
+if ( $actual_cgidir eq "" ) {
+    # Note: Web standard location (/usr/lib/cgi-bin/dwww) is
+    # implemented statically (ie. it's a part of the dwww package)
+    if ( -l "/usr/lib/cern-httpd/cgi-bin/dwww" ) {
+	$actual_cgidir = "/usr/lib/cern-httpd/cgi-bin"; # Old CERN
+    } elsif ( -l "/var/web/cgi-bin/dwww" ) { 
+	$actual_cgidir = "/var/web/cgi-bin"; # Really Old Apache
+    } elsif ( -l "/usr/lib/httpd/cgi-bin/dwww" ) {
+	$actual_cgidir = "/usr/lib/httpd/cgi-bin"; # Old Apache
+    }   
+}
+
+# Print output
+if ( $actual_docrootdir ne "" ) {
+    print " Pre-existing dwww symlink found in document root: $actual_docrootdir\n";
+}
+else {
+    print " Pre-existing dwww symlink not found in document root.\n";
+}
+if ( $actual_cgidir ne "" ) {
+    print " Pre-existing dwww symlink found in cgi-bin directory: $actual_cgidir\n";
+}
+else {
+    print " Pre-existing dwww symlink not found in cgi-bin directory.\n";
+}
+if ( $actual_docrootdir eq "/var/www" && $actual_cgidir eq "/usr/lib/cgi-bin" ) {
+    print " Congratulations! Pre-existing links conform to Web Standard\n";
+}
+
+
+# OK, time to ask questions
+
+# Clear variables
+$final_docrootdir="";
+$final_cgidir="";
+$final_cgiuser="";
+$final_servername="";
+$final_port="";
+
+# Set some defaults
+$default_docrootdir="/var/www";
+if ( $httpd_docrootdir ne "(none specified)" ) {
+    $default_docrootdir = $httpd_docrootdir;
+}
+if ( $dwwwconf_docrootdir ne "(none specified)" ) {
+    $default_docrootdir = $dwwwconf_docrootdir;
+}
+$default_cgidir="/usr/lib/cgi-bin";
+if ( $httpd_cgidir ne "(none specified)" ) {
+    $default_cgidir = $httpd_cgidir;
+}
+if ( $dwwwconf_cgidir ne "(none specified)" ) {
+    $default_cgidir = $dwwwconf_cgidir;
+}
+$default_cgiuser="www-data";
+if ( $httpd_cgiuser ne "(none specified)" ) {
+    $default_cgiuser = $httpd_cgiuser;
+}
+if ( $dwwwconf_cgiuser ne "(none specified)" ) {
+    $default_cgiuser = $dwwwconf_cgiuser;
+}
+chomp($hostname = `hostname -f`);
+$default_servername = $hostname;
+$default_port = "80";
+if ( $httpd_servername ne "(none specified)" ) {
+    $default_servername = $httpd_servername;
+}
+if ( $httpd_port ne "(none specified)" ) {
+    $default_port = $httpd_port;
+}
+if ( $dwwwconf_servername ne "(none specified)" ) {
+    $tmp = $dwwwconf_servername;
+    $tmp =~ s/^([^:]*).*$/$1/;
+    if ($tmp ne '') {
+	$default_servername = $tmp;
+	$dwwwconf_servernamenoport = $tmp;
+    }
+    $tmp = $dwwwconf_servername;
+    $tmp =~ s/^[^:]*:([0-9]+)\s*$/$1/;
+    if ($tmp =~ /^[0-9]+$/ ) {
+	$default_port = $tmp;
+	$dwwwconf_port = $tmp;
+    }
+    else {
+	$default_port = "80";
+	$dwwwconf_port = "80";
+    }
+}
+
+print "\n";
+
+# For automatic install, calculate final document root and cgi dirs
+if ( $opt_auto ) {
+
+    if ( ! $opt_remove ) {
+	print "Attempting Automatic Install...\n\n";
+    }
+    if ( $default_docrootdir eq $httpd_docrootdir ) {
+	$final_docrootdir=$default_docrootdir;
+    }
+    if ( $default_cgidir eq $httpd_cgidir ) {
+	$final_cgidir = $default_cgidir;
+    }
+    if ( $default_cgiuser eq $httpd_cgiuser ) {
+	$final_cgiuser = $default_cgiuser;
+    }
+    if ( $default_servername eq $httpd_servername ||
+	$httpd_servername eq "(none specified)") {
+	$final_servername = $default_servername;
+    }
+    if ( $default_port eq $httpd_port ||
+	$httpd_port eq "(none specified)") {
+	$final_port = $default_port;
+    }
+}
+
+# Check to see if web server supports Web Standard
+if ( $final_docrootdir eq "" && $final_cgidir eq "" && ! $opt_remove ) {
+    if ( $httpd_webstd ) {
+	# Ask if standard paths should be used
+	print "Your web server is set up to use the standard locations\n";
+	print "for the document root and cgi-bin directories.  It is\n";
+	print "recommended that you use the same locations for dwww.\n\n";
+
+	if (($dwwwconf_docrootdir ne "/var/www" && 
+	     $dwwwconf_docrootdir ne "(none specified)") ||
+	    ($dwwwconf_cgidir ne "/usr/lib/cgi-bin" &&
+	     $dwwwconf_cgidir ne "(none specified)")) {
+	    print "NOTE: Your previous installation of dwww used different\n";
+	    print "      directories than those specified by the web standard.\n";
+	    print "      You may not want to use the web standard directories\n";
+	    print "      if you have special requirements (ie. dwww is being\n";
+	    print "      installed for a virtual server).\n\n";
+	    $yes = askn ("Use web standard directories for dwww");
+	} else {
+	    $yes = asky ("Use web standard directories for dwww");
+	}
+
+	if ($yes) {
+	    $final_docrootdir="/var/www";
+	    $final_cgidir="/usr/lib/cgi-bin";
+	}
+	print "\n";
+    }
+}
+
+# Query for document root if it is not already set
+if ( $final_docrootdir eq "" && ! $opt_remove ) {
+	print "dwww now needs to know where is the directory which contains\n";
+	print "the document root for your web server.  The web standard\n";
+	print "suggests /var/www, but your web server may already be\n";
+	print "configured for a different location.\n\n";
+	if ($httpd_docrootdir ne "(none specified)") {
+	    print "Your web server document root is set to: $httpd_docrootdir\n";
+	}
+	if ($dwwwconf_docrootdir ne "(none specified)") {
+	    print "dwww is already configured for a document root of: $dwwwconf_docrootdir\n";
+	}
+	print "\n";
+	print "Where is the web server document root you want to use for dwww [$default_docrootdir]? ";
+	chomp($tmp = <STDIN>);
+	if ($tmp ne '') {
+	    $final_docrootdir = $tmp;
+	} else {
+	    $final_docrootdir = $default_docrootdir;
+	}
+	print "\n";
+}
+
+# Query for cgi-bin if it is not already set
+if ( $final_cgidir eq "" && ! $opt_remove ) {
+	print "dwww now needs to know where the directory which contains\n";
+	print "the CGI scripts for your web server exists.  The web\n";
+	print "standard suggests /usr/lib/cgi-bin, but your web server may already\n";
+	print "be configured for a different location.\n\n";
+	if ($httpd_cgidir ne "(none specified)") {
+	    print "Your web server CGI directory is set to: $httpd_cgidir\n";
+	}
+	if ($dwwwconf_cgidir ne "(none specified)") {
+	    print "dwww is already configured for a CGI directory of: $dwwwconf_cgidir\n";
+	}
+	print "\n";
+	print "Where should the CGI directory be [$default_cgidir]? ";
+	chomp($tmp = <STDIN>);
+	if ($tmp ne '') {
+	    $final_cgidir = $tmp;
+	} else {
+	    $final_cgidir = $default_cgidir;
+	}
+	print "\n";
+}
+
+# Now set up the CGI user
+if ( $final_cgiuser eq "" && ! $opt_remove ) {
+    print "dwww now needs to know what user will be running the dwww CGI\n";
+    print "script, since that user needs to have ownership of the cache\n";
+    print "directory.\n\n";
+    if ($httpd_cgiuser ne "(none specified)") {
+	print "Your web server CGI user is set to: $httpd_cgiuser\n";
+    }
+    if ($dwwwconf_cgiuser ne "(none specified)") {
+	print "dwww is already configured for a CGI user of: $dwwwconf_cgiuser\n";
+    }
+    print "\n";
+    print "What user should dwww expect to run the CGI script [$default_cgiuser]? ";
+    chomp($tmp = <STDIN>);
+    if ($tmp ne '') {
+	$final_cgiuser = $tmp;
+    } else {
+	$final_cgiuser = $default_cgiuser;
+    }
+    print "\n";
+}
+
+# Now set up the ServerName
+if ( $final_servername eq "" && ! $opt_remove ) {
+    print "dwww needs to know what the name of your webserver is.  Your\n";
+    print "fully qualified hostname is: $hostname\n\n";
+    if ($httpd_servername ne "(none specified)") {
+	print "Your web server thinks the name is: $httpd_servername\n";
+    } 
+    if ($dwwwconf_servernamenoport ne "(none specified)") {
+	print "dwww is already configured for a server name of: $dwwwconf_servernamenoport\n";
+    }
+    print "\n";
+    print "What should be the name of the server [$default_servername]? ";
+    chomp($tmp = <STDIN>);
+    if ($tmp ne '') {
+	$final_servername = $tmp;
+    } else {
+	$final_servername = $default_servername;
+    }
+    print "\n";
+}
+    
+# Now set up the port
+if ( $final_port eq "" && ! $opt_remove ) {
+    print "dwww needs to know what port your webserver is running on.  Normally\n";
+    print "web servers run on port 80.\n\n";
+    if ($httpd_port ne "(none specified)") {
+	print "Your web server thinks the port is: $httpd_port\n";
+    } else {
+	print "Your web server thinks the port is: 80\n";
+    }
+    if ($dwwwconf_port ne "(none specified)") {
+	print "dwww is already configured for a port of: $dwwwconf_port\n";
+    }
+    print "\n";
+    print "What port number to use [$default_port]? ";
+    chomp($tmp = <STDIN>);
+    if ($tmp ne '') {
+	$final_port = $tmp;
+    } else {
+	$final_port = $default_port;
+    }
+    print "\n";
+}
+    
+# Print Final Results
+#print "\n\nfinal_docrootdir: $final_docrootdir\n";
+#print "final_cgidir: $final_cgidir\n";
+#print "final_cgiuser: $final_cgiuser\n";
+#print "final_servername: $final_servername\n";
+#print "final_port: $final_port\n";
+
+# Write /etc/dwww/dwww.conf
+
+# First, build up array of entries
+@dwwwconffile = ();
+    
+if ( -r "/etc/dwww/dwww.conf" ) {
+
+     open(DWWWCONFFILE,"</etc/dwww/dwww.conf") || 
+	die "Could not open /etc/dwww/dwww.conf for reading";
+
+    while (<DWWWCONFFILE>) {
+	if( /^\s*DWWW_DOCROOTDIR/ ||
+	   /^\s*DWWW_CGIDIR/ ||
+	   /^\s*DWWW_CGIUSER/ ||
+	   /^\s*DWWW_SERVERNAME/ ||
+	   /^\s*DWWW_SERVERTYPE/ ) {
+	    next;
+	}
+	push @dwwwconffile, "$_";
+    }
+    close DWWWCONFFILE;
+
+}
+
+open(DWWWCONFFILE,">/etc/dwww/dwww.conf") ||
+    die "Could not open /etc/dwww/dwww.conf for writing";
+
+foreach $i ( @dwwwconffile ) {
+    print DWWWCONFFILE "$i";
+}
+print DWWWCONFFILE "DWWW_DOCROOTDIR=$final_docrootdir\n";
+print DWWWCONFFILE "DWWW_CGIDIR=$final_cgidir\n";
+print DWWWCONFFILE "DWWW_CGIUSER=$final_cgiuser\n";
+if ( $final_port eq "80" ) {
+    print DWWWCONFFILE "DWWW_SERVERNAME=$final_servername\n";
+} else {
+    print DWWWCONFFILE "DWWW_SERVERNAME=$final_servername:$final_port\n";
+}
+print DWWWCONFFILE "DWWW_SERVERTYPE='$httpd_serverfound'\n";
+    
+close DWWWCONFFILE;
+
+# Remove old symlinks
+
+if ($actual_docrootdir ne "") {
+    if ($actual_docrootdir ne "/var/www") { # don't remove std symlink
+	if ($actual_docrootdir ne $final_docrootdir) {
+	    # If old symlink is same as new, do nothing
+	    # Ask before removing
+	    if (asky ("Remove $actual_docrootdir symlink")) {
+		unlink "$actual_docrootdir/dwww";
+	    }
+	}
+    }
+}
+
+if ($actual_cgidir ne "") {
+    if ($actual_cgidir ne "/usr/lib/cgi-bin") { # don't remove std symlink
+	if ($actual_cgidir ne $final_cgidir) {
+	    # If old symlink is same as new, do nothing
+	    # Ask before removing
+	    if (asky ("Remove $actual_cgidir symlink")) {
+		unlink "$actual_cgidir/dwww";
+	    }
+	}
+    }
+}
+
+# Put the symlink and the cgi script in place
+
+if ( ! $opt_remove ) {
+    print "Creating symlinks to dwww in $final_docrootdir\n"; 
+
+    if ( -l "$final_docrootdir/dwww" ) {
+	# if link exists, just delete it so it can be refreshed
+	unlink "$final_docrootdir/dwww";
+    }
+    system("ln -s /var/lib/dwww/html $final_docrootdir/dwww");
+
+    # If wn web server is installed, create 'index' file
+    # and run /usr/bin/wndex
+    if ( -x "/usr/bin/wndex" ) {
+	if ( ! -f "$final_docrootdir/index" ) {
+	    system ("echo 'Attribute=serveall'>$final_docrootdir/index");
+	}
+	system ("/usr/bin/wndex -d $final_docrootdir");
+    }
+
+    print "Installing dwww cgi script in $final_cgidir\n\n";
+
+    # if this setup is not conform webstandard, the dwww cgi script
+    # has to be copied to the cgi-bin directory now
+    if ( $final_cgidir ne "/usr/lib/cgi-bin" ) {
+	if ( -l "$final_cgidir/dwww" ) {
+	    # if link exists, just delete it so it can be refreshed
+	    unlink "$final_cgidir/dwww";
+	}
+        system("cp /usr/lib/cgi-bin/dwww $final_cgidir/dwww");
+    }
+    # as a precaution, make sure that not anybody can tamper with it
+    chown 0, 0, "$final_cgidir/dwww" ;
+    # and everybody can run the script
+    chmod 0755, "$final_cgidir/dwww" ;
+
+    # If wn web server is installed, create 'index' file
+    # and run /usr/bin/wndex
+    if ( -x "/usr/bin/wndex" ) {
+	if ( ! -f "$final_cgidir/index" ) {
+	    system ("echo 'Attribute=serveall'>$final_cgidir/index");
+	}
+	system ("/usr/bin/wndex -d $final_cgidir");
+    }
+}
+
+# Clear cache directory /var/cache/dwww
+
+system("rm -rf /var/cache/dwww/*");
+system("rm -f /var/cache/dwww/.cache_db");
+
+# Change ownership on cache directory /var/cache/dwww
+
+system("chown -R \"$final_cgiuser\". /var/cache/dwww");
+
+# Remove /var/lib/dwww/* files if removing
+
+if ( $opt_remove ) {
+    system("rm -rf /var/lib/dwww/*");
+}
+
+# Print final message
+if ( $opt_remove ) {
+    print "Finished removal of dwww configuration files.\n\n";
+}
+else {
+    print "Finished configuring dwww.  You may re-configure\n";
+    print "dwww at any time by running: /usr/sbin/dwwwconfig\n\n";
+}
+
+
+
+
+ 
+
+
+
+

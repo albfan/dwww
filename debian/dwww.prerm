@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Debian prerm script for dwww.
+# "@(#)dwww:$Id: dwww.prerm,v 1.1 2001/12/05 07:29:50 robert Exp $"
+#
+
+set -e
+
+#DEBHELPER#
+
+if [ "X$1" = "Xremove" ] ; then
+	rm -rf /var/lib/dwww
+	rm -rf /var/cache/dwww
+
+	if [ -r /etc/dwww/dwww.conf ]; then
+		set +e
+		. /etc/dwww/dwww.conf
+
+		if [ -n "$DWWW_CGIDIR" -a -x "$DWWW_CGIDIR/dwww" ] ; then
+			rm -f "$DWWW_CGIDIR/dwww"
+		fi
+
+		if [ -n "$DWWW_DOCROOTDIR" -a -L "$DWWW_DOCROOTDIR/dwww" ] ; then
+			rm -f "$DWWW_DOCROOTDIR/dwww"
+		fi
+	fi
+fi
+
+exit 0

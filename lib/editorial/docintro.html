@@ -1,0 +1,194 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+            "http://www.w3.org/TR/html40/loose.dtd">
+<html>
+<head>
+<title>Introduction to documentation on Debian</title>
+</head>
+<body>
+
+Contents:
+<dl>
+<dt><a href="#man">Manual pages</a>
+<dt><a href="#info">Info files</a>
+<dt><a href="#other">Other document formats</a>
+<dt><a href="#ldp">The Linux Documentation Project</a>
+<dt><a href="#finding">Finding documents on a Debian system</a>
+<dt><a href="#suggest">Suggested reading order</a>
+</dl>
+
+<h1>Introduction to documentation on Debian</h1>
+
+This document is an overview of the different kinds of documentation that
+are available on-line on a Debian GNU/Linux system.  The same kinds of 
+documentation is available on all Linux and most UNIX systems as well.<p>
+
+Most of the documentation is targeted at the user of a specific program,
+command, or library function, but there are also some more general
+tutorials.  The documents come as manual pages, Info files, plain
+text files, HTML files, and in various other formats.  The Debian on-line
+documentation system gives access to all of them via a WWW browser
+by converting the documents to HTML, if possible.<p>
+
+
+<h2><a name="man"></a>Manual pages</h2>
+
+Manual pages are the traditional form of UNIX documentation.  Each command,
+library function, special file, and so on, has a separate ``page'' of 
+documentation.  The manual pages follow a common format, with named
+sections.
+
+	<dl>
+	<dt>NAME
+	<dd>The name of the command or commands (one manual page sometimes
+		documents several commands), and a short summary of what
+		the command does (only a few words).
+	<dt>SYNOPSIS or SUMMARY
+	<dd>A terse description of what options and arguments the command has.
+		For an experienced user, the synopsis is often enough to
+		see how to use the command.
+	<dt>DESCRIPTION
+	<dd>The detailed description of the command.
+	<dt>OPTIONS
+	<dd>What each of the options means.  Sometimes this is not a
+		separate section, but is included in the description.
+	<dt>ERRORS
+	<dd>What the program does is various error situations.
+	<dt>FILES
+	<dd>Important files that the program uses.
+	<dt>SEE ALSO
+	<dd>Other manual pages or documents that you might also want to
+		read.
+	<dt>BUGS
+	<dd>Problems and restrictions in the program that you should be
+		aware of.
+	</dl>
+	
+Many manual pages contain many other sections, and few include all of
+the above.<p>
+
+Manual pages make it possible to find information quickly.  The manual
+pages form the UNIX reference manual, but they are not very useful
+if you haven't used a UNIX system before.  Most manual pages assume that
+you understand the common concepts of using UNIX.  You should start by 
+reading a tutorial (see below).  Then, when you need to learn a new
+command, you can read its manual page.<p>
+
+Manual pages are read with the <code>man</code> command.  You give the
+name of the manual page (usually the same as the command) as the
+argument.  For example, to read the manual page for the <code>ls</code>
+command, you'd give the following command: 
+	<blockquote>
+	<code>man ls</code>
+	</blockquote>
+You can also read manual pages using your WWW browser
+through the Debian on-line documentation system. 
+
+<h2><a name="info"></a>Info files</h2>
+
+The GNU Project uses the Texinfo system to produce manuals. Texinfo is
+a markup language, and produces either printed manuals (using the TeX
+typesetting system), or on-line manuals in <em>Info</em> format.
+Info files are a simple form of hypertext. They are usually structured
+like like books, and are usually larger than manual pages.<p>
+
+Few people outside the GNU Project use Texinfo, but since GNU has produced
+so much software, there are many Info files.  Since a manual page should
+be short, and an Info file need not be, the Info files are sometimes easier
+to read.<p>
+
+Info files can be read directly using the GNU Emacs help system
+(started with <code>C-h i</code> from within Emacs), or the standalone
+Info browser (started with <code>info</code> from the shell).
+You can also read manual pages using your WWW browser
+through the info2www interface that comes with the 
+Debian on-line documentation system.<p>
+
+<h2><a name="other"></a>Other document formats</h2>
+
+Most programs come with a ``README'' file, which is a simple text file,
+often called README that describes the program and often includes
+instructions on how to install it. The README is usually not important
+for people who use the program, but it can be interesting to read it
+if you want to know how things work. On a Debian system, the README's,
+and other similar files, are installed in a package specific directory,
+under <code>/usr/share/doc</code> (see below).<p>
+
+It is becoming more common for complicated programs to include documentation
+in HTML or Postscript format, in addition to (sometimes incomplete) manual
+pages.  HTML is the markup language that WWW uses, and all such documents
+are easily accessible via the Debian on-line documentation system.
+Postscript, however, is a complicated typesetting language, and it cannot
+easily be converted to other formats.  There is no easy way to read
+the Postscript manuals via the Debian on-line documentation system.<p>
+
+
+<h2><a name="ldp"></a>The Linux Documentation Project</h2>
+
+Since 1993, the Linux Documentation Project has produced FAQ's and
+HOWTO's and books to explain how to install and use Linux.
+The LDP books have been converted to HTML, but are not currently available
+as Debian packages, and cannot therefore be read through the Debian
+on-line documentation system. <p>
+
+<h2><a name="finding"></a>Finding documents on a Debian system</h2>
+
+Manual pages are typically stored under <code>/usr/share/man</code>,
+<code>/usr/X11R6/man</code>, and <code>/usr/local/man</code>. Each
+manual page is in its own file. They are written using an old
+markup language (see documentation for <code>groff</code> and the
+<code>mandoc</code> macros), and are formatted into a more readable
+format using <code>nroff</code>. Since the formatting can be slow, the
+formatted page is stored into <code>/var/catman</code>; that directory
+is automatically cleaned from old formatted versions.<p>
+
+Info documents are stored in <code>/usr/share/info</code>.  Info files are
+not quite plain text, so they also need to be formatted for easier reading.
+However, this formatting is fast enough that the formatted version is
+not saved.<p>
+
+Each installed Debian package creates its own documentation directory
+below <code>/usr/share/doc</code>.  For example, documentation for Debian
+itself is in <code>/usr/share/doc/debian</code>.  All documentation that is
+not manual pages of Info files is stored in the package's documentation
+directory.<p>
+
+The <code>/usr/share/common-licenses</code> directory contains the common 
+copyright statements like GPL, and <code>/usr/share/doc/<package>/examples</code> contains
+example configurations and programs.<p>
+
+<h2><a name="suggest"></a>Suggested reading order</h2>
+
+If you're new to UNIX-like systems, you should probably start with
+Matt Welsh's <a href="xxx">Installation and Getting Started</a>.
+It includes much information about installing Linux, but that part
+is not relevant for a Debian system.  However, the book also includes
+introductions on how to use Linux, and you should read those to get
+a feel for what using UNIX is like.<p>
+
+At some point, you should read the manual pages for your shell
+(<a href="foo">bash</a>), and some of the essential file handling
+commands
+(<a href="foo">ls</a>,
+<a href="foo">less</a>,
+<a href="foo">cd</a>,
+<a href="foo">mkdir</a>,
+<a href="foo">rmdir</a>,
+<a href="foo">cp</a>,
+<a href="foo">mv</a>,
+<a href="foo">rm</a>).  You might also want to check out
+<a href="foo">Midnight Commander</a> and
+<a href="foo">GNU Interactive Tools</a>, which can be nicer to
+use than the traditional commands.  Also read the manual for your
+editor (for example,
+<a href="foo">Pico</a>,
+<a href="foo">ae</a>,
+<a href="foo">Emacs</a>,
+<a href="foo">Jed</a>,
+<a href="foo">vim</a>,
+<a href="foo">nvi</a>, or
+<a href="foo">elvis</a>, depending on taste and on what is installed).
+After that, browse the Debian on-line documentation system and read
+about whatever happens to interest you.<p>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+#!/bin/sh
+#
+# dwww-doc-index
+#
+# Build the long and short document indexes for dwww.
+#
+
+dir=/var/lib/dwww/html
+long=$dir/dwww-long-index.html
+short=$dir/dwww-short-index.html
+lib=/usr/share/dwww
+temp=/var/cache/dwww/dwww-doc-index.$$
+
+if [ -f /etc/dwww/dwww.conf ]
+then
+	. /etc/dwww/dwww.conf
+fi
+
+do_dwww_index() {
+	cat $lib/"$1"-index.start
+	
+	awk -v prefix="$prefix" -v type="$1" '
+	BEGIN {
+		nsec = 0; i = 0
+		sections[nsec++] = "general"	; secname[i++] = "General"
+		sections[nsec++] = "admin"	; secname[i++] = "System administration"
+		sections[nsec++] = "programming"; secname[i++] = "Programming"
+		nentry = -1
+	}
+	/^#section[ 	]/ {
+		for (i = 0; i < nsec; ++i)
+			if (sections[i] == $2)
+				break
+		if (i == nsec)
+			sections[nsec++] = $2
+		seclist[$2] = 1
+		entrysection[++nentry] = $2
+		next
+	}
+	/^<dt>/ {
+		x = $0
+		sub(/^.*">/, "", x)
+		sub(/<.*/, "", x)
+		entryname[nentry] = x
+	}
+	type == "long" || /^<dt>/ {
+		if (type == "short")
+			sub(/^<dt>/, "<li>")
+		entrytext[nentry] = entrytext[nentry] "\n" $0
+	}
+	END {
+		++nentry
+
+		for (i = 0; i < nsec; ++i)
+			if (secname[i] == "")
+				secname[i] = "Unknown section " sections[i]
+
+		print "<p>The list of documents is divided into sections:"
+		print "<ul>"
+		for (i = 0; i < nsec; ++i) {
+			x = sections[i]
+			if (seclist[x] == 1) {
+				printf "<li><a href=\"#%s\">%s</a>\n",
+					x, secname[i]
+			}
+		}
+		print "</ul>"
+		
+		# make sorted entrylist
+		for (i = 0; i < nentry; ++i) {
+			for (j = i; j > 0; --j) {
+				if (entryname[sortedentry[j-1]] < entryname[i])
+					break;
+				sortedentry[j] = sortedentry[j-1]
+			}
+			sortedentry[j] = i
+		}
+		
+		for (i = 0; i < nsec; ++i) {
+			x = sections[i]
+			if (seclist[x] == 0)
+				continue
+
+			printf "\n<h2><a name=\"%s\">%s</a></h2>\n\n",
+				x, secname[i]
+			if (type == "long")
+				print "<dl>"
+			else
+				print "<ul>"
+			for (j = 0; j < nentry; ++j) {
+				if (entrysection[sortedentry[j]] == x)
+					print entrytext[sortedentry[j]]
+			}
+			if (type == "long")
+				print "</dl>"
+			else
+				print "</ul>"
+		}
+	}
+	'
+
+	cat $lib/"$1"-index.end
+}
+
+cat_raw_index() {
+	(cd "$1"
+	find "$1" -maxdepth 5 -type f -name .dwww-index  -print0 |
+		xargs -0 cat | sed "s,<a href=\",&$2,g"
+	)
+}
+
+rm -f $temp
+
+if [ -z "$DWWW_USEFILEURL" ]
+then
+  cat_raw_index /usr/share/doc '/cgi-bin/dwww?type=file\&location=/usr/share/doc/' >> $temp
+  
+  if [ -d /usr/doc ]; then
+    cat_raw_index /usr/doc '/cgi-bin/dwww?type=file\&location=/usr/doc/' >> $temp
+  fi
+  if [ -d /usr/local/doc ]; then
+    cat_raw_index /usr/local/doc '/cgi-bin/dwww?type=file\&location=/usr/local/doc/' >> $temp
+  fi
+else
+  cat_raw_index /usr/share/doc file://localhost/usr/share/doc/ >> $temp
+  if [ -d /usr/doc ]; then
+    cat_raw_index /usr/doc file://localhost/usr/doc/ >> $temp
+  fi
+  if [ -e /usr/local/doc ]; then
+    cat_raw_index /usr/local/doc file://localhost/usr/local/doc/ >> $temp
+  fi
+fi
+
+
+do_dwww_index long < $temp > $long.new
+mv -f $long.new $long
+
+do_dwww_index short <$temp > $short.new
+mv -f $short.new $short
+
+rm -f $temp

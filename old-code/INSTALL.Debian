@@ -1,0 +1,114 @@
+Installing dwww 
+===============
+$Author: robert $ - $Date: 2001/03/24 14:01:55 $
+
+Here are my notes for installing dwww to work with the various web servers 
+that come with Debian.  If anybody has anything to add to this file, please
+send it to jim@jimpick.com.
+
+---
+
+Package: apache
+Version: 1.1.2-1
+
+Installed from scratch - required no further configuration
+to work with dwww.  :-)
+
+Earlier versions did not allow symlinks to the cgi-bin directory 
+by default.  This problem may persist if upgrading.
+
+---
+
+Package: boa
+Version: 0.92-1
+
+Installed from scratch - required manual intervention:
+  - /etc/boa/boa.conf maps /cgi-bin/ to /usr/lib/cgi-bin/ - which
+    doesn't exist.  Change it to read /usr/lib/cgi-lib/ instead.
+  - info2www does not recognize boa, so you will need to run info2wwwconfig
+  - dwww does not recognize boa (yet), so run dwwwconfig
+  - dwww (by default) expects the cgi scripts to be run as user www-data,
+    while boa (by default) runs them as user nobody. So, either:
+	- change the cgi user for boa by modifying the User and Group
+          directives in /etc/boa/boa.conf to www-data - note that you
+          will also have to delete the /tmp/boa directory too or the
+          server will not start
+        - or, do a 'chown nobody.nogroup /var/spool/dwww/.cache_db'
+          and add a line 'DWWW_CGIUSER=nobody' to /etc/dwww.conf
+
+---
+
+Package: cern-httpd
+Version: 3.0-7
+
+Installed from scratch - required manual intervention:
+  - dwww (by default) expects the cgi scripts to be run as user www-data,
+    while cern-httpd (by default) runs them as user nobody. So, either:
+	- change the cgi user for cern-httpd by modifying the UserId and 
+          GroupId directives in /etc/cern-httpd.conf to www-data
+        - or, do a 'chown nobody.nogroup /var/spool/dwww/.cache_db'
+          and add a line 'DWWW_CGIUSER=nobody' to /etc/dwww.conf
+
+---
+
+Package: ncsa
+Version: 1.4.2-3
+ 
+Installed from scratch - required manual intervention:
+  - had to create /var/web/webspace manually to complete installation
+  - info2www does not recognize ncsa, so you will need to run info2wwwconfig
+  - dwww does not recognize ncsa (yet), so run dwwwconfig
+  - dwww (by default) expects the cgi scripts to be run as user www-data,
+    while ncsa (by default) runs them as user nobody. So, either:
+	- change the cgi user for ncsa by modifying the User and 
+          Group directives in /etc/ncsa/httpd.conf to www-data
+        - or, do a 'chown nobody.nogroup /var/spool/dwww/.cache_db'
+          and add a line 'DWWW_CGIUSER=nobody' to /etc/dwww.conf
+
+---
+ 
+Package: wn
+Version: 1.17.0-5
+
+Installed from scratch - required manual intervention:
+  - installed into inetd.conf - no need to stop or start
+  - info2www does not recognize wn, so you will need to run info2wwwconfig
+	- set document root directory to /var/wn
+	- set cgi-bin directory to /var/wn/cgi-bin
+	- then run update-debian-www to build a wn index file for
+          the cgi-bin directory
+        - because the info2www files are linked to /var/wn by a symlink,
+          the update-debian-www script will not create an index file
+          for it.  So you will have to do that manually.  Create a
+          file named 'index' in the /var/wn/info2www directory.  Put
+          the line 'Attribute=serveall' in it.  Then run wndex in that
+          directory to create an index.cache file.  
+  - dwww does not recognize wn (yet), so run dwwwconfig
+	- set document root directory to /var/wn
+	- set cgi-bin directory to /var/wn/cgi-bin
+	- then run update-debian-www to build a wn index file for
+          the cgi-bin directory
+        - because the dwww files are linked to /var/wn by a symlink,
+          the update-debian-www script will not create an index file
+          for it.  So you will have to do that manually.  Create a
+          file named 'index' in the /var/wn/dwww directory.  Put
+          the line 'Attribute=serveall' in it.  Then run wndex in that
+          directory to create an index.cache file.  
+  - dwww (by default) expects the cgi scripts to be run as user www-data,
+    while wn runs them as user nobody (and it doesn't seem to be 
+    configurable). So:
+        - do a 'chown nobody.nogroup /var/spool/dwww/.cache_db'
+          and add a line 'DWWW_CGIUSER=nobody' to /etc/dwww.conf
+
+
+---
+
+That's all...
+
+Overall, all of the servers seemed to perform about the same, so I
+can't really recommend one over the others.  Apache has the most
+features, and I run multiple virtual web sites, so that's the one I use.
+
+Cheers,
+
+ - Jim
