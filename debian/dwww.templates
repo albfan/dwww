@@ -1,81 +1,60 @@
-Template: dwww/servertype
-Type: select
-Choices: ${choices}
-Description: Which www server do you use?
- dwww found more than one server installed and needs to know
- which server do you use. Please select one from the list.
-  Previously dwww was configured to: ${dwwwcfg}
-
 Template: dwww/docrootdir
 Type: string
 Default: /var/www
-Description: Location of web server's document root.
- dwww now needs to know where is the directory which contains
- the document root for your web server. The web standard
- suggests /var/www.
-  Previously dwww was configured to: ${dwwwcfg}
-  Your webserver is set to: ${httpd}
+_Description: Location of web server's document root.
+ dwww now needs to know where is the directory which contains the document
+ root for your web server. The web standard suggests /var/www.
 
 Template: dwww/cgidir
 Type: string
 Default: /usr/lib/cgi-bin
-Description: Location of web server's cgi directory.
- dwww now needs to know where the directory which contains
- the CGI scripts for your web server exists.  The web
- standard suggests /usr/lib/cgi-bin, but your web server may already
- be configured for a different location.
-  Previously dwww was configured to: ${dwwwcfg}
-  Your webserver is set to: ${httpd}
+_Description: Location of web server's cgi directory.
+ dwww now needs to know where the directory which contains the CGI scripts
+ for your web server exists.  The web standard suggests /usr/lib/cgi-bin,
+ but your web server may already be configured for a different location.
 
 Template: dwww/cgiuser
 Type: string
 Default: www-data
-Description: Name of CGI user.
- dwww now needs to know what user will be running the dwww CGI
- script, since that user needs to have ownership of the cache
- directory.
-  Previously dwww was configured to: ${dwwwcfg}
-  Your webserver is set to: ${httpd}
+_Description: Name of CGI user.
+ dwww now needs to know what user will be running the dwww CGI script,
+ since that user needs to have ownership of the cache directory.
 
 Template: dwww/servername
 Type: string
 Default: localhost
-Description: Host name of the webserver.
- dwww needs to know what the host name of your webserver is.
-  Previously dwww was configured to: ${dwwwcfg}
-  Your webserver is set to: ${httpd}
+_Description: Host name of the web server.
+ dwww needs to know what the host name of your web server is.
 
 Template: dwww/serverport
 Type: string
 Default: 80
-Description: Webserver's port.
- dwww needs to know what port your webserver is running on.  Normally
- web servers run on port 80.
-  Previously dwww was configured to: ${dwwwcfg}
-  Your webserver is set to: ${httpd}
-
-Template: dwww/noserver
-Type: note
-Description: No www server found!
- dwww could not find any www server.
- Probably you are preconfiguring dwww and your www server has not been
- unpacked yet.
- .
- Please install web server and run
-  dpkg-reconfigure dwww
- to continue configuration of dwww.
+_Description: Web server's port.
+ dwww needs to know what port your web server is running on.  Normally web
+ servers run on port 80.
 
 Template: dwww/nosuchdir
 Type: note
-Description: Directory does not exists!
+_Description: Directory does not exists!
  Directory ${dir} does not exists.
 
 Template: dwww/nosuchuser
 Type: note
-Description: User not found!
+_Description: User not found!
  User ${user} does not exists.
 
 Template: dwww/badport
 Type: note
-Description: Port value should be a number!
+_Description: Port value should be a number!
  Value entered for port: ${port} is invalid.
+
+Template: dwww/index_docs
+Type: boolean
+Default: true
+_Description: Should post-installation script index your documentation files?
+ dwww-index++(8) program will be run once a week to index your documentation files
+ registered with doc-base package.
+ .
+ The index can also be generated (in the background) by the post-installation script.
+ This process needs quite a lot of computer resources, and can take several minutes
+ so you can choose now if you would like to do this.

@@ -1,0 +1,168 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dwww 1.9.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-03-14 20:56+0100\n"
+"PO-Revision-Date: 2003-03-21 21:51+0100\n"
+"Last-Translator: Denis Barbier <barbier@linuxfr.org>\n"
+"Language-Team: French <debian-l10n-french@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-15\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid "Location of web server's document root."
+msgstr "Où se trouve le document racine du serveur web ?"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid ""
+"dwww now needs to know where is the directory which contains the document "
+"root for your web server. The web standard suggests /var/www."
+msgstr ""
+"dwww a besoin de connaître l'emplacement du répertoire où se trouve le "
+"document racine du serveur web. /var/www est l'emplacement standard."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid "Location of web server's cgi directory."
+msgstr "Où se trouve le répertoire cgi du serveur web ?"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid ""
+"dwww now needs to know where the directory which contains the CGI scripts "
+"for your web server exists.  The web standard suggests /usr/lib/cgi-bin, but "
+"your web server may already be configured for a different location."
+msgstr ""
+"dwww a maintenant besoin de connaître l'emplacement du répertoire où se "
+"trouvent les scripts CGI de votre serveur web. /usr/lib/cgi-bin est "
+"l'emplacement standard, mais votre serveur peut avoir été configuré "
+"autrement."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid "Name of CGI user."
+msgstr "Nom de l'utilisateur CGI."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid ""
+"dwww now needs to know what user will be running the dwww CGI script, since "
+"that user needs to have ownership of the cache directory."
+msgstr ""
+"dwww a maintenant besoin de savoir qui exécutera les scripts CGI car cet "
+"utilisateur doit être propriétaire du répertoire cache."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "Host name of the web server."
+msgstr "Quel est le nom d'hôte de votre serveur ?"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "dwww needs to know what the host name of your web server is."
+msgstr "dwww doit connaître le nom d'hôte de votre serveur."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid "Web server's port."
+msgstr "Quel est le port de votre serveur ?"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr ""
+"dwww doit connaître le port de votre serveur. Habituellement les serveurs "
+"web utilisent le port 80."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory does not exists!"
+msgstr "Répertoire introuvable !"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory ${dir} does not exists."
+msgstr "Le répertoire ${dir} n'existe pas."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User not found!"
+msgstr "Utilisateur introuvable !"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User ${user} does not exists."
+msgstr "L'utilisateur ${user} n'existe pas."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Port value should be a number!"
+msgstr "Le numéro de port doit être un nombre !"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Value entered for port: ${port} is invalid."
+msgstr "La valeur donnée pour le port ${port} n'est pas un nombre."
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid "Should post-installation script index your documentation files?"
+msgstr "Indexer vos fichiers de documentation après l'installation ?"
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr ""
+"Le programme dwww-index++(8) sera exécuté toutes les semaines pour indexer "
+"vos fichiers de documentation enregistrés auprès du paquet doc-base."
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr ""
+"L'index peut aussi être généré (en arrière-plan) par le script de post-"
+"installation. Ce processus prend beaucoup de ressources de la machine, et "
+"peut durer plusieurs minutes ; vous pouvez décider si vous souhaitez le "
+"faire maintenant ou non."

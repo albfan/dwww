@@ -2,19 +2,18 @@
  * File:	dwww-quickfind.c
  * Purpose:	Find quickly which package a program belongs to.
  * Author:	Lars Wirzenius <liw@iki.fi>
- * Version:	"@(#)dwww:$Id: dwww-quickfind.c,v 1.3 2002/05/08 06:51:17 robert Exp $"
+ * Version:	"@(#)dwww:$Id: dwww-quickfind.c,v 1.4 2004/03/27 10:19:43 robert Exp $"
  * Description:	Builds a database (--build):
  *			line pairs
  *			first is filename (reversed: /bin/ls -> sl/nib/)
  *			second is package name
  */
-
-
+#define _GNU_SOURCE 1
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <publib.h>
+#include <string.h>
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -24,7 +23,6 @@
 
 #define DEFAULT_DBFILE "/var/lib/dwww/quickfind.dat"
 #define SAME_CHR       "."	
-
 
 struct file {
 	char *package;
@@ -82,22 +80,53 @@ static void write_db(void ** t_root, char *dbfile) {
 	fclose(f);
 }
 
+static void free_node(void * node) {
+	if (! node)
+		return;
+	free(((struct file*)node)->file);
+	free(((struct file*)node)->package);
+	free((struct file*)node);
+}
 
-static void add_file(void ** t_root, char *package, char *file) {
+static void builddb_add_file(void ** t_root, char *package, char *file) {
+	static struct file *f = NULL;
+	struct file **q;
+
+	if (!strcmp(file, package))
+		package = SAME_CHR;
+	
+	if (!f)
+		f = (struct file*) malloc(sizeof(*f));
+	if (!f)
+		errormsg(1, 0, "insufficient memory");
+	f->file 	= file;
+	f->package 	= package;
+	
+	if (!(q = tsearch(f, t_root,  pfile_cmp)))
+		errormsg(1, 0, "insufficient memory");
+	
+	if (f == *q) {
+		// new record
+		f->file 	= strdup(f->file);
+		f->package	= strdup(f->package);
+		f = NULL;
+	}
+	
+}
+
+static void readdb_add_file(void ** t_root, char *package, char *file) {
 	struct file *f;
+
 
 	f = (struct file*) malloc(sizeof(*f));
 	if (!f)
 		errormsg(1, 0, "insufficient memory");
-
-	f->file    = file;
-	if (!strcmp(file, package))
-		f->package = SAME_CHR;
-	else
-		f->package = package;
-	tsearch(f, t_root,  pfile_cmp);
+	f->file 	= file;
+	f->package 	= package;
+	
+	if (! tsearch(f, t_root,  pfile_cmp))
+		errormsg(1, 0, "insufficient memory");
 }
-
 
 static void read_db(void ** t_root, char *dbfile) {
 	FILE *f;
@@ -107,12 +136,13 @@ static void read_db(void ** t_root, char *dbfile) {
 	if (f == NULL)
 		errormsg(1, -1, "couldn't open %s", dbfile);
 	while ((file = getaline(f)) != NULL && (pkg = getaline(f)) != NULL)
-		add_file(t_root, pkg, file);
+		readdb_add_file(t_root, pkg, file);
 	if (ferror(f))
 		errormsg(1, -1, "error reading %s", dbfile);
 	fclose(f);
 }
 
+	
 
 /* kludge */
 static int name_is_ok(const char *p) {
@@ -138,32 +168,43 @@ static void build(char *dbfile) {
 	
 	while ((line = getaline(stdin)) != NULL) {
 		p = strchr(line, ':');
-		if (p == NULL)
+		if (p == NULL) {
 #if 0
 			errormsg(1, 0, "syntax error in input: no colon");
 #else
+			free(line);
 			continue;
+		}			
 #endif
 		*p++ = '\0';
 		strtrim(line);
 		strtrim(p);
 		
-		/* package name should not contain some characters... */
-		if (!(strpbrk(line, " \t\n;,"))) {
-			package = strdup(line);
-			if (name_is_ok(p) && stat(p, &st) != -1) {
-				if (S_ISREG(st.st_mode) && (st.st_mode & 0111) != 0) {
-					if ((tmp = strrstr(p, "/")))
-							p = strdup(tmp + 1);
-					add_file(&t_root, package, p);
-				}
-			} 
-			add_file(&t_root, SAME_CHR, package); /* add package */
+		if (name_is_ok(p) && stat(p, &st) != -1 
+		   && S_ISREG(st.st_mode) && (st.st_mode & 0111) != 0) {
+			if ((tmp = strrstr(p, "/")))
+				p = tmp + 1;
+		} else {
+			p = NULL;
 		}
+		
+		package = strtok(line, ",");
+		while (package) {
+			strtrim(package);
+			/* package name should not contain some characters... */
+			if (strpbrk(package, " \t\n;"))
+				break;
+		       	if (p) 
+				builddb_add_file(&t_root, package, p);
+			builddb_add_file(&t_root, SAME_CHR, package); /* add package */
+			package = strtok(NULL, ",");
+		}	
+		
 		free(line);
 		
 	}
 	write_db(&t_root, dbfile);
+	tdestroy(t_root, free_node);
 }
 
 static void find(char *program, char *dbfile) {

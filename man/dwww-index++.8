@@ -1,0 +1,66 @@
+.\" "$Id: dwww-index++.8,v 1.3 2003/09/11 17:48:55 robert Exp $"
+.\"
+.TH DWWW\-INDEX++ 8 "September 11th, 2003" "dwww 1.9.6" "Debian"
+.SH NAME
+dwww\-index++ \- build index of registered Debian documentation.
+.\"
+.SH SYNOPSIS
+.B  dwww\-index++
+.RB [ \-\-
+.IR swish_option " [" ... ]]
+.\"
+.SH DESCRIPTION
+.PP
+.B dwww\-index++
+is part of the dwww package,
+which provides access to on-line documentation on a Debian system via WWW.
+.PP
+.B dwww\-index++
+uses 
+.BR index++ (1)
+program from swish++ package to
+generate index of Debian documentation files registered with doc\-base.
+.SH OPTIONS
+.TP
+.BI "\-\- " 
+Any option after 
+.B "\-\-"
+is passed directly to
+.BR index++ (1)
+program. 
+.br
+For example you can use see which files are indexed by typing
+.RS
+.nf
+
+dwww\-index++ \-\- \-v4
+.fi
+.RE
+.SH FILES
+.TP 
+.I /etc/dwww/dwww.conf
+Configuration file for dwww.
+.TP 
+.I /etc/cron.weekly/dwww
+A Bourne shell script which calls 
+.BR dwww\-index++ .
+.TP
+.I /usr/share/dwww/swish++.conf
+Swish++ configuration file, used by 
+.BR dwww\-index++ .
+.TP
+.I /var/lib/dwww/dwww.swish++.index
+Generated index file.
+.\"
+.SH "SEE ALSO"
+.BR dwww (8),
+.BR dwww\-find (8),
+.BR index++ (1),
+.BR install\-docs (8),
+.RI "Debian doc\-base Manual in " /usr/share/doc/doc\-base/doc\-base.html/index.html .
+.\"
+.SH AUTHOR
+Robert Luberda <robert@debian.org>.
+See
+.BR dwww (8)
+for copyrights and stuff.

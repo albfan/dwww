@@ -2,19 +2,21 @@ Source: dwww
 Section: doc
 Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
-Build-Depends: debhelper (>= 3.0.10), publib-dev
-Standards-Version: 3.5.6
+Build-Depends: debhelper (>= 4.1.25), publib-dev
+Standards-Version: 3.6.1
 
 Package: dwww
 Architecture: any
 Section: doc
-Depends: apache | httpd, man-db, file, ${perl:Depends}, ${shlibs:Depends}, menu (>= 2.1.5), debconf (>= 0.9.41), mawk | awk, realpath (>= ${Source-Version})
-Recommends: doc-base, info2www, dlocate (>= 0.5-0.1), apt
-Suggests: links | www-browser, doc-debian
-Description: Read all on-line documentation via WWW
- dwww lets you read all install on-line documentation via a local
- WWW server. When possible, it converts the documentation to HTML.
- You need both a WWW server and a WWW browser.
+Depends: apache | httpd, man-db, file, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}, menu (>= 2.1.5), realpath (>= ${Source-Version}), doc-base (>= 0.7.17), debianutils (>= 2.5)
+Recommends: info2www, dlocate (>= 0.5-0.1), apt
+Suggests: links | www-browser, doc-debian, swish++, dpkg-www
+Description: Read all on-line documentation with a WWW browser
+ All installed on-line documentation will be served via a local HTTP
+ server. When possible, dwww converts the documentation to HTML.
+ You need to install both a CGI-capable HTTP server and a WWW
+ browser to read the documentation.
+
 
 Package: realpath
 Architecture: any
@@ -24,4 +26,7 @@ Replaces: dwww (<= 1.6.10)
 Description: Return the canonicalized absolute pathname
  The package contains a small utility realpath, which converts each
  pathname argument to an absolute pathname, which has no components
- that are symbolic links or the special .  or ..  directory.
+ that are symbolic links or the special .  or ..  directory entries.
+ .
+ This utility provides mostly the same functionality as `/bin/readlink -f'
+ in the coreutils package.

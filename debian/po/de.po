@@ -1,0 +1,194 @@
+#
+# This file is from the DDTP, the Debian Description Translation Project
+#
+# See http://ddtp.debian.org/ for more information.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-03-14 20:56+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Debian Description Translation Project <debconf@ddtp.debian."
+"org>\n"
+"Language-Team: de <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#  Template: dwww/docrootdir
+#  ddtp-prioritize: 42
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid "Location of web server's document root."
+msgstr "Wo ist das Dokumenten-Start-Verzeichnis?"
+
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid ""
+"dwww now needs to know where is the directory which contains the document "
+"root for your web server. The web standard suggests /var/www."
+msgstr ""
+"dwww muss den Pfad für das Dokumenten-Start-Verzeichnis des Webservers "
+"kennen. Standardmäßig ist dies das Verzeichnis /var/www."
+
+#  Template: dwww/cgidir
+#  ddtp-prioritize: 42
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid "Location of web server's cgi directory."
+msgstr "Wo ist das CGI-Verzeichnis?"
+
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid ""
+"dwww now needs to know where the directory which contains the CGI scripts "
+"for your web server exists.  The web standard suggests /usr/lib/cgi-bin, but "
+"your web server may already be configured for a different location."
+msgstr ""
+"dwww muss den Pfad für die CGI-Skripte kennen.  Nach Web-Standard ist dies "
+"das Verzeichnis /usr/lib/cgi, aber Ihr Server könnte für ein anderes "
+"Verzeichnis konfiguriert sein."
+
+#  Template: dwww/cgiuser
+#  ddtp-prioritize: 42
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid "Name of CGI user."
+msgstr "Name des CGI-Nutzers."
+
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid ""
+"dwww now needs to know what user will be running the dwww CGI script, since "
+"that user needs to have ownership of the cache directory."
+msgstr ""
+"dwww muss die Nutzerkennung wissen unter der dwww CGI-Skripte ausführen "
+"kann, da dieser Nutzer auch Eigner des Cache- Verzeichnisses sein muss."
+
+#  Template: dwww/servername
+#  ddtp-prioritize: 42
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "Host name of the web server."
+msgstr "Name des Webservers"
+
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "dwww needs to know what the host name of your web server is."
+msgstr "dwww muß den Hostnamen Ihres Webservers kennen."
+
+#  Template: dwww/serverport
+#  ddtp-prioritize: 42
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid "Web server's port."
+msgstr "Port des Webservers"
+
+#
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr "Auf welchem Port läuft dwww? Normalerweise ist dies der Port 80."
+
+#  Template: dwww/nosuchdir
+#  ddtp-prioritize: 42
+#
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory does not exists!"
+msgstr "Verzeichnis existiert nicht."
+
+#
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory ${dir} does not exists."
+msgstr "Das Verzeichnis ${dir} existiert nicht."
+
+#  Template: dwww/nosuchuser
+#  ddtp-prioritize: 42
+#
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User not found!"
+msgstr "Benutzer nicht gefunden."
+
+#
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User ${user} does not exists."
+msgstr "Der Benutzer ${user} existiert nicht."
+
+#  Template: dwww/badport
+#  ddtp-prioritize: 42
+#
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Port value should be a number!"
+msgstr "Der Port sollte eine Nummer sein."
+
+#
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Value entered for port: ${port} is invalid."
+msgstr "Der angegebene Wert (${port}) ist nicht zulässig."
+
+#  Template: dwww/index_docs
+#  ddtp-prioritize: 42
+#
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid "Should post-installation script index your documentation files?"
+msgstr "Soll nach der Installion Ihre Doc-Dateien indexiert werden?"
+
+#
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr ""
+"Das dwww-index++(8) Programm wird jede Woche einmal aufgerufen und indexiert "
+"alle Ihre Dokumentations-Dateien, die beim doc-base Paket angemeldet sind."
+
+#
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr ""
+"Dieser Index kann auch nach der Installation (im Hintergrund) erstellt "
+"werden. Dieser Prozess braucht viel Computerleistung and kann mehrere "
+"Minuten dauern. Daher können Sie jetzt wählen, ob Sie dieses möchten."

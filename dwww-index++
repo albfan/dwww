@@ -1,0 +1,165 @@
+#!/usr/bin/perl
+# vim:ft=perl:cindent:ts=8
+#
+#    dwww-index++ - create index of registered documentation using index++ command
+#    Copyright (C) 2003 Robert Luberda <robert@debian.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#  
+#
+# $Id: dwww-index++,v 1.9 2003/03/16 16:15:53 robert Exp $
+#
+
+use strict;
+
+use Debian::Dwww::Utils;
+use Debian::Dwww::DocBase;
+use File::Glob ':glob';
+
+$| = 1;
+
+my @index_formats=(
+	'html',
+	'text',
+	'rtf',
+	'latex'
+#	'pdf',
+#	'postscript',
+#	'ps',
+	);
+
+my $dwww_url = "/cgi-bin/dwww";
+my $opt_verbose = 0;
+
+my $dwww_swish_conf   	  = "/usr/share/dwww/swish++.conf";
+my $dwww_swish_index  	  = "/var/lib/dwww/dwww.swish++.index";
+# Why index++ does not create temporary file by itself???
+my $dwww_swish_index_tmp  = "/var/lib/dwww/dwww.swish++.index.tmp";
+my @files 	= ();	# list of files to index;
+
+my @index_command = ('/usr/bin/index++', '--config-file', "$dwww_swish_conf",
+		     '--index-file', "$dwww_swish_index_tmp");
+
+if ($#ARGV > 0 && $ARGV[0] eq '--') {
+	shift @ARGV;
+	push(@index_command, @ARGV);
+}
+push (@index_command, '-');
+
+
+if (! -x $index_command[0]) {
+	print STDERR "Can't find index++ command.\n";
+        print STDERR "Do you have swish++ package installed?\n";
+	exit(1);
+}
+
+$ErrorProc = \&ErrorHandle;
+print STDERR "Parsing doc-base files\n" if $opt_verbose;
+
+&FilesFromDocBaseDir("/usr/share/doc-base");
+&FilesFromDocBaseDir("/var/lib/dwww/menu-method");
+
+print STDERR "Sorting list of files\n" if $opt_verbose;
+@files = sort @files;
+
+print STDERR "Executing: @index_command\n" if $opt_verbose;
+open (INDEX, '|-')
+	|| exec { $index_command[0] } @index_command;
+
+# try to avoid indexing the same file twice
+for (my $i = 0; $i <= $#files; $i++) {
+	syswrite INDEX,  "$files[$i]\n" unless ($i > 0 and $files[$i] eq $files[$i - 1]);
+	# sleep 150 ms
+        select(undef, undef, undef, 0.15);
+}
+
+close INDEX;
+
+wait;
+
+if ( -s $dwww_swish_index_tmp) {
+	unlink($dwww_swish_index);
+	rename($dwww_swish_index_tmp, $dwww_swish_index);
+}
+
+
+
+
+#########################################################################
+#
+# Local functions
+#
+sub ErrorHandle {
+	my $file = shift;
+	my $msg  = shift;
+
+	print STDERR "$file: $msg\n" if $opt_verbose;
+}
+
+sub FilesFromDocBaseDir {
+        my $dir = shift;
+
+        if (not opendir DOCBASEDIR, $dir) {
+                print STDERR "Can't open directory $dir: $!\n" if $opt_verbose;
+                return;
+        }
+        
+        while (my $f = readdir(DOCBASEDIR))
+        {
+		next if $f =~ /^\./;
+		next if -d $f;
+		
+                if (defined (my $entry = &ParseDocBaseFile("$dir/$f"))) {
+                        &FilesFromEntry("$dir/$f", $entry);
+			undef %{$entry};
+                }
+        }
+	closedir DOCBASEDIR;
+                        
+}
+
+
+sub FilesFromEntry() {
+        my $file = shift;
+	my $entry = shift;
+	my $doc_entry = { };
+        my $known = 0;
+	my @globbed = ();
+        
+	if (exists $entry->{'dwww-section'}) {
+		&DwwwSection2Section($entry);
+	}
+	
+
+	foreach my $f (@index_formats) {
+                my $ei = defined $entry->{'formats'}->{$f}->{'index'} ?
+			$entry->{'formats'}->{$f}->{'index'} : '';
+                my $ef = defined $entry->{'formats'}->{$f}->{'files'} ?
+			$entry->{'formats'}->{$f}->{'files'} : '';
+
+		
+		if ($ei ne '') {
+			push(@globbed, &bsd_glob($ei, GLOB_NOSORT));
+		}
+                if ($ef ne '' && $ei ne $ef) {
+			push(@globbed, &bsd_glob($ef, GLOB_NOSORT));
+		}
+
+		if ($#globbed >= 0) {
+			push(@files, @globbed);
+			return;
+		}
+	}
+}

@@ -1,66 +1,87 @@
 #
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile,v 1.16 2002/04/25 06:41:54 robert Exp $"
+# "@(#)dwww:$Id: Makefile,v 1.26 2003/09/02 20:02:00 robert Exp $"
 #
 
-VERSION=$(shell dpkg-parsechangelog | sed -ne 's/^Version: *//p')
+VERSION	= $(shell dpkg-parsechangelog | sed -ne 's/^Version: *//p')
 
-CC=gcc
-CFLAGS=-Wall -O2 -DVERSION='"$(VERSION)"'
-LDFLAGS=
-LIBS=-lpub
+CC	= gcc
+CFLAGS	= -Wall -Wstrict-prototypes -Wmissing-prototypes -DVERSION='"$(VERSION)"' 
+LDFLAGS	=
+LIBS	= -lpub
 
 
-ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(findstring nodebug,$(DEB_BUILD_OPTIONS)))
   CFLAGS += -g
 endif
+
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+  CFLAGS += -O0
+else
+  CFLAGS += -O2
+endif
+
 ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
   LDFLAGS += -s
 endif
 
 
-prefix=debian/dwww
+prefix		= debian/dwww
 
-bindir=$(prefix)/usr/bin
-sbindir=$(prefix)/usr/sbin
-libdir=$(prefix)/usr/share/dwww
-varlibdir=$(prefix)/var/lib/dwww
-htmldir=$(prefix)/var/lib/dwww/html
-docdir=$(prefix)/usr/share/doc/dwww
-etcdir=$(prefix)/etc
-etcdwwwdir=$(prefix)/etc/dwww
-man1dir=$(prefix)/usr/share/man/man1
-man8dir=$(prefix)/usr/share/man/man8
-crondir=$(prefix)/etc/cron.daily
-#cgidir=$(prefix)/cgi-bin
-cachedir=$(prefix)/var/cache/dwww
-menudir=$(prefix)/etc/menu-methods
-webdocrootdir=$(prefix)/var/www
-webcgidir=$(prefix)/usr/lib/cgi-bin
+bindir		= $(prefix)/usr/bin
+sbindir		= $(prefix)/usr/sbin
+libdir		= $(prefix)/usr/share/dwww
+htmldir		= $(prefix)/var/lib/dwww/html
+docdir		= $(prefix)/usr/share/doc/dwww
+etcdir		= $(prefix)/etc
+etcdwwwdir 	= $(prefix)/etc/dwww
+varlibdir  	= $(prefix)/var/lib/dwww
+man1dir		= $(prefix)/usr/share/man/man1
+man8dir		= $(prefix)/usr/share/man/man8
+cachedir 	= $(prefix)/var/cache/dwww
+webdocrootdir 	= $(prefix)/var/www
+webcgidir	= $(prefix)/usr/lib/cgi-bin
+perlmoddir=$(prefix)/usr/share/perl5/Debian/Dwww
+
+perlmodules	= Dwww/*.pm
+source_links	= Debian
 
 
-links_end=dwww-convert.dir.end dwww-convert.end dwww-find.end man-begins-with.end \
-	  man-in-section.end packagedoc.end
+links_end	= dwww-convert.dir.end dwww-convert.end dwww-find.end 
 
-lib=lib/[!Ceio]* lib/img/[!C]*
-editorial=lib/editorial/*.html
-varlib=
-bin=realpath dwww
-cgi=dwww.cgi
-sbin=dwww-convert dwww-build dwww-cache dwww-find dwww-quickfind \
-	dwww-txt2html dwww-format-man 
-doc=README TODO
-man1=	realpath.1 dwww.1
-man8=	dwww-build.8 dwww-cache.8 dwww-convert.8 dwww-find.8 \
-	dwww-format-man.8 dwww-quickfind.8 dwww-txt2html.8 dwww.8
-cron=dwww-daily
-menumethods=menu-methods
+lib		= lib/[!Ceio]* lib/img/[!C]*
+editorial	= lib/editorial/*.html
+bin		= realpath dwww
+cgi		= dwww.cgi
+sbin		= dwww-convert dwww-build dwww-cache dwww-find \
+		  dwww-quickfind  dwww-txt2html dwww-format-man \
+		  dwww-build-menu dwww-index++
+doc		= README TODO
+man1		= man/*.1
+man8		= man/*.8
 
-all: realpath dwww-cache dwww-quickfind dwww-txt2html functions.sh
+generated	= realpath dwww-cache dwww-quickfind dwww-txt2html \
+		  Dwww/Version.pm functions.sh
 
-functions.sh:functions.sh.in
-	sed -e 's/#VERSION#/$(VERSION)/g' < $< > $@
+perlprogs       = dwww-find dwww-build-menu dwww-index++
+testprogs       := $(patsubst %,%.test,$(perlprogs))
+
+all: $(source_links) $(generated)
+
+
+%::%.in $(source_links)
+	perl -pe '				\
+		use lib "."; 			\
+		use Debian::Dwww::Initialize; 	\
+		$$d=&DwwwInitialize;		\
+		foreach $$k (keys %{$$d}) {	\
+			s/#$$k#/$$d->{$$k}/g;	\
+		}				\
+		s/#VERSION#/$(VERSION)/g; ' 	\
+	  < $< > $@
 	touch -r $< $@
+
+
 
 dwww-txt2html: dwww-txt2html.o utils.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -75,23 +96,30 @@ dwww-quickfind: dwww-quickfind.o utils.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 	
 debug:
-	DEB_BUILD_OPTIONS=debug,nostrip $(MAKE) all
+	DEB_BUILD_OPTIONS=noopt,nostrip $(MAKE) all
+
+
+Debian:
+	ln -s . $@
 
 clean:
-	rm -f core realpath dwww-cache dwww-quickfind dwww-txt2html functions.sh *.o
+	rm -f $(source_links)
+	rm -f core *.o $(generated)
+	rm -f $(testprogs)
 
 
-install:
+installdirs:
 	for i in $(prefix) $(prefix)/usr $(prefix)/var $(prefix)/var/lib \
 	  $(etcdir) $(etcdwwwdir) $(libdir) $(varlibdir) $(bindir) $(sbindir) \
-	  $(docdir) $(man1dir) $(man8dir) $(crondir) $(cachedir) \
-	  $(webdocrootdir) $(webcgidir) \
-	  $(htmldir) $(menudir); \
+	  $(docdir) $(man1dir) $(man8dir) $(cachedir) \
+	  $(webdocrootdir) $(webcgidir) $(perlmoddir) \
+	  $(htmldir) ; \
 	do  \
 		echo "$$i"; \
 		test -d $$i || install -p -d $$i; \
 	done
 
+install: installdirs
 	install -p -m 0644 $(lib) $(libdir)
 	for i in $(links_end) ; do \
 		ln -sv dwww.end $(libdir)/$$i; \
@@ -104,11 +132,20 @@ install:
 #	ln -s /usr/lib/dwww/dwww.cgi $(webcgidir)/dwww
 	install -p -m 0755 $(cgi) $(webcgidir)/dwww
 	ln -s /var/lib/dwww/html $(webdocrootdir)/dwww
-	install -p $(bin) $(bindir)
-	install -p $(sbin) $(sbindir)
+	install -p -m 0755 $(bin) $(bindir)
+	install -p -m 0755 $(sbin) $(sbindir)
+	install -p -m 0644 $(perlmodules) $(perlmoddir)
 	install -p -m 0644 $(doc) $(docdir)
 	install -p -m 0644 $(man1) $(man1dir)
 	install -p -m 0644 $(man8) $(man8dir)
-	install -p $(cron) $(crondir)/dwww
 
-.PHONY: all debug clean install
+%.test::%
+	rm -f $@
+	echo "#!/usr/bin/perl" > $@
+	echo "use lib \".\";"  >> $@
+	sed -e 's/\/usr\/share\/dwww/lib/g'  $< >> $@
+	chmod 555 $@
+
+test: $(testprogs) $(source_links)
+
+.PHONY: all debug clean install installdirs test

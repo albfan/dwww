@@ -2,7 +2,7 @@
 # vim: ts=4
 # dwww-convert -- convert docs to HTML if necessary
 #
-# Some types of files (e.g. UNIX manpages) are typically not handled by most
+# Some types of files (e.g. UNIX man pages) are typically not handled by most
 # webbrowser setups; we convert these to HTML. Other types (e.g. PDF files
 # or PNG images) are best handled by or via the user's webbrowser.
 #
@@ -14,7 +14,7 @@
 #
 # Part of the Debian dwww package.  Written by Lars Wirzenius.
 # Modified by Robert Luberda
-# "@(#)dwww:$Id: dwww-convert,v 1.25 2002/04/07 17:51:53 robert Exp $"
+# "@(#)dwww:$Id: dwww-convert,v 1.40 2003/07/27 16:17:32 robert Exp $"
 
 #
 # Setup defaults.
@@ -24,6 +24,7 @@ DWWW_DIR2HTML=builtin_dir2html
 DWWW_TEXT2HTML=builtin_text2html
 DWWW_HTML2HTML=builtin_html2html
 DWWW_INFO2HTML=builtin_info2html
+DWWW_CSS2CSS=builtin_css2css
 
 ################################################################
 #
@@ -37,9 +38,39 @@ DATE=`LC_ALL=C date`
 
 ################################################################
 #
-# Local dwww-cache functions
+# Local dwww-convert functions
 #
 
+#
+# Print error message and exit the program
+# usage: ErrorMsg status title message
+ErrorMsg() {
+	status="$1"
+	title="$2"
+	message="$3"
+
+	echo "Status: $status"
+	echo "Content-type: text/html; charset=iso-8895-1"
+	echo ""
+	echo "<HTML>"
+	echo "<HEAD>"
+	echo " <TITLE>$title</TITLE>"
+	echo "</HEAD>"
+	echo "<BODY>"
+	echo " <H1 align=\"center\">$title</H1>"
+	echo "$message"
+	echo "</BODY>"
+	echo "</HTML>"
+	exit 1
+}
+
+#
+# Get Last Modification date
+#
+PrintLastMod() {
+	lastmod=`LC_ALL=C  date -ur "$1" +"%a, %d %b %Y %H:%M:%S %Z"`
+	[ "$lastmod" ] && echo "Last-Modified: $lastmod"
+}
 
 #
 # Are we allowed to show this file?
@@ -49,9 +80,11 @@ DATE=`LC_ALL=C date`
 badfile() {
 	d="$1"
 	[ -z "$d" ] && return 0
+	link=""
+	[ "$2" = "symlink" ] && link="-s"
 
 	dw_path=`echo $DWWW_DOCPATH | tr : ' '`
-	for i in `realpath $dw_path 2>/dev/null`
+	for i in `realpath $link $dw_path 2>/dev/null`
 	do
 	  if [ -d "$i" ]; then
 		case "$d/" in
@@ -66,19 +99,20 @@ badfile() {
 # Checks if original_file is a symlink from file in directory included in
 # $DWWW_DOC_PATH to file from $DWWW_ALLOWEDLINKPATH
 #
-# Please note that orig_f must not containts /../ (eg. this can be output
+# Please note that orig_f must not contain /../ (eg. this can be output
 # of `realpath -s`)
-# 
+#
 bad_symlink() {
 	orig_f="$1"
+	real_f="$2"
 
-	badfile "$orig_f" && return 0
+	badfile "$orig_f" "symlink" && return 0
 
 	all_sym_path=`echo "$DWWW_ALLOWEDLINKPATH" | tr : ' '`
 	for i in `realpath $all_sym_path 2>/dev/null`
 	do
 		if [ -d "$i" ]; then
-			case "$orig_f/" in
+			case "$real_f/" in
 				"$i"/*) return 1 ;;
 			esac
 		fi
@@ -101,7 +135,7 @@ builtin_dir2html() {
 	dir="$1"
 
 	if [ -r "$dwww_libdir/dwww-convert.dir.start" ] ; then
-	                sed "s|TITLE|Files in $dir|g" \
+	                sed "s|%TITLE%|Files in $dir|g" \
                         "$dwww_libdir/dwww-convert.dir.start"
 	else
 		echo "<html><head><title>Files in $dir</title></head><body>"
@@ -135,11 +169,11 @@ builtin_dir2html() {
 					if [ -n "$DWWW_USEFILEURL" ] ; then
 						echo "<a href=\"file://localhost$j\">$i</a>"
 					else
-						echo "<a href=\"/cgi-bin/dwww?type=file&location=$j\">$i</a>"
+						echo "<a href=\"/cgi-bin/dwww?type=file&amp;location=$j\">$i</a>"
 					fi
 					;;
 				*)
-						echo "<a href=\"/cgi-bin/dwww?type=file&location=$j\">$i</a>"
+						echo "<a href=\"/cgi-bin/dwww?type=file&amp;location=$j\">$i</a>"
 					;;
 			esac
 	done | table_it
@@ -169,13 +203,13 @@ builtin_dir2html() {
 			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.htm.gz" ]; then
 				echo "<a href=\"file://localhost$j/index.htm.gz\">$i</a>"
 			else
-				echo "<a href=\"/cgi-bin/dwww?type=file&location=$j\">$i</a>"
+				echo "<a href=\"/cgi-bin/dwww?type=file&amp;location=$j\">$i</a>"
 			fi
 		done | table_it
 	fi
 
 	if [ -r "$dwww_libdir/dwww-convert.dir.end" ] ; then
-		sed "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" \
+		sed "s|%DATE%|$DATE|g;s|%VERSION%|$dwww_version|g" \
             "$dwww_libdir/dwww-convert.dir.end"
 	else
 		echo "<hr>Created automatically: $DATE</body></html>"
@@ -189,7 +223,7 @@ builtin_dir2html() {
 builtin_man2html() {
 
 	if [ -r "$dwww_libdir/dwww-convert.start" ] ; then
-	                sed "s|TITLE|${2:-$1}|g" \
+	                sed "s|%TITLE%|${2:-$1}|g" \
                         "$dwww_libdir/dwww-convert.start"
 	else
 		echo "<html><head><title>${2:-1}</title></head><body>"
@@ -201,7 +235,7 @@ builtin_man2html() {
 	cd /
 
 	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then
-		sed "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" \
+		sed "s|%DATE%|$DATE|g;s|%VERSION%|$dwww_version|g" \
             "$dwww_libdir/dwww-convert.end"
 	else
 		echo "</body></html>"
@@ -215,7 +249,7 @@ builtin_man2html() {
 #
 builtin_text2html() {
 	if [ -r "$dwww_libdir/dwww-convert.start" ] ; then
-	                sed "s|TITLE|$1|g" \
+	                sed "s|%TITLE%|$1|g" \
                         "$dwww_libdir/dwww-convert.start"
 	else
 		echo "<html><head><title>$1</title></head><body>"
@@ -224,7 +258,7 @@ builtin_text2html() {
 	$decompress "$1" | dwww-txt2html
 
 	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then
-		sed "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" \
+		sed "s|%DATE%|$DATE|g;s|%VERSION%|$dwww_version|g" \
             "$dwww_libdir/dwww-convert.end"
 	else
 		echo "</body></html>"
@@ -239,153 +273,134 @@ builtin_info2html() {
 	/usr/lib/cgi-bin/info2www "$1"
 }
 
+
 #
-# Convert links in an HTML documents, to be able to use the automatic
+# Convert links in an HTML and CSS documents, to be able to use the automatic
 # decompression and conversion features.
+#
+# Usage: convert_html_anchors file "html"/"css"
+# 
+convert_html_anchors() {
+
+# The procedure below was written by Daniel Martin <martin@snowplow.org>
+# See bug #151637 for more info, how it works...
+
+    $decompress "$1" | perl -0777ne '
+
+$file = '\'"$1"\'';
+$type = '\'"$2"\'';
+
+($directory = $file) =~ s/^[^\/]*(\/.*\/)[^\/]*$/$1/;
+
+if ($type eq "css") {
+	$cgi = "/cgi-bin/dwww?type=file&location=";
+} else {
+	$cgi = "/cgi-bin/dwww?type=file&amp;location=";
+}
+
+sub make_cgi_ref {
+  my($target) = shift;
+  # technically, according to rfc 2396, s. 3.4, we should also escape /,
+  # but for our uses it does not matter and it significantly uglifies our URLs
+  $target =~ s|[^\w_.!~/\-]|sprintf("%%%02X",unpack("C",$&))|ge;
+  return ($cgi . $target);
+}
+
+sub mangle_anchor {
+  my($anchortext) = shift;
+  # We do not deal with anything that starts with /cgi-bin/
+  if ($anchortext =~ m|^/cgi-bin/|) {return $anchortext;}
+  # We do not deal with anything that includes a protocol or query
+  if ($anchortext =~ /[:?]/) {return $anchortext;}
+  # first undo html escaping
+  $anchortext =~ s/^\s*//;
+  $anchortext =~ s/\&lt;/</g;
+  $anchortext =~ s/\&gt;/>/g;
+  $anchortext =~ s/\&(amp|(#x?)([a-fA-F\d]+));/($1 eq "amp")?"&":pack("C",($2 eq "#x")?hex($3):$3)/ge;
+  # Now it is safe to pull of the partial fragment
+  my ($partial) = "";
+  if ($anchortext =~ s/(#.*)//) {$partial=$1;}
+  # now undo URI escaping
+  $anchortext =~ s/%([a-fA-F\d]{2})/pack("C",hex($1))/ge;
+  # re-html-encode potentially unsafe characters in partial.
+  # shouldnt happen, but...
+  if ($partial =~ s/^#//) {
+    $partial =~ s/[<>&'\''"]/"&".unpack("C",$&).";"/ge;
+    $partial = "#" . $partial;
+  }
+  # now...
+  if (!$anchortext) {return $partial;}
+  if ($anchortext =~ m[^/]) {
+    return (make_cgi_ref($anchortext) . $partial);
+  } else {
+    return (make_cgi_ref($directory . $anchortext) . $partial);
+  }
+}
+
+sub handle_simple_tag {
+  # handle the substitution
+  my($tag,$attr) = @_;
+  # quoted
+  s/(<\s*$tag[^>]*\s+$attr\s*=\s*)(["'\''])([^>\2]*?)(\2[^>]*>)/$1.$2.mangle_anchor($3).$4/iges;
+  s/(<\s*$tag[^>]*\s+$attr\s*=\s*)([^\s"'\''][^>\s]*)(.*?>)/$1.mangle_anchor($2).$3/iegs;
+}
+
+sub transform_meta_tag {
+  my($metatext) = shift;
+  if ($metatext =~ m/equiv\s*=\s*["'\'']?refresh/is) {
+    $metatext =~ s/(URL\s*=\s*)([^>:\s"]*)/$1.mangle_anchor($2)/ies;
+  }
+  return($metatext);
+}
+
+if ($type eq "css") {
+
+  s/(url\s*\(\s*)(["'\'']?)([^)\2]+)\2(\s*\))/$1.$2.mangle_anchor($3).$2.$4/ges;
+
+} else {
+
+  handle_simple_tag(qw(a href));
+  handle_simple_tag(qw(link href));
+  
+  handle_simple_tag(qw(img src));
+  handle_simple_tag(qw(frame src));
+  
+  handle_simple_tag(qw(body background));
+  
+  # Meta tags need their own sub since the matching is a little different
+  s/<META\s+[^>]*>/transform_meta_tag($&)/iges;
+  
+  handle_simple_tag(qw(applet archive));
+
+}
+  
+  print $_;
+
+        '
+}
+
+#
+# Convert links in an HTML documents
 #
 
 builtin_html2html() {
-# Use the following hairy perl script to convert links in the html
-# document to links to the cgi script
 
-# Note that this isn't very sophisticated, and can be fooled by text
-# inside <pre></pre> blocks, and probably other ways too
-
-        $decompress "$1" | perl -0777ne '
-
-$file = '\'$1\'';
-
-# urlencode $file
-$file =~ s/([^A-Za-z0-9\ \_\-\.\/])/"%" . unpack("H*", $1)/eg;
-$file =~ tr/ /+/;
-
-($directory = $file) =~ s/^[^\/]*(\/.*\/)[^\/]*$/$1/;
-$cgi = "/cgi-bin/dwww?type=file&location=";
-
-# A. Modify <A HREF=""> & <LINK HREF=""> tags
-# Ignore tags with a colon, to prevent external pointing links conversion
-
-# A.1- absolute links (ie. starts with /) - we shouldnt really have these
-
-# A.1.1 quoted address
-
-s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
-
-# A.1.2 no quotes
-
-s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
-
-# A.2- relative links (ie. doesnt start with /, nor #)
-
-# A.2.1 quoted address
-
-s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
-
-# A.2.2 no quotes
-
-s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
-
-# A.3- fragments (ie starting with #)
-
-# A.3.1 quoted address
-
-s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(["'\''])(\s*#[^>:\2]+\2[^>]*>)/$1$2$cgi$file$3/igs;
-
-# A.3.2 no quotes
-
-s/(<(?:A|LINK)[^>]*\s+HREF\s*=\s*)(#[^>:\s]+(?:\s[^>]*)?>)/$1$cgi$file$2/igs;
-
-# B. Modify <IMG SRC=""> & <FRAME SRC=""> tags
-# Ignore tags with a colon, to prevent external pointing links conversion
-
-# B.1- absolute links (ie. starts with /) - we shouldnt really have these
-
-# B.1.1 quoted address
-
-s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
-
-# B.1.2 no quotes
-
-s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
-
-# B.2- relative links (ie. doesnt start with /, nor #)
-
-# B.2.1 quoted address
-
-s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
-
-# B.2.2 no quotes
-
-s/(<(?:IMG|FRAME)[^>]*\s+SRC\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
-
-# C. Modify <BODY BACKGROUND=""> tags
-# Ignore tags with a colon, to prevent external pointing links conversion
-
-# C.1- absolute links (ie. starts with /) - we shouldnt really have these
-
-# C.1.1 quoted address
-
-s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
-
-# C.1.2 no quotes
-
-s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
-
-# C.2- relative links (ie. doesnt start with /, nor #)
-
-# C.2.1 quoted address
-
-s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
-
-# C.2.2 no quotes
-
-s/(<BODY[^>]*\s+BACKGROUND\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
-
-# D. Modify <META HTTP-EQUIV=REFRESH...> tags 
-# Ignore tags with a colon, to prevent external pointing links conversion
-
-# D.1- absolute links (ie. starts with /) - we shouldnt really have these
-
-# D.1.1 no quotes
-
-s/(<META[^>]*REFRESH[^>]*URL\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
-
-# D.2- relative links (ie. doesnt start with /, nor #)
-
-# D.2.1 no quotes
-
-s/(<META[^>]*REFRESH[^>]*URL\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
-
-# E. Modify <APPLET ARCHIVE=""> tags
-# Ignore tags with a colon, to prevent external pointing links conversion
-
-# E.1- absolute links (ie. starts with /) - we shouldnt really have these
-
-# E.1.1 quoted address
-
-s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)(["'\''])(\s*\/[^>:\2]*\2[^>]*>)/$1$2$cgi$3/igs;
-
-# E.1.2 no quotes
-
-s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)(\/[^>:\s]*(?:\s[^>]*)?>)/$1$cgi$2/igs;
-
-# E.2- relative links (ie. doesnt start with /, nor #)
-
-# E.2.1 quoted address
-
-s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)(["'\''])(\s*[^\/\s>#:\2][^>:\2]*\2[^>]*>)/$1$2$cgi$directory$3/igs;
-
-# E.2.2 no quotes
-
-s/(<APPLET[^>]*\s+ARCHIVE\s*=\s*)([^\/\s>#:"'\''][^>:\s]*(?:\s[^>]*)?>)/$1$cgi$directory$2/igs;
-
-
-print $_;
-
-        '
+	convert_html_anchors "$1" "html"
 	echo "<!-- Generated by dwww $dwww_version on $DATE -->"
 	exit 0
 
+
+}
+
+#
+# Convert links inside CSS url() function
+#
+
+builtin_css2css() {
+
+	convert_html_anchors "$1" "css"
+	echo "/* Generated by dwww $dwww_version on $DATE */"
+	exit 0
 
 }
 
@@ -415,37 +430,37 @@ file=$(echo $file | sed -e "s/#.*$//")
 
 # Check for directory
 if [ -d "$file" ] ; then
-	type="dir"
+	if [ "$type" != "dir" ] ; then
+		type="dir"
 
-	# search for HTML indexes
-	for comp in "" ".gz" ".bz2" ; do
-		for suff in ".html" ".htm"; do
-			if [ -f  "$file/index$suff$comp" ] ; then
-				file="$file/index$suff$comp"
-				type="html"
-				break 2
-			fi
+		# search for HTML indexes
+		for lang in "" ".en"; do
+			for comp in "" ".gz" ".bz2"; do
+				for suff in ".html" ".htm"; do
+					if [ -f  "$file/index$suff$lang$comp" ] ; then
+						file="$file/index$suff$lang$comp"
+						type="html"
+						break 3
+					fi
+				done
+			done
 		done
-	done
+	fi
 
 elif [ "$type" = dir ]; then
-		type="file"	
-fi		
+		type="file"
+fi
 
 # Check	info file
 if [ "$type" = "info" -a ! -x /usr/lib/cgi-bin/info2www ] ; then
-	echo "Status: 500 dwww error"
-	echo "Content-type: text/html; charset=iso-8895-1"
-	echo ""
-	echo "<html><head><title>Cannot convert info files</title></head><body>"
-	echo "<h1>Converter for info files not installed</h1>dwww could not find the"
-	echo "<b>info2www</b> program, which is required to convert the info files.</body></html>"
-	exit 1
+    ErrorMsg "500 dwww error" \
+             "Cannot convert info files" \
+             "dwww could not find the <B>info2www</B> program, which is required to conver the info files"
 fi
-		 
-	
-		
-# Check for manpage
+
+
+
+# Check for man page
 if [ "$type" = "runman" ]; then
 
 	type="man"
@@ -453,16 +468,11 @@ if [ "$type" = "runman" ]; then
 	section="`echo \"$orig_file\" | sed 's/.*\///'`"
 	file="`man --location -e \"$section\" \"$name\" | sed 's/ .*//;1q'`"
 
-	if [ "X$file" = "X" -o ! -f "$file" ] ; then
-		# Manpage doesn't exist
-		echo "Status: 404 Manpage not found"
-		echo "Content-type: text/html; charset=iso-8895-1"
-		echo ""
-		echo "<html><head><title>Manpage not found</title></head><body>"
-		echo "<h1>Manpage not found.</h1>dwww could not find the"
-		echo "manpage $name($section)</body></html>"
-		exit 1
-	fi
+    if [ "X$file" = "X" -o ! -f "$file" ] ; then
+        ErrorMsg "404 Man page not found" \
+                 "Man page not found" \
+                 "dwww could not find the man page $name($section)"
+    fi
 
 
 # Check to see if html file exists
@@ -473,58 +483,58 @@ elif [ \( "$type" = "html" -o "$type" = "text/html" \) -a ! -e "$file" ]; then
 	# that one if it does
 	basefile=$(echo $file | sed -e "s/\.htm.*$//")
 
-	for comp in "" ".gz" ".bz2" ; do
-		for suff in ".html" ".htm"; do
-			if [ -f  "$basefile$suff$comp" ] ; then
-				file="$basefile$suff$comp"
-				type="html"
+	for lang in "" ".en"; do
+		for comp in "" ".gz" ".bz2"; do
+			for suff in ".html" ".htm"; do
+				if [ -f  "$basefile$suff$lang$comp" ] ; then
+					file="$basefile$suff$lang$comp"
+					type="html"
+					break 3
+				fi
+			done
+		done
+	done
+
+# Check for compressed/translated file
+elif [ ! -e "$file" ]; then
+	for lang in "" ".en"; do
+		for comp in "" ".gz" ".bz2"; do
+			if [ \( "$comp" != "$lang" \) -a -f  "$file$lang$comp" ] ; then
+				file="$file$lang$comp"
 				break 2
 			fi
 		done
 	done
+fi
 
-# Check for compressed file
-elif [ ! -e "$file" ]; then
-	if [ -f "${file}.gz" ]; then
-		file="${file}.gz"
-	elif [ -f "${file}.bz2" ]; then
-		file="${file}.bz2"
-	fi
-	
-fi		
+if [ -e "$file" ] ; then
 
+    real_file="`realpath \"$file\"`"
+    file="`realpath -s \"$file\"`"
 
+    if badfile "$real_file"  ; then
+        if [ ! -s "$file" ] || bad_symlink "$file" "$real_file" ; then
+            ErrorMsg "403 Access denied" \
+                     "Access denied" \
+                     "dwww will not allow you to read the file $orig_file"
+        fi
+    fi
 
-if [ -e "$file" ]; then
-	real_file="`realpath \"$file\"`"
-	file="`realpath -s \"$file\"`"
 else
-	real_file=""
-	file="`realpath -s \"$file\"`"
-fi
 
-if badfile "$real_file"  ; then
-	if bad_symlink "$file" ; then
-		echo "Status: 403 Access denied"
-		echo "Content-type: text/html; charset=iso-8859-1"
-		echo ""
-		echo "<html><head><title>Access denied</title></head><body>"
-		echo "<h1>Access denied.</h1>dwww will not allow you to read"
-		echo "file $orig_file</body></html>"
-		exit 1
-	fi
-fi
+    real_file=""
+    file="`realpath -s \"$file\"`"
 
-# Check to see if file exists
-if [ ! -e "$real_file" ]; then
-	# File doesn't exist
-	echo "Status: 404 File not found"
-	echo "Content-type: text/html; charset=iso-8859-1"
-	echo ""
-	echo "<html><head><title>File not found</title></head><body>"
-	echo "<h1>File not found.</h1>dwww could not find the"
-	echo "file $orig_file</body></html>"
-	exit 1
+    if badfile "$file" "symlink" ; then
+            ErrorMsg "403 Access denied" \
+                     "Access denied" \
+                     "dwww will not allow you to read the file $orig_file"
+    else
+            ErrorMsg "404 File not found" \
+                     "File not found" \
+                     "dwww will could not find the file $orig_file"
+    fi
+
 fi
 
 
@@ -549,7 +559,7 @@ if [ "$type" != "dir" -a -e "$real_file" ]; then
 			;;
 		*)
 			decompress="cat"
-			base_name="$real_file"
+			base_name=`basename "$real_file"`
 			;;
 	esac
 else
@@ -575,18 +585,43 @@ if [ "$type" = "file" -a -e "$real_file" ] ; then
 	# then guess the file type depending on the extension
 	# if the extension is of size 0 or more than 4
 	# text is assumed.
+ 
+	case "$extension" in 
+		txt|text)
+			type=text/plain
+			;;
+		htm|html)
+			type=text/html
+			;;
+		css)
+			type=text/css
+			;;
+		[1-9]|[1-9][a-z]*)
+			if [ "${file#*/man/}" != "${file}" ] ; then
+			# if file is located in */man/* directory, assume it's a man page
+				type=runman
+			elif [ "X${ext#????}" != "X" ] ;then
+			# size of extension > 4, assume text/plain
+				type=text/plain
+			fi
+			;;				
+		""|?????*)
+			# extension is empty or its size is > 4
+			type=text/plain
+			;;
+		*)
+			;;
+	esac	
 
-	if [ "$extension" = "txt" -o "$extension" = "text" ] ; then
-		type="text/plain"
-	elif [ "$extension" = "htm" -o "$extension" = "html" ] ; then
-		type="text/html"
-	elif `/usr/bin/test -z "$extension" -o -l "$extension" -gt 4` ; then
-		type="text/plain"
-	else
-		type="`"$decompress" "$real_file" | file -b - | magic2mime`"
+	if [ "$type" = "file" ] ; then
+		tmptype="`"$decompress" "$real_file" | file -bi -`"
+		type="${tmptype%%[!a-zA-Z/-]*}"
 	fi
 fi
 
+
+
+mime_type="text/html" #default
 
 case "$type" in
 	html)
@@ -612,13 +647,29 @@ case "$type" in
 	text/plain)
 		converter="$DWWW_TEXT2HTML"
 		;;
-	*)	
+	text/css)
+		converter="$DWWW_CSS2CSS"
+		mime_type="$type"
+		;;
+	*)
 		converter=""
+		mime_type="$type"
 esac
+
+mime_charset=""
+if [ "$type" != "html" ] ; then
+	if [ "$base_name" = "changelog.Debian" ] ; then
+		mime_charset="UTF-8"
+	else
+		mime_charset="ISO-8859-1"
+	fi
+fi
 
 
 if [ "X$converter" = "X"  ]; then
-	echo "Content-type: $type"
+	echo "Content-type: $mime_type"
+	PrintLastMod "$real_file"
+	echo "Content-Disposition: inline; filename=\"$base_name\""
 	echo ""
 	"$decompress" "$real_file"
 	exit 0
@@ -627,7 +678,11 @@ fi
 # Check to see if user wants to access HTML files directly.
 
 if [ "$type" = "html" -a -n "$DWWW_USEFILEURL" ]; then
-        echo "Content-type: text/html; charset=iso-8859-1"
+		if [ -n "$mime_charset" ] ; then
+	        echo "Content-type: text/html; charset=$mime_charset"
+		else
+	        echo "Content-type: text/html"
+		fi
         echo ""
         "$decompress" "$real_file"
         exit 0
@@ -636,8 +691,17 @@ fi
 
 
 # Print the header
-echo "Content-type: text/html; charset=iso-8859-1"
+if [ -n "$mime_charset" ] ; then
+	echo "Content-type: $mime_type; charset=$mime_charset"
+else
+    echo "Content-type: $mime_type"
+fi
+PrintLastMod "$real_file"
+if [ \( "$mime_type" != 'text/html' \) -o \(  "$type" = "html" \) ]; then
+echo "Content-Disposition: inline; filename=\"$base_name\""
+else
 echo "Content-Disposition: inline; filename=\"$base_name.html\""
+fi
 echo ""
 
 case "$DWWW_USE_CACHE" in
@@ -651,13 +715,13 @@ case "$DWWW_USE_CACHE" in
 			fi
 		fi
 		;;
-	*)			
+	*)
 		if [ "$converter" = builtin_man2html ] ; then
-			"$converter" "$file" "$orig_file" 
+			"$converter" "$file" "$orig_file"
 		else
 			"$converter" "$file"
 		fi
 		;;
-esac				
+esac
 
 exit 0

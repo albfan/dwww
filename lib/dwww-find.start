@@ -1,0 +1,22 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+            "http://www.w3.org/TR/html40/loose.dtd">
+<html>
+<head>
+	<title>%TITLE%</title>
+</head>
+
+<body text="#000000" bgcolor="#FFFFFF" link="#0000CC" alink="#FF0000" vlink="#0000FF">
+<h1><img src="/dwww/debian.jpg" alt="[Debian Logo]" border="0" width="188" height="50" hspace="10" align="bottom"> <b>%TITLE%</b></h1>
+<small><a href="/dwww/">dwww Home</a></small>
+<br>
+<hr>
+<form method="POST" action="/cgi-bin/dwww">
+    <input name="search" size="30" value="%VALUE%">
+    <input type="submit" name="programsubmit" value="Search">
+<br>
+    <label accesskey="p"><input type="radio" name="searchtype" %PCHECKED% value="p">programs</label>
+    <label accesskey="m"><input type="radio" name="searchtype" %MCHECKED% value="m">menu</label>
+    <label accesskey="d"><input type="radio" name="searchtype" %DCHECKED% value="d">registered docs</label>
+  </form>
+<p>
+<!-- vim:set ft=html: -->

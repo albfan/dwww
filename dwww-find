@@ -1,27 +1,104 @@
-#!/bin/sh
-# vim: ts=4
+#!/usr/bin/perl
+# vim:ft=perl:cindent:ts=8:et
 #
-# Find all docs related to one program.
-# "@(#)dwww:$Id: dwww-find,v 1.14 2002/05/08 07:07:05 robert Exp $"
+# Find all docs related to one program or find matching entries in Debian Doc. Menu
+# "$Id: dwww-find,v 1.39 2004/01/24 11:04:17 robert Exp $"
 #
 
-DATE=`LC_ALL=C date`
+use strict;
 
-if [ -x /usr/bin/dlocate -a -s /var/lib/dlocate/dlocatedb -a -s /var/lib/dlocate/dpkg-list ]
-then
-	DPKG=dlocate
-else
-	DPKG=dpkg
-fi
+use Debian::Dwww::Utils;
+use Debian::Dwww::Initialize;
 
-trace() { 
-#	(echo -n "$@  "; date) 1>/dev/null
-true
+
+my $dwwwvars = &DwwwInitialize("/etc/dwww/dwww.conf");
+
+my $dwww_quickfind_db = $dwwwvars->{'DWWW_QUICKFIND_DB'};
+my $dwww_menu_dir     = $dwwwvars->{'DWWW_HTMLDIR'} . "/menu";
+my $dwww_swish_index  = "/var/lib/dwww/dwww.swish++.index";
+my $dwww_swish_conf   = "/usr/share/dwww/swish++.conf";
+
+undef %{$dwwwvars};
+
+my $templates_dir  = "/usr/share/dwww";
+my $template_start = "$templates_dir/dwww-find.start";
+my $template_end   = "$templates_dir/dwww-find.end";
+
+my %hrefs = (  
+            'man'       => '/cgi-bin/dwww?type=man&amp;location=', 
+            'runman'    => '/cgi-bin/dwww?type=runman&amp;location=',
+            'dir'       => '/cgi-bin/dwww?type=dir&amp;location=',
+            'info'      => '/cgi-bin/info2www?file=',
+            'file'      => '/cgi-bin/dwww?type=file&amp;location=',
+            'menu'      => '/dwww/menu/',
+            'search'    => '/cgi-bin/dwww?search=',
+            'dpkg'      => '/cgi-bin/dpkg?query='
+        );
+
+my $dpkgwwwcgi = "/usr/lib/cgi-bin/dpkg";
+
+
+my $dpkg="dpkg";
+if ( -x "/usr/bin/dlocate" && -s "/var/lib/dlocate/dlocatedb" 
+    && -s "/var/lib/dlocate/dpkg-list" ) {
+        $dpkg="dlocate";
+} else {
+        $dpkg="dpkg";
 }
 
-trace beginning
+#########################################################################
+#
+# Main program
+#
 
-. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+if (! defined $ARGV[0]) {
+    print STDERR "usage: $0 [--package|--menu|--documentation] searcharg\n";
+    exit(1);
+}
+
+my $mode="p";
+if ($ARGV[0] =~ m/^--(.*)$/) {
+        if ($1 eq "package") { $mode = "p"; }
+        elsif ($1 eq "menu") { $mode = "m"; }
+        elsif ($1 eq "documentation") { $mode = "d"; }
+        else {
+                print STDERR "usage: $0 [--package|--menu|--documentation] searcharg\n";
+                exit(1);
+        }
+        shift @ARGV;
+}
+
+my $skip=0;
+if ($ARGV[0] =~ m/^--skip=([0-9]+)$/) {
+        $skip=$1;
+        shift @ARGV;
+}
+
+
+
+
+my $f_cnt = 0;
+
+print &TemplateFile($template_start, { 'TITLE' => 'Search results',
+                                     'VALUE'   => &HTMLEncode(join(" ", @ARGV)),        
+                                     'MCHECKED' => $mode eq "m" ? 'checked' : '',
+                                     'PCHECKED' => $mode eq "p" ? 'checked' : '',
+                                     'DCHECKED' => $mode eq "d" ? 'checked' : ''
+                                 });
+
+if ($mode eq "p") {
+        $f_cnt = &SearchPackage(@ARGV);
+} elsif ($mode eq "m") {
+        $f_cnt = &SearchMenus($dwww_menu_dir, $ARGV[0]);
+} elsif ($mode eq "d") {
+        $f_cnt = &SearchRegisteredDocumentation($ARGV[0], $skip, 50);
+}
+
+print "<strong>Not found!</strong>\n" unless $f_cnt;
+
+
+print &TemplateFile($template_end, { } );
+
 
 
 #########################################################################
@@ -29,163 +106,461 @@ trace beginning
 # Local functions
 #
 
+sub FindPkg {
+        my $searchfor = shift;
+        my @ret = ();
 
-findpkg() {
-	if [ -f "$DWWW_QUICKFIND_DB" ]
-	then
-		dwww-quickfind "$1" "$DWWW_QUICKFIND_DB"
-	else
-		$DPKG -S "$1" | sed -ne "/bin.*\/$1\$/{;s/:.*//p;q;}"
-	fi
+        if ( -f "$dwww_quickfind_db" ) {
+                open (FINDPKG, "dwww-quickfind \"$searchfor\" \"$dwww_quickfind_db\"|");
+                while (<FINDPKG>) {
+                    chomp();    
+                    push(@ret, $_);
+                }   
+        } else {
+                open (FINDPKG, "$dpkg \"$searchfor\"|");
+                while (<FINDPKG>) {
+                    chomp();    
+                    if (m/^([^:]+):.*bin.*\/$searchfor\$/o) {
+                            push(@ret, $1);
+                    }
+                }
+        }
+        close FINDPKG;
+        return @ret;
 }
 
-mans_in_pkg() {
-	echo "<STRONG>Manual pages:</STRONG> "
-	grep '/man/man[1-9n]/' < $filelist |
-	while read file
-	do
-	  x="`basename $file | sed 's/\.gz$//;s/\.\([^.]*\)$/(\1)/'`"	
-	  if [ -f "$file" ] ; then
-		uri="`urlencode $file`"
-	  	echo "<a href=\"/cgi-bin/dwww?type=man&location=$uri\">$x</a>"
-	  fi	
-	done | tee $temp | table_it
-	if [ ! -s $temp ]
-	then
-		echo "none." | table_it
-	fi
-	echo '<p align="left">'
-}
-
-infos_in_pkg() {
-	echo "<STRONG>Info files:</STRONG> "
-	grep -E '/info/.*info(\.gz)?$' < $filelist | 
-	while read file
-	do
-		base="`basename $file | sed 's/\..*//'`"
-		uri="`urlencode $file`"
-		echo "<a href=\"/cgi-bin/info2www?$uri\">$base</a>"
-	done | tee $temp | table_it
-	if [ ! -s $temp ]
-	then
-		echo "none." | table_it
-	fi
-	echo '<p align="left">'
-}
-
-docs_in_pkg() {
-	echo "<STRONG>Other documents:</STRONG><BR> "
-	grep -E '^/usr(/share)?/doc/' < $filelist |
-	while read file
-	do
-	  if [ -d "$file" ] ;then
-		  uri="`urlencode $file`"
-		  echo "<a href=\"/cgi-bin/dwww?type=dir&location=$uri\">$file</a><BR>"
-	  fi
-	done | tee $temp
-	if [ ! -s $temp ]
-	then
-		echo "none." | table_it
-	fi
-	echo '<p align="left">'
-}
-
-apropos() {
-	echo "<STRONG>Manual page search:</STRONG> "
-	man -k "$1" | sort | perl -e '
-		while (<STDIN>)
-		{
-			chomp();
-			if (s/^(\S+)\s\(([1-9]\S+)\).*-.*$/$1\/$2/) 
-			{
-				$file="$1($2)";			
-				s/(\W)/"%" . unpack("H*", $1)/eg;
-				$have_it = 1;
-				print "<a href=\"/cgi-bin/dwww?type=runman&location=$_\">$file</a>\n"
-			}
-		}
-		print "nothing.\n" unless defined $have_it; ' | table_it
-		
+sub SearchPackage {
+        my @args  = @_;
+        my $f_cnt = 0;
+        
+        foreach my $arg (@args) {
+                print "<h2>Documentation related to <em>" . &HTMLEncode("$arg") . "</em></h2>\n";
+                foreach my $pkg (&FindPkg("$arg")) {
+                        print "<h3><strong>Package:</strong> ";
+                        if ( -x "$dpkgwwwcgi" ) {
+                                print "<a href=" . $hrefs{'dpkg'} . &URLEncode("$pkg"). ">"
+                                        . &HTMLEncode("$pkg") . "</a>";
+                        } else {
+                                print &HTMLEncode("$pkg");
+                        }
+                        print "</h3>\n";
+                        
+                        $f_cnt += &PkgDescription("$pkg");
+                        my @filelist = sort &GetPkgFileList("$pkg");
+                        $f_cnt += &MansInPkg(@filelist);
+                        $f_cnt += &InfosInPkg (@filelist);
+                        $f_cnt += &DocsInPkg (@filelist);
+                }
+                $f_cnt += &Apropos ("$arg");
+        }
+        return $f_cnt;
 }
 
 
-pkg_description () {
-	if [ -x /usr/bin/apt-cache ] 
-	then
-		apt-cache show -o 'APT::Cache::AllVersions=0' "$1" 2>/dev/null  \
-			| sed -ne '/^Description/,${;p;/^$/q;}' \
-			| /usr/sbin/dwww-txt2html \
-			| sed -e 's/<\/*pre>//;
-					  s/^ *\. */<BR>/;
-					  s|^\(Description\)\(.*\)$|<STRONG>\1</STRONG>\2<BR>|'
-		echo '<BR><BR>'
-	fi
-	
+sub GetPkgFileList {
+        my $pkg = shift;
+        my @ret = ();
+        
+        open (FILELIST, "$dpkg -L \"$pkg\"|");
+        while (<FILELIST>) {
+                chomp();    
+                push(@ret, $_);
+        }
+        close FILELIST;
+        return @ret;
 }
-#########################################################################
-#
-# Main program
-#
 
 
-trace beginning2
+sub MansInPkg {
+        my @files       = @_;
+        my $res         = 0;
+        my $table       = undef;
 
-if [ "$1" = "" ]
-then
-	echo "usage: $0 programname" 1>&2
-	exit 1
-fi
+        foreach $_ (@files) {
+                next unless m/\/man\/man[1-9n]\//;
+                next unless ( -f "$_");
+                if (!$res) {
+                        $res = 1;
+                        $table = &BeginTable(\*STDOUT, "Manual pages:", 3);
+                }
+                my $uri = &URLEncode($_);
+                s/^.*\///;
+                s/\.(gz|bz2)$//;
+                s/\.([^.]*)$/($1)/;
+                &AddToTable(\*STDOUT, $table, 
+                        "<a href=\"" . $hrefs{'man'} . "$uri\">$_</a>");
+        }
+        if ($res) {
+                &EndTable(\*STDOUT, $table);
+        }
+        return $res;
+}
 
-set -e
-temp=`tempfile -p dwww -s .dwww-find`
-filelist=`tempfile -p dwww -s .dwww-find`
-set +e
-trap "rm -f '$temp' '$filelist' ; exit 1" HUP INT QUIT TERM 
+sub InfosInPkg() {
+        my @files       = @_;
+        my $res         = 0;
+        my $table       = undef;
+
+        foreach $_ (@files) {
+                next unless m/\/info\/.*\.info(\.gz)?$/;
+                next unless ( -f "$_");
+                if (!$res) {
+                        $res = 1;
+                        $table = &BeginTable(\*STDOUT, "Info files:", 3);
+                }
+                my $uri = &URLEncode($_);
+                s/^.*\///;
+                s/^\..*//;
+                &AddToTable(\*STDOUT, $table, 
+                        "<a href=\"" . $hrefs{'info'} . "$uri\">$_</a>");
+        }
+        if ($res) {
+                &EndTable(\*STDOUT, $table);
+        }
+        return $res;
+}
+
+### sub RegisteredDocsInPkg {
+###     my @files  = @_;
+###     my $res = 0;
+###     my $table = undef;
+###     my $entry = undef;
+### 
+###         foreach $_ (@files) {
+###                 next unless m/^\/usr\/share\/doc-base\//;
+###                 next unless ( -f "$_");
+### 
+###             $entry = &ParseDocBaseFile("$_");
+###             next unless defined $entry;
+###             
+###             if (!$res) {
+###                     $res = 1;
+###                         $table = &BeginTable(\*STDOUT, "Registered documents:", 1);
+###             }
+###                 my $uri = &URLEncode($_);
+###                 &AddToTable(\*STDOUT, $table, 
+###                         "<a href=\"" . $hrefs{'dir'} . "$uri\">$_</a>");
+###             undef %{$entry};
+###         }
+###         if ($res) {
+###                 &EndTable(\*STDOUT, $table);
+###         }
+###         return $res;
+### }
+
+sub DocsInPkg {
+        my @files       = @_;
+        my $res         = 0;
+        my $table       = undef;
+
+        foreach $_ (@files) {
+                next unless m/^\/usr(\/share)?\/doc\//;
+                next unless ( -d "$_");
+                if (!$res) {
+                        $res = 1;
+                        $table = &BeginTable(\*STDOUT, "Other documents:", 2);
+                }
+                my $uri = &URLEncode($_);
+                &AddToTable(\*STDOUT, $table, 
+                        "<a href=\"" . $hrefs{'dir'} . "$uri\">$_</a>");
+        }
+        if ($res) {
+                &EndTable(\*STDOUT, $table);
+        }
+        return $res;
+}
+
+sub Apropos {
+        my $searchfor   = shift;
+        my @apropos     = ();
+        my $res         = 0;
+        my $table       = undef;
+
+        open (APROPOS, "man -k \"$searchfor\"|");
+        while (<APROPOS>) {
+                chomp();
+                push (@apropos, $_);
+        }
+        close APROPOS;
+
+        foreach $_ (sort @apropos) {
+                chomp();
+## Example "man -k" output that we are trying to parse:
+## a2p (1)              - Awk to Perl translator
+## #include <qslider.h> (3qt) [qslider] - Vertical or horizontal slider
+##
+                next unless (/^(.*?)\s\(([1-9]\S*)\)(\s*\[.*\])?\s+- .*$/);
+                my $man  = "$1";
+                my $sect = "$2";
+                my $tmp  = defined $3 ? "$3" : "";
+                if ($tmp =~  /\s*\[(.*)\]\s*/) {
+                        $_ = "$1/$sect";
+                } else {
+                        $_ = "$man/$sect";
+                }
+                if (!$res) {
+                        $res = 1;
+                        $table = &BeginTable(\*STDOUT, "Manual page search:", 3);
+                }
+
+                my $uri = &URLEncode($_);
+                $_ = &HTMLEncode("$man($sect)");
+                &AddToTable(\*STDOUT, $table, 
+                        "<a href=\"" . $hrefs{'runman'} . "$uri\">$_</a>");
+        }
+        
+        if ($res) {
+                &EndTable(\*STDOUT, $table);
+        }
+        return $res;
+}
+
+sub PkgDescription () {
+        my $pkg         = shift;
+        my $descr       = '';
+        my $synopsis    = undef;
+        my $fdescr      = 0;     
+        my $res         = 0;
+        my $table       = undef;
+        
+        return 0 unless ( -x "/usr/bin/apt-cache" );
+
+        open PKGDESC, ("apt-cache show -o 'APT::Cache::AllVersions=0' \"$pkg\" 2>/dev/null |");
+        while (<PKGDESC>) {
+                if (!$fdescr && s/^Description:\s+//) {
+                        chomp();
+                        $synopsis = $_;
+                        $fdescr = 1;
+                } elsif ($fdescr) {
+                    $descr .= $_;
+                }
+        }
+        close PKGDESC;
+
+        return 0 unless defined $synopsis;
+        print '<strong>Description:</strong> ' . &HTMLEncode("$synopsis");
+        print "\n<br>";
+        print &HTMLEncodeAbstract($descr);
+        return 1;
+}
 
 
-if [ -r "$dwww_libdir/dwww-find.start" ]; then
-	sed -e "s|TITLE|Search results|g" \
-			"$dwww_libdir/dwww-find.start"
-else
-	echo "<html> <head> <title>Search results</title> </head> <body>"
-	echo "<h1>Search results</h1>"
-fi
+sub SearchMenus {
+        my $dir        = shift;
+        my $searchfor  = shift;
+        my $match_cnt  = 0;
+        my @patterns   = ();
 
-trace before for loop
-for arg in $*
-do
-	echo "<h2>Documentation related to <EM>$arg</EM></h2>"
+        print "<h2>Menu entries related to <em>" . &HTMLEncode("$searchfor") . "</em></h2>\n";
 
-	for bin in $arg # `type -path -all $arg`
-	do
-        for pkg in `findpkg "$bin"`
-        do
-            if [ "$pkg" != "" ]
-            then
-                echo "<STRONG>Package:</STRONG> $pkg<p align=\"left\">"
-                trace before description
-                pkg_description "$pkg"
-                trace before listfiles
-                $DPKG -L "$pkg" > "$filelist"
-                trace before man_in_pkg
-                mans_in_pkg "$pkg"
-                trace before infos_in_pkg
-                infos_in_pkg "$pkg"
-                trace before docs_in_pkg
-                docs_in_pkg "$pkg"
-                trace after docs_in_pkg
-            fi
-        done
-    done
-	trace before apropos
-	apropos "$arg"
-	trace after apropos
-done
+        if (not opendir DOCBASEDIR, $dir) {
+                print "Can't open directory $dir: $!\n";
+                return $match_cnt;
+        }   
+        
+        # quote special regexp characters
+        $searchfor      =~ s/[\.\^\$\|\(\)\[\]\{\}\*\+\?\\]/\\$&/g;
+        my @patterns    = split(/\s+/, $searchfor);
+    
+        while (my $f = readdir(DOCBASEDIR)) {
+                next if -d $f;
+                next unless $f =~ /^s.*\.html$/;
 
-if [ -r "$dwww_libdir/dwww-find.end" ] ;then
-	sed -e "s|DATE|$DATE|g;s|VERSION|$dwww_version|g" "$dwww_libdir/dwww-find.end"
-else
-	echo "</body></html>"
-fi
+                $match_cnt += &SearchinMenuFile($dir, $f, @patterns);
+        }
+        return $match_cnt;
+}
 
-rm -f "$temp" "$filelist"
+
+
+sub SearchinMenuFile() {
+        my $dir       = shift;
+        my $file      = shift;
+        my @patterns  = @_;
+        my $sec       = undef;
+        my $res       = undef;
+        my $entry     = undef;
+        my $srch      = undef;
+        my $inentry   = 0;
+        my $found     = 0; 
+        my $match_cnt = 0;
+#my @patterns  = split(/\s+/, $searchfor);
+
+        open FILE, "<$dir/$file" or die "Can't open file";
+    
+        while (<FILE>) {
+                if (!defined $sec) {
+                        $sec = $1 if m/^<!-- Section: (.*) -->$/;
+                } elsif (m/^<!-- begin entry -->/) {
+                        $inentry = 1;
+                        $srch    = '';
+                        $entry   = '';
+                        $found   = 0;
+                } elsif (m/^<!-- end entry -->/) {
+                        $inentry = 0;
+                        $found   = 1;
+                        $_       = $srch;
+                        foreach my $pat (@patterns) {
+                                if (not $srch =~ m/$pat/i) {
+                                        $found = 0;
+                                        last;
+                                }
+                        }
+                        $res .= $entry if ($found);
+                        $match_cnt++ if ($found);
+                        $srch    = '';
+                } elsif ($inentry) {
+                        $entry .= $_;
+                        next if s/^<br><b>Formats:.*//;
+                        s/<[^>]*>//g;
+                        $srch .= $_;
+                }
+        }
+
+
+        if (defined $res) {
+                print "<h2>Section: <a href=\"" . $hrefs{'menu'} . 
+                                        &URLEncode($file) ."\">$sec</a></h2>\n";
+                print "<dl>\n";
+                print $res;
+                print "</dl>\n";
+        }
+        return $match_cnt;
+}   
+
+
+sub PrintRegDocsPages {
+        my $searchfor  = shift;
+        my $startwith  = shift;
+        my $maxperpage = shift;
+        my $resultcnt  = shift;
+        my $max        = 10;
+        my ($first, $last);
+
+        return unless (defined $resultcnt and defined $startwith and defined $maxperpage
+                        and $resultcnt > $maxperpage and $maxperpage > 0);
+        
+        my $pagescnt = int ($resultcnt / $maxperpage);
+        my $pageno   = int ($startwith / $maxperpage);
+        $first       = 0;
+        $last        = $pagescnt + 1;
+        
+        
+        print "<center>\n";
+        
+        if ($pagescnt > $max) {
+                $first = (int ($pageno / $max)) * $max - 1;
+                $last  = $first +  $max + 1;
+                $last  = $pagescnt + 1 if $last > $pagescnt;
+        }
+
+#       print STDERR '$f, $l, $pn,$pc,$res = ' . "$first,$last,$pageno,$pagescnt,$resultcnt\n";
+
+        for (my ($i, $skip) = ($first, $first * $maxperpage); 
+                        $i <= $last; 
+                        $i++, $skip += $maxperpage) {
+                next if $i < 0 or $i > $pagescnt;
+                if ($i == $pageno) {
+                        print "[<strong>" . ($i + 1) . "</strong>]\n"
+                }
+                else {
+                        print "[<a href=\"" .  $hrefs{'search'} . $searchfor . "&amp;skip=" .
+                                $skip . "&amp;searchtype=d\">";
+                        
+                        if ($i == $first) {
+                                print "&lt;&lt;";
+                        } 
+                        elsif ($i == $last) {
+                                print "&gt;&gt;";
+                        }
+                        else {
+                                print ($i + 1);
+                        }
+                        
+                        print "</a>]\n";
+                }
+        }
+        print "</center>\n";
+}
+        
+sub SearchRegisteredDocumentation {
+        my $searchfor  = shift;
+        my $startwith  = shift;
+        my $maxperpage = shift;
+        my @searchargs = ("/usr/bin/search++");
+        my $resultcnt  = undef;
+        my $desc       = '';
+
+        if (not -x $searchargs[0]) {
+                print "<strong>Error:</strong> Can't find <em>search++</em> program.\n";
+                print "<br>Please install <a href=\"http://packages.debian.org/swish%2b%2b\">"
+                        . "swish++</a> package.\n";
+                return 1 ;
+        }
+        
+        if (not -r $dwww_swish_index) {
+                print "<strong>Error:</strong> Can't find generated index file\n";
+                print "<br>Please check if <a href=\"" . $hrefs{'runman'} . "dwww-index%2b%2b/8\">"
+                        . "dwww-index++(8)</a> has been run.\n";
+                return 1;
+        }
+        
+        if (defined $startwith and defined $maxperpage) {
+                $startwith = $maxperpage * int ($startwith/$maxperpage);
+        }
+
+        push(@searchargs, "--config-file=$dwww_swish_conf");
+        push(@searchargs, "--index-file=$dwww_swish_index");
+        push(@searchargs, "--skip-results=$startwith") if defined ($startwith);
+        push(@searchargs, ("-m", "$maxperpage")) if defined ($maxperpage);
+        push(@searchargs, "\"$searchfor\"");
+
+        # Swish++ WWW module
+        use lib '/usr/lib/swish++';
+        my $use_www = eval "require WWW";
+
+        
+        open (SEARCH, "@searchargs |")
+                or die "can't open search++: $!\n";
+
+        print "Search results: " . &HTMLEncode($searchfor) . "\n";
+        print "<dl>\n";
+
+        while (<SEARCH>) {
+                if (/^# ignored: /) {
+                        print "Following words were ignored: " . &HTMLEncode($') . "<br>\n";
+                        next;
+                }
+                if (/^# not found: /) {
+                        print "Following words weren't found: " . &HTMLEncode ($') . "<br>\n";
+                        next;
+                }
+                if (/^# results: /) {
+                        $resultcnt = $';
+                        # print "Result count: $'<br>\n";
+                        &PrintRegDocsPages($searchfor, $startwith, $maxperpage, $resultcnt);
+                        next;
+                }
+                next if (/^#/);
+
+                my($rank, $file, $size, $title ) = split( /__--__/, $_, 4);
+                print "<dt><a href=\"" . $hrefs{'file'} . &URLEncode($file) 
+                       . "\">" . &HTMLEncode("$title") . "</a> <em>($rank%)</em></dt>\n";
+                
+                if ($use_www and -r "$file") {
+                        $desc = &WWW::extract_description("$file");
+                        &WWW::hyperlink($desc);
+                }
+                $desc = &HTMLEncode($title) if $desc eq '';
+                
+                print "<dd>" . $desc . "</dd>\n";
+        }
+        print "</dl>\n";
+
+        &PrintRegDocsPages($searchfor, $startwith, $maxperpage, $resultcnt);
+
+        close SEARCH;
+
+        return $resultcnt;
+        
+}

@@ -1,0 +1,19 @@
+#!/bin/sh
+# $Id: dwww.cron.weekly,v 1.1 2003/02/25 22:01:45 robert Exp $
+#
+# This script creates an index of Debian documentation registered
+# with doc-base. See dwww-index++(8) man page for details.
+
+# check if swish++ is installed
+test -x /usr/bin/index++ || exit 0
+
+# check if dwww is still installed
+test -x /usr/sbin/dwww-index++ || exit 0
+
+set -e
+
+. /usr/share/dwww/functions.sh && dwww_initialize  || exit 1
+
+dwww-index++ > /dev/null
+
+exit 0

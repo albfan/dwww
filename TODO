@@ -11,14 +11,6 @@ More MIME Types
   - postscript, PDF, etc., etc.
   - separate config file
 
-Full Text Index
-  - check out various engines
-    - ht://Dig
-    - WebGlimpse / GlimpseHTTP
-    - Harvest
-    - Ferret
-    - Swish
-    - cl-httpd
 
 More Data
   - bug-reports
@@ -45,14 +37,12 @@ Improve Looks
   - configurable lightweight graphics 
 
 Multiple Language Support
-  - manpages for german, spanish, french, italian 
+  - man pages for German, Spanish, French, Italian 
 
 Known Bugs
   (please submit bugs for these if they are causing you
    problems)
-  - hyperlinks in man pages don't work
   - 'dwww gnus' doesn't pull up index to info file
-  - text to html doesn't do proper quoting
 
 ---
 Comments?  Ideas?  Send a wishlist bug to Debian Bug Tracking System (http://bugs.debian.org)

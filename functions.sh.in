@@ -1,6 +1,6 @@
 # Common functions used by dwww shell scripts
 #
-# $Id: functions.sh.in,v 1.2 2002/04/13 08:34:07 robert Exp $
+# $Id: functions.sh.in,v 1.4 2003/03/02 17:22:49 robert Exp $
 #
 
 readonly dwww_config="/etc/dwww/dwww.conf"
@@ -13,13 +13,13 @@ readonly dwww_version="#VERSION#"
 dwww_initialize() {
 
 	
-	DWWW_DOCPATH="/usr/share/doc:/usr/doc:/usr/share/info:/usr/info:/usr/share/man:/usr/man:/usr/X11R6/man:/usr/local/man:/usr/local/doc:/usr/local/info:/usr/share/common-licenses"
-	DWWW_ALLOWEDLINKPATH="/usr/share:/usr/lib"
-	DWWW_HTMLDIR="/var/lib/dwww/html"
-	DWWW_USE_CACHE=yes
-	DWWW_KEEPDAYS=10
-	DWWW_QUICKFIND_DB="/var/lib/dwww/quickfind.dat"
-	DWWW_CGIUSER=www-data
+	DWWW_DOCPATH="#DWWW_DOCPATH#"
+	DWWW_ALLOWEDLINKPATH="#DWWW_ALLOWEDLINKPATH#"
+	DWWW_HTMLDIR="#DWWW_HTMLDIR#"
+	DWWW_USE_CACHE="#DWWW_USE_CACHE#"
+	DWWW_KEEPDAYS="#DWWW_KEEPDAYS#"
+	DWWW_QUICKFIND_DB="#DWWW_QUICKFIND_DB#"
+	DWWW_CGIUSER="#DWWW_CGIUSER#"
 
 	
 	

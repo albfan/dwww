@@ -1,0 +1,40 @@
+.\" "$Id: dwww-format-man.8,v 1.11 2003/03/06 22:47:04 robert Exp $"
+.\" 
+.TH DWWW\-FORMAT\-MAN 8 "March 6th, 2003" "dwww 1.9.0" "Debian"
+.SH NAME
+dwww\-format\-man \- batch format manual pages for dwww
+.SH SYNOPSIS
+.B dwww\-format\-man
+.I directory
+.I ...
+.SH DESCRIPTION
+.B dwww\-format\-man
+looks for manual pages in the directories named on the command line.
+It formats each manual page, and puts the formatted version into the
+dwww document cache.
+System administrator's can run
+.B dwww\-format\-man
+if they want to make it faster to retrieve manual pages via dwww.
+If
+.B dwww\-format\-man
+is not run, dwww will automatically format manual pages not in its cache.
+Long pages take a few moments to format,
+but rarely so slow that it is worth running
+.PP
+.B dwww\-format\-man 
+uses
+.BR su (1)
+command to run 
+.BR dwww\-convert (8)
+with privileges of DWWW_CGIUSER .
+.SH "SEE ALSO"
+.BR dwww (8), 
+.BR dwww\-convert (8),
+.BR su (1).
+.SH AUTHOR
+Lars Wirzenius <liw@iki.fi>.
+Slightly modified by Robert Luberda <robert@debian.org>.
+.br
+See
+.BR dwww (8)
+for copyrights and stuff.
