@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 #include <errno.h>
 
@@ -94,13 +93,13 @@ char *stripdir(char * dir, char *buf, int maxlen) {
 			}
 			ldots = 0;
 			
-		} else if (*in == '.') {
+		} else if (*in == '.' && ldots > -1) {
 			ldots++;
 		} else {
-			ldots = 0;
+			ldots = -1; 
 		}
 		
-		out++;	
+		out++;
 
 		if (!*in)
 			break;

@@ -1,14 +1,16 @@
 #!/usr/sbin/install-menu
-#I need menu-1!
+# I need menu-1!
+# $Id: dwww.menu-method,v 1.9 2004/11/23 19:51:25 robert Exp $
 #
-#NOTE: the first line of this script _must_ be
+# Dwww compatibility menu-method to create
+# in /var/lib/dwww/menu-method directory docbase-like
+# files structure
+#
+# NOTE: the first line of this script _must_ be
 # equal to "#!/usr/sbin/install-menu", otherwise update-menus
 # will feed this script old-compat-mode data.
 #
-#More info: /usr/share/doc/menu/html.
-#
-#The output of this script still isn't quite right, but it starts
-#to be acceptable.
+# More info: /usr/share/doc/menu/html.
 #
 compat="menu-1"
 
@@ -16,49 +18,44 @@ compat="menu-1"
 
 compat="menu-2"
 
-# replaces all characters which are not a letter or a number with %<hex-code>
-# bug: we should not replace `/' and `.' ...
-function url_encode($url) = replacewith(cppesc($url), "$", "%");
 
-# prints $longtile if defined, else $title.
-function dwww_title() =  ifelse($longtitle, $longtitle, $title);
+function header()=
+              "Dwww-Section: " $section "\n"
+              ifelse($longtitle
+                    ,
+                      "Title: " $longtitle "\n"
+                      "Dwww-Title: " $title "\n"
+                    ,
+                      "Title: " $title "\n"
+                    )
+              "Abstract: " $description "\n"
+              "\n";
 
 supported;
-  dwww =      "<li><a href=\"/cgi-bin/dwww?type="
-		ifelse($dwwwtype,$dwwwtype,"file")
-	       "&location=" url_encode($command) "\">" 
-		dwww_title() "</a>"
-		ifnempty($description,"<br><font size=\"-1\">"$description "</font>")
-	      "\n";
-  url =      "<li><a href=\"" $command "\">" dwww_title() "</a>"
-	      ifnempty($description,"<br><font size=\"-1\">"$description "</font>")
-	      "\n";
+  dwww =      header()
+              "Format: HTML\n"
+              "Index: "$command "\n"
+              "Files: "$command "\n";
+
+  url =       header()
+              "Format: Dwww-URL\n"
+              "Index: "$command "\n"
+              "Files: "$command "\n";
+
 endsupported;
 
+preoutput=      "";
+startmenu=      "";
+endmenu=        "";
+mainmenutitle=  "";
+submenutitle=   "";
+rootsection=    "";
+outputlanguage= "C";
 
-startmenu=    "<P><font size=\"+2\"><b><a name=\"" url_encode($section) "\">"
-               $title
-	      "</a></b></font>\n<P><ul type=disc>"
-	      ifnempty($description,"<br><font size=\"-1\">" $description "</font>")
-	      "\n";
+prerun=         "find " prefix() " -type f -exec rm -f {} \\;";
+postrun=        "/usr/sbin/dwww-build-menu";
+genmenu=        ifelse($command, replacewith(cppesc($title), "$", "-"),  "/");
 
-endmenu=      "</ul>\n\n";
-
-submenutitle="<li><font size=\"2\"><a href=\"#" url_encode($section) "\">"
-              dwww_title() "</a></font>"
-	      ifnempty($description,"<br><font size=\"-1\">"$description "</font>")	
-	      "\n";
-
-genmenu=      "/var/lib/dwww/html/menudefs.hook";
-# remove generated file after run
-postrun="rm -f " prefix() "/var/lib/dwww/html/menudefs.hook";
-
-rcfile=       "/var/lib/dwww/html/menu.html";
-examplercfile="/usr/share/dwww/menu.html-menu";
-rootprefix=   "/";
-# userprefix=   ".dwww/";
-# dwww does not support user's menus
-onlyrunasroot= true;
-treewalk="(mc)";
-mainmenutitle="Debian information";
-preoutput="<!-- automatically generated file. Do not edit (see /usr/share/doc/menu/html)-->\n\n";
+rootprefix=     "/var/lib/dwww/menu-method/";
+onlyrunasroot=  true;
+treewalk=       "(mc)";

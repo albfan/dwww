@@ -1,0 +1,153 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid "Location of web server's document root."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid "Location of web server's cgi directory."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid "Name of CGI user."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid ""
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "Host name of the web server."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "dwww needs to know the host name of your web server."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid "Web server's port."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory does not exist!"
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory ${dir} does not exist."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User not found!"
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User ${user} does not exist."
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Port value should be a number!"
+msgstr ""
+
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Value entered for port: ${port} is invalid."
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid "Should post-installation script index your documentation files?"
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr ""
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr ""

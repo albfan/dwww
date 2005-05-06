@@ -1,15 +1,8 @@
 #!/bin/bash
 #
-# "@(#)dwww:$Id: dwww,v 1.8 2002/04/25 07:04:09 robert Exp $"
+# "@(#)dwww:$Id: dwww,v 1.12 2003/07/27 16:17:32 robert Exp $"
 #
 # based on dpkg-www
-
-
-X11_BROWSERS="\
-    mozilla netscape konqueror gzilla gnome-help-browser arena chimera chimera2 amaya"
-TXT_BROWSERS="\
-    links w3m lynx lynx-ssl"
-
 
 #
 # Initialization
@@ -17,29 +10,31 @@ TXT_BROWSERS="\
 . /usr/share/dwww/functions.sh || exit 1
 dwww_initialize
 
+
 www_browser=""
 if [ -n "$DISPLAY" ] ; then
-	for i in "$BROWSER" "$DWWW_X11_BROWSER" $X11_BROWSERS ; do
-		if test -n "$i" && command -v "$i" >/dev/null 2>&1; then
-			www_browser="$i"
-			break
-		fi
-	done
+	www_browser="$DWWW_X11_BROWSER"
+else
+	www_browser="$DWWW_BROWSER"
 fi
+
+# $BROWSER, if set, overrides our config values
+if [ -n "$BROWSER" ] ; then
+	# let sensible-browser handle $BROWSER properly
+	www_browser=sensible-browser
+fi
+	
+
+for i in "$www_browser" sensible-browser ; do
+	if test -n "$i" && command -v "$i" > /dev/null 2>&1; then
+		www_browser="$i"
+		break
+	fi
+done
 
 
 if [ -z "$www_browser" ] ; then
-	for i in "$BROWSER" "$DWWW_BROWSER" $TXT_BROWSERS ; do
-		if test -n "$i" && command -v "$i" >/dev/null 2>&1; then
-			www_browser="$i"
-			break
-		fi
-	done
-fi
-
-
-if [ -z "$www_browser" ] ; then
-	echo "$0: no BROWSER found" 2>&1
+	echo "$0: no useful browser found" 2>&1
 fi
 
 if [ -z "$DWWW_SERVERNAME" ]

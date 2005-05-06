@@ -1,0 +1,56 @@
+.\" $Id: dwww-refresh-cache.8,v 1.2 2005/04/09 10:03:28 robert Exp $
+.TH DWWW\-REFRESH\-CACHE 8 "April 9th, 2005" "dwww 1.9.20" "Debian"
+.SH NAME
+dwww\-refresh\-cache \- rebuilds dwww cache directory
+.SH SYNOPSIS
+.B dwww\-refresh\-cache
+.SH DESCRIPTION
+.B dwww\-refresh\-cache
+is a simple shell script, which deletes outdated cache files and rebuilds
+contents of the dwww cache directory
+.IR /var/cache/dwww .
+In default installation, the script is called from
+.IR /etc/cron.daily/dwww ,
+so the cache is refreshed every day.
+.SH CONFIGURATION VARIABLES
+.IP "DWWW_KEEPDAYS"
+Specifies, how many days documents that have not been accessed should be kept in the cache.
+Default is
+.B 10
+days.
+.\"
+.IP "DWWW_QUICKFIND_DB"
+Location of the installed packages and programs cache file, generated with help of
+.BR dwww\-quickfind (8).
+Default is
+.IR /var/cache/dwww/quickfind.dat .
+.\"
+.IP "DWWW_DOCBASE2PKG_DB"
+Location of the cache file, which maps installed doc\-base files to packages names,
+used by the
+.BR dwww\-build\-menu (8).
+Default is
+.IR /var/cache/dwww/docbase2pkg.dat .
+.\"
+.SH FILES
+.TP
+.I /etc/dwww/dwww.conf
+Configuration file for
+.BR dwww (8).
+.TP
+.I /var/cache/dwww
+dwww cache directory.
+.TP
+.I /etc/cron.daily/dwww.
+dwww daily cron job
+.SH "SEE ALSO"
+.BR dwww (8),
+.BR dwww\-build\-menu (8),
+.BR dwww\-cache (8),
+.BR dwww\-find (8).
+.SH AUTHOR
+Robert Luberda.
+.br
+See
+.BR dwww (8),
+for copyrights and stuff.

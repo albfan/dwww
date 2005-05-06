@@ -1,6 +1,6 @@
 /* vim:ts=4
  * dwww-txt2html.c
- * "@(#)dwww:$Id: dwww-txt2html.c,v 1.14 2002/03/14 20:25:22 robert Exp $"
+ * "@(#)dwww:$Id: dwww-txt2html.c,v 1.19 2004/07/29 21:44:48 robert Exp $"
  *
  * A very simple converter from formatted manual pages to HTML. Handles
   * backspace characters. Converts `<', `>', and `&' properly. Does _NOT_ add
@@ -47,12 +47,13 @@
 
 #define ispagename(c)	((c) == '_' || (c) == '-' || (c) == ':' || (c) == '+' \
 			  || (c) == '.' || isalnum(c))
-#define isdirname(c)	((c) == '_' || (c) == '-' || (c) == ':' \
+#define isdirname(c)	((c) == '_' || (c) == '-' || (c) == ':' || (c) == '+' \
 			  || (c) == '.' || (c) == '/' || isalnum(c))
-#define ismailname(c)	((c) == '_' || (c) == '-' || (c) == '.' || isalnum(c))
+#define ismailname(c)	((c) == '_' || (c) == '-' || (c) == '.' || (c) == '+' || isalnum(c))
 #define iswwwname(c)	((c) == '_' || (c) == '-' || (c) == ':' \
 			  || (c) == '.' || (c) == '/' || isalnum(c) || (c) == '?' || (c) == '&' \
-			  || (c) == '%' || (c) == '=' || (c) == '#' || (c) == '~')
+			  || (c) == '%' || (c) == '=' || (c) == '#' || (c) == '~' \
+			  || (c) == '+' || (c) == '@')
 #define stoppoint(c)  ((c) == '.' || (c) == ',' || (c) == '?' || (c) == ')')
 
 static int manual_page;	/* are we doing a manual page? */
@@ -98,7 +99,7 @@ static const struct {
 		},
 		{	U_DIR,
 			"/usr/",
-			"/cgi-bin/dwww?type=file&location=",
+			"/cgi-bin/dwww?type=file&amp;location=",
 			0,
 		   	check_dir_uri
 		},
@@ -110,7 +111,7 @@ static const struct {
 		},
 		{	U_MAN,
 			"(",
-			"/cgi-bin/dwww?type=runman&location=",
+			"/cgi-bin/dwww?type=runman&amp;location=",
 			0,
 		   	check_man_uri
 		},			
@@ -231,17 +232,22 @@ static int add(int *buf, int *i, int *n, int c) {
 static int txt2html(FILE *f, char *filename, void *dummy) {
 	int buf[BUF_SIZE];
 	int c, i, j, n, late_flush;
+	int prev_i;
 	char prev;
 
 	(void) printf("<pre%s>", manual_page? " class=\"man\"" : "" );
 
-	prev = 0;
+	prev   = 0;
+	prev_i = -1;
 	buf[0] = 0;
 	i = n = late_flush = 0;
 	
 	while ((c = getc(f)) != EOF) {
 		switch (c) {
 		case '\n':
+			if (manual_page && !i && !prev_i)
+					break;
+			prev_i = i;
 			if (add(buf, &i, &n, '\n') == -1)
 				return -1;
 			late_flush = manual_page && (prev == '-');
@@ -278,7 +284,11 @@ static int txt2html(FILE *f, char *filename, void *dummy) {
 		prev = c;
 	}
 
-	(void) printf("</pre>");
+	/* flush buffer in case of no ending "\n" in file */
+	if (i > 0 && flush(buf, &i, &n) == -1)
+		return -1;
+
+	(void) printf("</pre>\n");
 
 	if (ferror(stdout))
 		return -1;
@@ -653,6 +663,7 @@ static int check_mail_uri(char * buf, char * url, int uri_no, int loc, int * beg
 {
 		int i;
 		char * tmp;
+		char * prevdot = NULL, * lastdot = NULL;
 
 		if (buf[loc] != '@' || loc == 0) 
 				return 0;
@@ -667,18 +678,36 @@ static int check_mail_uri(char * buf, char * url, int uri_no, int loc, int * beg
 			return 0;	
 		
 		tmp = buf + loc + 1;
+		if (stoppoint(*tmp))
+				return 0;
 		while (ismailname(*tmp))
+		{
+				if (*tmp == '.') { 
+						if (lastdot == tmp - 1)
+								return 0;
+						prevdot = lastdot;
+						lastdot = tmp;
+				}		
 				tmp++;
+		}	
 		*end = tmp - buf - 1;
 		
 		if (*end == loc)
-			return 0;	
+			return 0;
 		
+
 		if (stoppoint(buf[*begin]))
 			(*begin)++;
 						
 		if (stoppoint(buf[*end]))
 			(*end)--;
+
+		tmp = buf + *end;
+		if (lastdot > tmp)
+				lastdot = prevdot;
+
+		if (!lastdot || tmp - lastdot < 2 || tmp - lastdot > 5)
+			return 0;
 
 		for (i = *begin, tmp = url; i < BUF_SIZE && i <= *end;)
 			*tmp++ = buf[i++];

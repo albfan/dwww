@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# vim:ts=4
-#
+# vim:ft=perl:cindent:ts=8
+# 
 # postinst for dwww
-# "@(#)dwww:$Id: dwww.postinst,v 1.3 2002/03/17 18:08:16 robert Exp $"
+# $Id: dwww.postinst,v 1.7 2005/03/13 10:08:20 robert Exp $
 #
 
 use Debconf::Client::ConfModule qw(:all);
@@ -15,10 +15,10 @@ $cfgfile   = '/etc/dwww/dwww.conf';
 version('2.0');
 
 
-if (($ARGV[0] eq 'configure') && (get ('dwww/servertype') ne 'none'))
+if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 {
 
-	ScanDwwwConfFile ( "$cfgfile" );
+	&ScanDwwwConfFile ( "$cfgfile" );
 
 	# docrootdir
 	$old_docdir = defined $dwwwcfg{'docrootdir'} ? canondir($dwwwcfg{'docrootdir'}) : '';
@@ -29,35 +29,45 @@ if (($ARGV[0] eq 'configure') && (get ('dwww/servertype') ne 'none'))
 	$dwwwcfg{'cgiuser'}    = get('dwww/cgiuser');
 	$dwwwcfg{'serverport'} = get('dwww/serverport');
 	$dwwwcfg{'servername'} = get('dwww/servername');
-	$dwwwcfg{'servertype'} = get('dwww/servertype');
+	
+	my $do_index = (-x '/usr/bin/index++' 
+		        and not -s '/var/cache/dwww/dwww.swish++.index'
+			and scalar get('dwww/index_docs') eq 'true') ? 1 : 0;
 
 	stop(); # stop debconf
 
-	SetupDwwwLinks ("$old_docdir", "$dwwwcfg{'docrootdir'}",
-			"$old_cgidir", "$dwwwcfg{'cgidir'}");
+	&SetupDwwwLinks ("$old_docdir", "$dwwwcfg{'docrootdir'}",
+	 		 "$old_cgidir", "$dwwwcfg{'cgidir'}");
 
-	# If wn web server is installed, create 'index' file
-	# and run /usr/bin/wndex
-	if ( lc $dwwwcfg{'servertype'} eq 'wn' )
-	{
-		if ( ! -f "$dwwwcfg{'cgidir'}/index" )
-		{
-			system ("echo 'Attribute=serveall'> $dwwwcfg{'cgidir'}/index");
-		}
-		system ("/usr/bin/wndex", "-d",  "$dwwwcfg{'cgidir'}");
+	&WriteDwwwConfFile( "$cfgfile" );
+
+	if ( ! -d "/var/cache/dwww" ) {
+		mkdir "/var/cache/dwww", 0755 or die "Cannot create directory /var/cache/dwww: $!\n";
+		chown 0, 0, "/var/cache/dwww";
+	} else {			
+		system("rm", "-rf", "/var/cache/dwww/db");
 	}
-
-	WriteDwwwConfFile( "$cfgfile" );
-
-	system("rm", "-rf", "/var/cache/dwww");
+	mkdir "/var/cache/dwww/db", 0755 or die "Cannot create directory /var/cache/dwww/db: $!\n";
 	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] or die "User $dwwwcfg{'cgiuser'} does not exist\n";
-	mkdir "/var/cache/dwww", 0755 or die "Cannot create directory /var/cache/dwww: $!\n";
-	chown $uid, 0, "/var/cache/dwww";
+	chown $uid, 0, "/var/cache/dwww/db";
+
+	if ( -r "/etc/dwww/apache.conf") {
+		foreach my $apache ("apache","apache-perl", "apache-ssl", "apache2") {
+			my $confd="/etc/$apache/conf.d";
+			symlink ("../../dwww/apache.conf", "$confd/dwww") if (-d "$confd" && ! -e "$confd/dwww");
+		}
+	}
 
 	if ( -x "/etc/cron.daily/dwww" )
 	{
-		print STDERR "\nBuilding dwww pages in background...\n";
+		print STDERR "\nBuilding dwww pages in the background...\n";
 		system("/etc/cron.daily/dwww &");
+	}
+
+	if ($do_index and -x "/usr/sbin/dwww-index++")	
+	{	
+		print STDERR "\nIndexing documentation files in the background...\n";
+		system("dwww-index++ &");
 	}
 	
 }
@@ -170,13 +180,6 @@ sub ScanDwwwConfFile
 			chomp($dwwwcfg{'serverport'}=$_);
 		}
 
-		# Check for DWWW_SERVERTYPE
-		if( s/^\s*DWWW_SERVERTYPE=//)
-		{
-			s/\"//g; # Kill quotes
-			s/\'//g; # Kill quotes
-			chomp($dwwwcfg{'servertype'}=$_);
-		}
 	}
 	close DWWWCONFFILE;
 }
@@ -202,8 +205,7 @@ sub WriteDwwwConfFile
 					  /^\s*DWWW_CGIDIR/ ||
 					  /^\s*DWWW_CGIUSER/ ||
 					  /^\s*DWWW_SERVERNAME/ ||
-					  /^\s*DWWW_SERVERPORT/ ||
-					  /^\s*DWWW_SERVERTYPE/
+					  /^\s*DWWW_SERVERPORT/
 					);
 			push @dwwwconffile, "$_";
 		}
@@ -223,7 +225,6 @@ sub WriteDwwwConfFile
 	print DWWWCONFFILE "DWWW_CGIUSER=$dwwwcfg{'cgiuser'}\n";
 	print DWWWCONFFILE "DWWW_SERVERNAME=$dwwwcfg{'servername'}\n";
 	print DWWWCONFFILE "DWWW_SERVERPORT=$dwwwcfg{'serverport'}\n";
-	print DWWWCONFFILE "DWWW_SERVERTYPE=\'$dwwwcfg{'servertype'}\'\n";
 
 	close DWWWCONFFILE;
 }

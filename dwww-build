@@ -1,499 +1,603 @@
-#!/bin/sh
+#!/usr/bin/perl
 #
 # dwww-build -- build HTML pages for dwww
 #
 # Part of the dwww package.  Written by Lars Wirzenius.
-# "@(#)dwww:$Id: dwww-build,v 1.25 2002/05/08 06:51:17 robert Exp $"
+# Rewritten in perl by Robert Luberda <robert@debian.org> on Sep, 2003.
+# 
+# "@(#)dwww:$Id: dwww-build,v 1.43 2005/04/06 21:28:04 robert Exp $"
 
-tmpdir=/var/cache/dwww/dwww-build.$$
+use strict; 
 
-DWWW_TITLE="dwww: $(hostname)"
+use File::Glob ':glob';
+use File::Path;
+use File::Temp qw/tempfile tempdir/;
+use IO::Handle;
+use Debian::Dwww::Utils;
+use Debian::Dwww::Initialize;
 
-. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+my $conf = &DwwwInitialize("/etc/dwww/dwww.conf");
 
-if [ "x$1" = "x--verbose" ] ; then
-	verbose="yes"
-	shift;
-fi
+my $dwww_lib_dir  	= "/usr/share/dwww";
+my $template_mbs_start 	= "$dwww_lib_dir/man-in-section.start";
+my $template_mbs_end  	= "$dwww_lib_dir/man-in-section.end";
+my $template_mbn_start 	= "$dwww_lib_dir/man-begins-with.start";
+my $template_mbn_end   	= "$dwww_lib_dir/man-begins-with.end";
+my $template_midx_start	= "$dwww_lib_dir/man-index.start";
+my $template_midx_end   = "$dwww_lib_dir/man-index.end";
+my $template_index_main = "$dwww_lib_dir/dwww.template";
 
-if [ -z "$1" -o "x$1" = "x--default" ]
-then
-	tgt="$DWWW_HTMLDIR"
-else
-	tgt="$1"
-fi
-tgttmp="$tgt.$$.tmp"
+
+my $verbose = "no";
+if ( "x$ARGV[0]" eq "x--verbose" ) {
+	$verbose="yes";
+	shift @ARGV;
+}
+my ($tgt, $tgttmp) = undef; 
+
+if (($#ARGV < 0) or  ("x$ARGV[0]" eq "x--default" )) {
+	$tgt=$conf->{'DWWW_HTMLDIR'};
+} else {
+	$tgt="$ARGV[0]";
+}
+my $tgtupdir = $tgt;
+$tgtupdir =~ s|/[^/]+/*$||;
+
+umask 077;
+$tgttmp  = tempdir('dwww-build.XXXXXX', DIR => "$tgtupdir", CLEANUP => 1);
+
+my $manlist_fh = tempfile('manlist.XXXXX', DIR => "$tgttmp", UNLINK => 0);
+undef $tgtupdir;
+
+my $sepr = " // "; #  manlist file output separator
+
+my $manurl ="/cgi-bin/dwww?type=man&amp;location=";
+
+umask 022;
+
+my @manpages = ();
+my $sections = {};
+my $letters  = {};
+
+$tgttmp = "$tgttmp/data/";
+&mkpath("$tgttmp") or die "Can't create temporary directory: $tgttmp";
+&mkpath("$tgttmp/man") or die "Can't create temporary directory: $tgttmp";
+&mkpath("$tgttmp/menu") or die "Can't create temporary directory: $tgttmp";
+
+sub debug() {
+	local $_ = shift;
+	print STDERR "$_\n";
+}
+
+sub realpath() {
+	local $_ = shift;
+}
+
+
+sub GetSectionDescription() {
+	my $section = shift;
+	my $desc="";
+
+	if ($section eq "1")           { $desc="User commands"; }
+	elsif ($section eq "1a")       { $desc="User commands"; }				# rss2email
+	elsif ($section eq "1bind")    { $desc="DNS tools"; }
+	elsif ($section eq "1db")      { $desc="Berkeley database routines"; }
+	elsif ($section eq "1emacs21") { $desc="Emacs 21"; }
+	elsif ($section eq "1fun")     { $desc="Funny man pages"; }
+	elsif ($section eq "1gmt")     { $desc="Generic Mapping Tools"; }			# gmt-manpages
+	elsif ($section eq "1l")       { $desc="User commands"; }
+	elsif ($section eq "1m")       { $desc="Ncurses - terminfo utilities"; }
+	elsif ($section eq "1mh")      { $desc="Mh (a mail user agent)"; }
+	elsif ($section eq "1n")       { $desc="Drawmap"; }					# drawmap
+	elsif ($section eq "1nas")     { $desc="Network Audio System programs"; }
+	elsif ($section eq "1netpbm")  { $desc="Netpbm (graphics tools)"; }
+	elsif ($section eq "1osd_clock") { $desc="Clock using the XOSD library"; }		# osdclock
+	elsif ($section eq "1p")       { $desc="Perl"; }
+	elsif ($section eq "1pccts")   { $desc="The Purdue Compiler Construction Tool Set"; }	# pccts
+	elsif ($section eq "1pvm")     { $desc="Parallel Virtual Machine"; }
+	elsif ($section eq "1olvwm")   { $desc="OpenLook virtual window manager"; }		# olvwm
+	elsif ($section eq "1sr")      { $desc="Surfraw"; }					# surfraw
+	elsif ($section eq "1ssl")     { $desc="SSL programs"; }
+	elsif ($section eq "1vga")     { $desc="Svgalib programs"; }
+	elsif ($section eq "1wn")      { $desc="WordNet lexical database"; }
+	elsif ($section eq "1x")       { $desc="X Window System programs"; }
+	elsif ($section eq "2")        { $desc="System calls"; }
+	elsif ($section eq "2fun")     { $desc="Funny man pages"; }
+	elsif ($section eq "3")        { $desc="Library functions"; }
+	elsif ($section eq "3abz")     { $desc="Abz library"; }					# libabz0-dev
+	elsif ($section eq "3alleg")   { $desc="Allegro library"; }				# liballegro-doc
+	elsif ($section eq "3ber")     { $desc="Basic Encoding Rules library"; }
+	elsif ($section eq "3bind")    { $desc="Internet name resolution (DNS) routines"; }
+	elsif ($section eq "3blt")     { $desc="BLT Library"; }
+	elsif ($section eq "3caca")    { $desc="Colour AsCii Art library"; }			# libcaca-dev
+	elsif ($section eq "3cc")      { $desc="CommonC++ / Bayonne"; }				# libcommoncpp2-dev, bayonne-doc
+	elsif ($section eq "3curses")  { $desc="Ncurses - curses routines"; }
+	elsif ($section eq "3debug")   { $desc="Debug library"; }				# libdebug0-dev
+	elsif ($section eq "3diet")    { $desc="Reimplementation of Daniel Bernstein's interfaces"; }	# libowfat-dev
+	elsif ($section eq "3db")      { $desc="Berkeley db database routines"; }
+	elsif ($section eq "3el")      { $desc="BSD editline and history libraries"; }		# libedit-dev
+	elsif ($section eq "3erl")     { $desc="Erlang programming language"; }			# erlang-manpages
+	elsif ($section eq "3form")    { $desc="SVR4 compatible screen forms - ncurses"; }
+	elsif ($section eq "3fun")     { $desc="Funny man pages"; }
+	elsif ($section eq "3gii")     { $desc="General Input Interface library"; }
+	elsif ($section eq "3ggi")     { $desc="General Graphics Interface library"; }
+	elsif ($section eq "3gdbm")    { $desc="GNU dbm database routines"; }
+	elsif ($section eq "3gle")     { $desc="OpenGL tubing and extrusion library"; }		# libgle3-dev
+	elsif ($section eq "3itcl")    { $desc="OOP extension for Tcl"; }			# itk3.1-doc
+	elsif ($section eq "3itk")     { $desc="OOP extension for Tcl"; }			# itk3.1-doc
+	elsif ($section eq "3iv")      { $desc="Open Inventor toolkit"; }			# inventor-doc
+	elsif ($section eq "3iwidgets") { $desc="OOP extension for Tcl [incr Widgets]"; }	# iwidgets3.1-doc
+	elsif ($section eq "3l") 	{ $desc="Langband"; }					# langband-engine
+	elsif ($section eq "3m17n") 	{ $desc="Multilingual text processing library"; }	# m17n-docs
+	elsif ($section eq "3menu")    { $desc="Ncurses - SVR4 compatible screen menus"; }
+	elsif ($section eq "3mm")      { $desc="Msql database routines"; }
+	elsif ($section eq "3nas")     { $desc="Network Audio System library"; }
+	elsif ($section eq "3ncurses") { $desc="Ncurses (terminal screen painting)"; }
+	elsif ($section eq "3ncp")     { $desc="NetWare Core Protocol librabary"; }		# libncp-dev
+	elsif ($section eq "3netpbm")  { $desc="Netpbm graphics library"; }
+	elsif ($section eq "3o")       { $desc="Objective Caml library"; }			# ocaml-nox, liblablgtk2-ocaml-doc
+	elsif ($section eq "3ossp")    { $desc="OSSP uuid ISO-C"; }				# libossp-uuid-dev
+	elsif ($section eq "3paper")   { $desc="Paper handling library"; }
+	elsif ($section eq "3pm")      { $desc="Perl modules"; }
+	elsif ($section eq "3perl")    { $desc="Perl modules"; }
+	elsif ($section eq "3plplot")  { $desc="PLplot, a plotting library"; }			# plplot-doc
+	elsif ($section eq "3pub")     { $desc="Lars Wirzenius' publib routines"; }
+	elsif ($section eq "3pvm")     { $desc="Parallel Virtual Machine"; }			# pvm-dev
+	elsif ($section eq "3qt")      { $desc="Trolltech's QT library "; }
+	elsif ($section eq "3readline") { $desc="GNU readline prompt routine"; }
+	elsif ($section eq "3ruby") 	{ $desc="Ruby Class to use HTML Templates"; }		# libhtml-template-ruby
+	elsif ($section eq "3snmp")    { $desc="Simple Network Management Protocol"; }		# libsnmp5-dev
+	elsif ($section eq "3ssl")     { $desc="SSL library"; }
+	elsif ($section eq "3tiff")    { $desc="Libtiff graphics library"; }
+	elsif ($section eq "3tcl")     { $desc="Tcl (Tool Command Language) library"; }
+	elsif ($section eq "3tclrl")   { $desc="GNU readline for Tcl library"; }
+	elsif ($section eq "3tclx")    { $desc="TclX (Extended Tcl) library"; }
+	elsif ($section eq "3tcsh")    { $desc="TENEX C Shell (tcsh)"; }
+	elsif ($section eq "3thr")     { $desc="Pthreads library"; }
+	elsif ($section eq "3tix")     { $desc="Tix widget library for Tk"; }
+	elsif ($section eq "3tk")      { $desc="Tk widget library"; }
+	elsif ($section eq "3tnm")     { $desc="Tcl shell including the Tnm extensions"; }
+	elsif ($section eq "3vga")     { $desc="Svgalib library"; }
+	elsif ($section eq "3x")       { $desc="X Window System library"; }
+	elsif ($section eq "4")        { $desc="Device files"; }
+	elsif ($section eq "4b")       { $desc="Device files"; }				# emwin
+	elsif ($section eq "4x")       { $desc="X Window System"; }
+	elsif ($section eq "5")        { $desc="File formats"; }
+	elsif ($section eq "5bind")    { $desc="DNS"; }
+	elsif ($section eq "5el")      { $desc="BSD editline and history libraries"; }		# libedit-dev
+	elsif ($section eq "5fun")     { $desc="Funny man pages"; }
+	elsif ($section eq "5g")       { $desc="File formats"; }				# sam
+	elsif ($section eq "5heimdal") { $desc="Heimdal Kerberos"; }				# heimdal-docs
+	elsif ($section eq "5l")       { $desc="File formats"; }
+	elsif ($section eq "5rad")     { $desc="Radius server"; }				# radiusd-cistron
+	elsif ($section eq "5mh")      { $desc="Mh (mail user agent)"; }
+	elsif ($section eq "5mm")      { $desc="Msql database"; }
+	elsif ($section eq "5nas")     { $desc="Network Audio System"; }
+	elsif ($section eq "5snmp")    { $desc="Net-SNMP library"; }
+	elsif ($section eq "5ssl")     { $desc="SSL library"; }
+	elsif ($section eq "5vga")     { $desc="Svgalib library"; }
+	elsif ($section eq "5x")       { $desc="X Window System file formats"; }
+	elsif ($section eq "6")        { $desc="Games"; }
+	elsif ($section eq "6fun")     { $desc="Funny man pages"; }
+	elsif ($section eq "6vga")     { $desc="Svgalib games"; }
+	elsif ($section eq "6x")       { $desc="X Window System games"; }
+	elsif ($section eq "7")        { $desc="Miscellaneous"; }
+	elsif ($section eq "7bind")    { $desc="DNS terms"; }
+	elsif ($section eq "7ctrlproxy")    { $desc="IRC proxy with multiserver support"; }	# ctrlproxy
+	elsif ($section eq "7g")       { $desc="Miscellaneous"; }				# sam 
+	elsif ($section eq "7gcc")     { $desc="GNU C compiler library"; }
+	elsif ($section eq "7gii")     { $desc="General Input Interface library"; }
+	elsif ($section eq "7ggi")     { $desc="General Graphics Interface library"; }
+	elsif ($section eq "7ssl")     { $desc="SSL library"; }
+	elsif ($section eq "7vga")     { $desc="Svgalib library"; }
+	elsif ($section eq "7x")       { $desc="X Window System"; }
+	elsif ($section eq "8")        { $desc="System administration commands"; }
+	elsif ($section eq "8bind")    { $desc="DNS commands"; }
+	elsif ($section eq "8fun")     { $desc="Funny man pages"; }
+	elsif ($section eq "8c")        { $desc="System administration commands"; }		# ipopd, nntp
+	elsif ($section eq "8l")        { $desc="System administration commands"; }		# tua
+	elsif ($section eq "8lvm-10")  { $desc="Logical Volume Manager"; }			# lvm10
+	elsif ($section eq "8mailutils") { $desc="Mailutils"; }
+	elsif ($section eq "8mh")      { $desc="Mh (mail user agent)"; }
+	elsif ($section eq "8p")    	{ $desc="Perl scripts"; }	
+	elsif ($section eq "8postfix") { $desc="Postfix mail transport agent"; }
+	elsif ($section eq "8rad")     { $desc="Radius server"; }				# radiusd-cistron
+	elsif ($section eq "8x")    	{ $desc="X Window System programs"; }			# powertweak-gtk, chos
+	elsif ($section eq "8vga")     { $desc="Svgalib library"; }
+	elsif ($section eq "9")        { $desc="Linux kernel functions"; }
+	elsif ($section eq "9gii")     { $desc="General Input Interface library"; }
+	elsif ($section eq "l")        { $desc="Local man pages"; }
+	elsif ($section =~ /^[0-9]posix$/) { $desc="Posix man pages" ; }
+	elsif ($section =~ /^[157]wn$/) { $desc="WordNet lexical database" ; }
+	elsif ($section =~ /^[1-4]rtl$/) { $desc="Real-Timer-Linux" ; }
+	elsif ($section =~ /^[158]cn$/) { $desc="C News server" ; }
+	
+	return $desc;
+}
+
+sub GetSectionDescriptionInBrakes() {
+	my $section = shift;
+	my $desc=&GetSectionDescription($section);
+
+	my $desc = "($desc)" unless $desc eq "";
+	return $desc;
+}
+
+	
+
+# Encodes given $name to be used as a file name or a href name
+sub FileEncode() {
+	my ($type, $name) = @_;
+	$name = &URLEncode($name);
+	$name =~ s/_/%5f/g;
+	$name =~ s/%/_/g;
+
+	return $type . $name;
+}
+
+sub GetIndex() {
+	my ($type, $vars) = @_;
+	my $ret = '';
+	my @list = ();
+	my $l = 0;
+	my $max_l = 65;
+	
+	foreach my $i ( sort keys %$vars ) {
+		$l += length($i) + 3;
+		if ($l > $max_l) {
+			$ret .= join (' | ', @list) . "<BR>\n";
+			@list 	= ();
+			$l	= length($i) + 3;
+		}
+		push(@list, '<A href="#' . &FileEncode($type, $i) . '">' . &HTMLEncode($i) . '</A>');
+	}
+	$ret .= join (' | ', @list) . "\n" unless $#list < 0;
+	return $ret;
+}
+
+	
 
 #
 # Find all manual page files.
 #
-find_man() {
+sub find_man() {
+	my @manpath = ();
+	my @manpages = ();
+	my @mantmp  = ();
 
-	touch "$tmpdir/manlist.tmp"
-
-	for i in `manpath -q | tr : " "`
-	do
-		if [ -d "$i" ]
-		then
-			i="`realpath \"$i\" 2>/dev/null`"
-			if [ "$i" ] ; then
-				find  "$i" -path "$i/man*" \
-				  -xtype f -print >> "$tmpdir/manlist.tmp"
-			fi
-		fi
-	done
-
+	@manpath = split (/:/ , `manpath -q`);
 	
-	perl -ne '
-		chomp();
-		$filename = $_;
-		s/\.(gz|Z|bz2)$//;
-		if (m;^.*man([1-9nl])/([^/]+)\.(\1[^./]*)$;)
-		{
-			$base 	 = $2;
-			$section = $3;
-		
-			$filename =~ s/([^A-Za-z0-9\_\-\.\/])/"%" . unpack("H*", $1)/eg;
-			$filename =~ tr/ /+/;
-			print "$section $base $filename \n";
-		}
-		elsif ( "'"x$verbose"'" eq "xyes" )
-		{
-			print STDERR "Bad file $filename skipped\n"
-		}
-	' < "$tmpdir/manlist.tmp" | sort  > "$tmpdir/manlist"
+	foreach my $i (@manpath) {
+		chomp $i;
+		next if ( "$i" eq "" );
+		next unless ( -d "$i" );
+		$i = &realpath($i);
+		next if ( "$i" eq "");
+		push(@mantmp, &bsd_glob("$i/man*/*", GLOB_MARK|GLOB_NOSORT));
+	}
 
+	foreach my $index (0 .. $#mantmp) {
+		$_ = $mantmp[$index];
+		next unless (-f $_);
+		s/\.(gz|Z|bz2)$//;
+		next unless (m;^.*man([1-9nl])/([^/])([^/]*)\.(\1[^./]*)$;);
+		push(@manpages, join( $sepr,  lc($4), uc($2), "$2$3",   &URLEncode($mantmp[$index])));
+		
+	};
+	@mantmp   = undef;
+	@manpages = sort { uc($a) cmp uc($b) } @manpages;
+	seek ($manlist_fh, 0, 0);
+	foreach (@manpages) {
+		print $manlist_fh $_ . "\n";
+	}
+	$manlist_fh -> flush();
 }
 
 
 #
 # Output a list of sections.
 #
-find_sections() {
-	cut -d" " -f1 $tmpdir/manlist | uniq
+sub find_sections_and_letters() {
+	
+	seek ($manlist_fh, 0, 0);
+	while (<$manlist_fh>){
+		chomp;
+		my ($section, $letter,  undef,  $path) = split ($sepr, $_, 4);
+		$sections->{$section}->{$letter} = 1;
+		$letters->{$letter}->{$section} = 1;
+	}
 }
 
-
-#
-# Find all first characters in manual page names.
-#
-find_letters() {
-	nawk '{	print toupper(substr($2,1,1)) }' $tmpdir/manlist | sort -u
-}
-
-
-#
+# 
 # Build lists of manual pages according to first letter.
-#
-man_by_name() {
-	for i in $LETTERS
-	do
-		mkdir -p $tgttmp/man/byname/$i
-		sed "s/LETTER/$i/g;s/TITLE/$DWWW_TITLE/g" \
-                        $dwww_libdir/man-begins-with.start \
-			> $tgttmp/man/byname/$i/index.html
-	done
+###
+sub man_by_name() {
+	my $type = 'n';
 
-	nawk 'BEGIN {
-		dir = "'$tgttmp'"
-		z = "abcdefghijklmnopqrstuvwxyz"
-		Z = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		for (i = 1; i <= length(z); ++i) {
-			x = substr(z,i,1)
-			X = substr(Z,i,1)
-			a[x] = X
-			have[X] = 0
-		}
+	foreach my $letter ( keys( %$letters ) ) {
+		open M, ">$tgttmp/man/" . &FileEncode($type, $letter) . ".html";
+		print M &TemplateFile($template_mbn_start, 
+			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+				      'LETTER' => &HTMLEncode($letter),
+				      'HREFLETTER' => &FileEncode($type, $letter),
+				      'SECTIONS' => &GetIndex('s', $letters->{$letter})
+				    });
+		close M;
 	}
-	{
-		section = $1
-		base = $2
-		filename = $3
 
-		x = substr(base,1,1)
-		if (a[x] != "") x = a[x]
-		have[x] = 1
-		if (fn[x] == "") fn[x] = dir "/man/byname/" x "/index.html"
-		if (s[x] != section) { 
-			s[x] = section
-			print "<p><b>Section " section "</b>: " >> fn[x]
-		}
-		print \
-		"<a href=\"/cgi-bin/dwww?type=man&location=" \
-		filename "\">" base "</a>" >> fn[x]
-	}
-	END {
-		for (i in have) {
-			if (!have[i]) {
-				print "No manual pages beginning with " i \
-				>> fn[i]
+	my %lastsections = ();
+	my %tables	 = ();	
+	my $lastletter   = '';
+
+	seek ($manlist_fh, 0, 0);
+	while (<$manlist_fh>) {
+		chomp();
+		my ($section, $letter, $name, $file) = split ($sepr, $_, 4);
+		if ($lastletter ne $letter) {
+			if ($lastletter ne '') {
+				&EndTable(\*M, $tables{$lastletter});
+				close M;
 			}
-			print "<p>" >> fn[i]
+			open M, ">>$tgttmp/man/" . &FileEncode($type, $letter) . ".html";
+			$lastletter = $letter;
 		}
-	}' "$tmpdir/manlist" 
-	
-	for i in $LETTERS
-	do
-		sed -e "s#DATE#$DATE#g;s#VERSION#$dwww_version#g" \
-			$dwww_libdir/man-begins-with.end \
-			>> $tgttmp/man/byname/$i/index.html
-	done
-}
-
-
-
-#
-# Build index of man pages based on first letter.
-#
-man_by_name_index() {
-	
-perl -e '
-  open TEMPLATE,"<'"$dwww_libdir"'/dwww.man-byname.template" or
-    die "Arrgh! dwww.man-byname.template missing";
-
-  while(<TEMPLATE>) {
-    chop;
-    $newline = $_;
-    $newline =~ s#DATE#'"$DATE"'#g;
-    $newline =~ s#VERSION#'"$dwww_version"'#g;
-    $newline =~ s/TITLE/'"$DWWW_TITLE"'/g;
-    if( $newline =~ /LETTERS/ ) {
-      @letters = split " ", "'"$LETTERS"'";
-      $count = 0;
-      foreach $letter (@letters) {
-        print "<a href=\"$letter/\">$letter</a>\n";
-	if ((++$count % 8) == 0) { print "<br>\n"; }
-      }
-    }
-    else {
-      print "$newline\n";
-    }
-  }
-  close(TEMPLATE);
-
-' > $tgttmp/man/byname/index.html
-}
-
-
-#
-# Build lists of manual pages for each section.
-#
-man_by_section() {
-	for i in $SECTIONS
-	do
-		mkdir -p $tgttmp/man/bysection/$i
-		sed "s/SECTION/$i/g;s/TITLE/$DWWW_TITLE/g" \
-		        $dwww_libdir/man-in-section.start \
-			> $tgttmp/man/bysection/$i/index.html
-	done
-
-	nawk 'BEGIN {
-		dir = "'$tgttmp'"
-	}
-	{
-		section = $1
-		base = $2
-		filename = $3
-		
-		if (fn[section] == "") 
-			fn[section] = dir "/man/bysection/" section "/index.html"
-
-		x = substr(base,1,1)
-		if (s[section] != x) {
-			s[section] = x
-			print "<p><b>" x "</b>: " >> fn[section]
+		if ((not exists $lastsections{$letter}) or 
+		    ($lastsections{$letter} ne $section)) {
+			my $capt='<A name="' . &FileEncode('s', $section) . '">' . 
+				 "- in section " . &HTMLEncode($section) . "</A>";
+			my $desc = &GetSectionDescriptionInBrakes($section);
+			$capt .= ":" if $desc eq '';
+			$desc = " ${desc}:" if $desc ne '';
+					
+			$tables{$letter} = &BeginTable(\*M, $capt, 4, $desc);
+			$lastsections{$letter} = $section;
 		}
-		print \
-		"<a href=\"/cgi-bin/dwww?type=man&location=" \
-		filename "\">" base "</a>" >> fn[section]
-	}' "$tmpdir/manlist"
-	
-	for i in $SECTIONS
-	do
-		sed -e "s#DATE#$DATE#g;s#VERSION#$dwww_version#g" \
-			$dwww_libdir/man-in-section.end \
-			>> $tgttmp/man/bysection/$i/index.html
-	done
-}
-
-#
-# Build index of sections for man pages.
-#
-man_by_section_index() {
-	
-perl -e '
-  open TEMPLATE,"<'"$dwww_libdir"'/dwww.man-bysection.template" or
-    die "Arrgh! dwww.man-bysection.template missing";
-
-  while(<TEMPLATE>) {
-    chop;
-    $newline = $_;
-    $newline =~ s#DATE#'"$DATE"'#g;
-    $newline =~ s#VERSION#'"$dwww_version"'#g;
-    $newline =~ s/TITLE/'"$DWWW_TITLE"'/g;
-    if( $newline =~ /SECTIONS/ ) {
-      @sections = split " ", "'"$SECTIONS"'";
-      $lastsection="";
-      print "<dl>\n";
-      foreach $section (@sections) {
-	$desc="";
-	if ($section eq "1")           { $desc="User commands"; }
-	elsif ($section eq "1bind")    { $desc="DNS tools"; }
-	elsif ($section eq "1db")      { $desc="Berkeley database routines"; }
-	elsif ($section eq "1fun")     { $desc="Funny manpages"; }
-	elsif ($section eq "1m")       { $desc="ncurses - terminfo utilities"; }
-	elsif ($section eq "1mh")      { $desc="mh (a mail user agent)"; }
-	elsif ($section eq "1netpbm")  { $desc="netpbm (graphics tools)"; }
-	elsif ($section eq "1p")       { $desc="perl"; }
-	elsif ($section eq "1ssl")     { $desc="SSL programs"; }
-	elsif ($section eq "1vga")     { $desc="Svgalib programs"; }
-	elsif ($section eq "1x")       { $desc="X Windows Programs"; }
-	elsif ($section eq "2")        { $desc="System calls"; }
-	elsif ($section eq "2fun")     { $desc="Funny manpages"; }
-	elsif ($section eq "3")        { $desc="Library functions"; }
-	elsif ($section eq "3bind")    { $desc="Internet name resolution (DNS) routines"; }
-	elsif ($section eq "3curses")  { $desc="ncurses - curses routines"; }
-	elsif ($section eq "3db")      { $desc="Berkeley db database routines"; }
-	elsif ($section eq "3form")    { $desc="SVR4 compatible screen forms - ncurses"; }
-	elsif ($section eq "3fun")    { $desc="Funny manpages"; }
-	elsif ($section eq "3gii")     { $desc="General Input Interface library"; }
-	elsif ($section eq "3ggi")     { $desc="General Graphics Interface library"; }
-	elsif ($section eq "3gdbm")    { $desc="GNU dbm database routines"; }
-	elsif ($section eq "3menu")    { $desc="ncurses -SVR4 compatible screen menus"; }
-	elsif ($section eq "3mm")      { $desc="msql database routines"; }
-	elsif ($section eq "3ncurses") { $desc="ncurses (terminal screen painting)"; }
-	elsif ($section eq "3netpbm")  { $desc="netpbm graphics library"; }
-	elsif ($section eq "3paper")   { $desc="paper handling library"; }
-	elsif ($section eq "3pm")      { $desc="perl modules"; }
-	elsif ($section eq "3perl")    { $desc="perl modules"; }
-	elsif ($section eq "3pub")     { $desc="Lars Wirzenius'\'' publib routines"; }
-	elsif ($section eq "3qt")      { $desc="Trolltech'\''s QT library "; }
-	elsif ($section eq "3readline") { $desc="GNU readline prompt routine"; }
-	elsif ($section eq "3ssl")     { $desc="SSL library"; }
-	elsif ($section eq "3t")       { $desc="libtiff graphics library"; }
-	elsif ($section eq "3tcl")     { $desc="Tcl (Tool Command Language) library"; }
-	elsif ($section eq "3tclx")    { $desc="TclX (Extended Tcl) library"; }
-	elsif ($section eq "3thr")     { $desc="pthreads library"; }
-	elsif ($section eq "3tix")     { $desc="tix widget library for tk"; }
-	elsif ($section eq "3tk")      { $desc="tk widget library"; }
-	elsif ($section eq "3vga")     { $desc="Svgalib library"; }
-	elsif ($section eq "3x")       { $desc="X Windows library"; }
-	elsif ($section eq "4")        { $desc="Device files"; }
-	elsif ($section eq "5")        { $desc="File formats"; }
-	elsif ($section eq "5bind")    { $desc="DNS"; }
-	elsif ($section eq "5fun")     { $desc="Funny manpages"; }
-	elsif ($section eq "5vga")     { $desc="Svgalib library"; }
-	elsif ($section eq "5mh")      { $desc="mh (mail user agent)"; }
-	elsif ($section eq "5mm")      { $desc="msql database"; }
-	elsif ($section eq "5ssl")     { $desc="SSL library"; }
-	elsif ($section eq "5x")       { $desc="X Windows"; }
-	elsif ($section eq "6")        { $desc="Games"; }
-	elsif ($section eq "6fun")     { $desc="Funny manpages"; }
-	elsif ($section eq "6vga")     { $desc="Svgalib games"; }
-	elsif ($section eq "6x")       { $desc="X Windows games"; }
-	elsif ($section eq "7")        { $desc="Miscellaneous"; }
-	elsif ($section eq "7bind")    { $desc="DNS terms"; }
-	elsif ($section eq "7gii")     { $desc="General Input Interface library"; }
-	elsif ($section eq "7ggi")     { $desc="General Graphics Interface library"; }
-	elsif ($section eq "7ssl")     { $desc="SSL library"; }
-	elsif ($section eq "7vga")     { $desc="Svgalib library"; }
-	elsif ($section eq "7x")       { $desc="X Windows"; }
-	elsif ($section eq "8")        { $desc="System administration commands"; }
-	elsif ($section eq "8bind")    { $desc="DNS commands"; }
-	elsif ($section eq "8fun")     { $desc="Funny manpages"; }
-	elsif ($section eq "8mh")      { $desc="mh (mail user agent)"; }
-	elsif ($section eq "8vga")     { $desc="Svgalib library"; }
-	elsif ($section eq "9")        { $desc="Linux kernel functions"; }
-	elsif ($section eq "l")        { $desc="Local man pages"; }
-	if (substr($lastsection,0,1) eq substr($section,0,1)) {
-	  print "<dd><a href=\"$section/\" name=\"$section\">$section</a>";
-  	  if ($desc ne "") { print " - $desc" };
-	} else {
-	  print "<dt><a href=\"$section/\" name=\"$section\">$section";
-	  if ($desc ne "") { print " - $desc" };
-	  print "</a>";
+		&AddToTable(\*M, $tables{$letter}, "<A href=\"$manurl$file\">$name</A>");
 	}
-	print "\n";
-	$lastsection=$section;
-      }
-      print "</dl>\n";
-    }
-    else {
-      print "$newline\n";
-    }
-  }
-  close(TEMPLATE);
 
-' > $tgttmp/man/bysection/index.html
+	if ($lastletter ne '') {
+		&EndTable(\*M, $tables{$lastletter});
+		close M;
+	}
+
+	foreach my $letter ( keys( %$letters ) ) {
+		open M, ">>$tgttmp/man/" . &FileEncode($type, $letter) . ".html";
+		print M &TemplateFile($template_mbn_end, 
+			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+				      'SECTIONS' => &GetIndex('s', $letters->{$letter})
+				    });
+		close M;
+	}
 }
 
+# 
+# Build lists of manual pages according to section
+###
+sub man_by_section() {
+	my $type    = 's';
+	my $section = undef;
 
+	# Start a file for each section
+	foreach $section ( keys( %$sections ) ) {
+		open M, ">$tgttmp/man/" . &FileEncode($type, $section) . ".html";
+		print M &TemplateFile($template_mbs_start, 
+			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+				      'SECTION' => &HTMLEncode($section),
+				      'SECTIONDESC' => &GetSectionDescriptionInBrakes($section),
+				      'HREFSECTION' => &FileEncode($type, $section),
+				      'LETTERS' => &GetIndex('n', $sections->{$section})
+				    });
+		close M;
+	}
 
-#
-# Build overall  man page index.
-#
-man_index() {
+	my $table	 = undef;
+	my $lastsection  = '';
+	my $lastletter   = '';
+	seek ($manlist_fh, 0, 0);
+
+	while (<$manlist_fh>) {
+		chomp();
+		my ($section, $letter, $name, $file) = split ($sepr, $_, 4);
+		# Note that records are sorted by section
+		# and for each section - by the letter
+		if ($lastsection ne $section) {
+			if (defined $table) {
+				&EndTable(\*M, $table);
+				close M;
+			}
+			open M, ">>$tgttmp/man/" . &FileEncode($type, $section) . ".html";
+			$lastsection = $section;
+			$lastletter  = '';
+			$table       = undef;
+		}
+		if ($lastletter ne $letter) {
+			my $capt='<A name="' . &FileEncode('n', $letter) . '">' . 
+				 "- starting with " . &HTMLEncode($letter) . ":</A>";
+
+			if (defined $table) {
+				&EndTable(\*M, $table);
+			}
+					
+			$table      = &BeginTable(\*M, $capt, 4);
+			$lastletter = $letter;
+		}
+
+		die ('Internal error: $table should be defined! ($file=' . $file .')')
+			 unless (defined $table);
+
+		&AddToTable(\*M, $table, "<A href=\"$manurl$file\">$name</A>");
+	}
+
+	if ($lastsection ne '') {
+		if (defined $table) { 
+			&EndTable(\*M, $table);
+		}
+		close M;
+	}
+
+	foreach $section ( keys( %$sections ) ) {
+		open M, ">>$tgttmp/man/" . &FileEncode($type, $section) . ".html";
+		print M &TemplateFile($template_mbs_end, 
+			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+				      'LETTERS' => &GetIndex('n', $sections->{$section})
+				    });
+		close M;
+	}
+
 	
-	for i in $LETTERS
-	do
-		xx="$xx <a href=\"byname/$i/\">$i</a>"
-	done
-	for i in $SECTIONS
-	do
-		yy="$yy <a href=\"bysection/$i/\">$i</a>"
-	done
-	hostname=$(hostname)
-	sed "s#DATE#$DATE#g;s#TITLE#$DWWW_TITLE#g;s#VERSION#$dwww_version#g;
-             s#LETTERS#$xx#g;s#SECTIONS#$yy#g" \
-		$dwww_libdir/dwww.man.template > $tgttmp/man/index.html
-
 }
 
+	
+sub man_index() {
 
 
+	open M, ">>$tgttmp/man/index.html";
+	print M &TemplateFile($template_midx_start, 
+		 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+			    });
+	
+	my $table = &BeginTable(\*M, '<A name="n">Man pages by first letter:</A>', 8, '', [3,3,3,3,3,3,3,'*']);
 
-# #
-# # Build list of GNU Info files.
-# #
-# make_info() {
-# 	cat $dwww_libdir/info.start > $tmpdir/info.html
-# 	i="`cd /usr/share/info; /bin/pwd`"
-# 	sed 's#\* .*: (\(.*\))\.#<a hreF="/cgi-bin/dwww?type=info\&location='"$i"'/\1">&</a>#' \
-# 		"$i" >> $tmpdir/info.html
-# 	
-# 	cat $dwww_libdir/info.end >> $tmpdir/info.html
-# }
+	foreach my $letter ( sort keys( %$letters ) ) {
+		my $fname =  &FileEncode('n', $letter);
+		&AddToTable(\*M, $table, "<A name=\"$fname\" href=\"$fname.html\">"
+					. &HTMLEncode($letter) . "</A>");
+	}
+
+	&EndTable(\*M, $table);
+
+	print M "<BR><HR><BR>\n";
+
+	$table = &BeginTable(\*M, '<A name="s">Man pages by section:</A>', 3, '', [4, 10, '*']);
+	
+	my $lastsectionbase = "";
+	my $sectionbase = "";
+	foreach my $section ( sort keys( %$sections ) ) {
+		$sectionbase = substr($section, 0, 1);
+		if ($sectionbase ne $lastsectionbase)
+		{
+			if ($lastsectionbase ne "") {
+				# empty row separating sections
+				&AddToTable(\*M, $table, '&nbsp;');
+				&AddToTable(\*M, $table, '');
+				&AddToTable(\*M, $table, '');
+			}
+			if ($sectionbase ne $section) {
+				&AddToTable(\*M, $table, '<B>' . &HTMLEncode($sectionbase) . '</B>');
+				&AddToTable(\*M, $table, '');
+				&AddToTable(\*M, $table, '<B>' . &GetSectionDescription($sectionbase.'</B>'));
+			}
+
+			$lastsectionbase = $sectionbase;
+		}
+
+		my $desc      = &GetSectionDescription($section);
+		my ($bs, $be) = undef;
+		if ($sectionbase eq $section) {
+			$bs = '<B>';
+			$be = '</B>';
+		} else {
+			$bs = '';
+			$be = '';
+			$desc = '&nbsp;&nbsp;' . $desc unless $desc eq '';
+			&AddToTable(\*M, $table, '');
+		}
+
+		my $fname = &FileEncode('s', $section);
+		&AddToTable(\*M, $table, "<A name=\"$fname\" href=\"$fname.html\">"
+					. $bs . &HTMLEncode($section) . $be . "</A>");
+
+		&AddToTable(\*M, $table, '') if  ($sectionbase eq $section);
+
+		&AddToTable(\*M, $table, $bs . $desc . $be);
+	}
+	&EndTable(\*M, $table);
 
 
-# #
-# # Build list of copyright statements.
-# #
-# make_copyrights() {
-# 	cat $dwww_libdir/copyrights.start > $tmpdir/copyrights.html
-# 	i="`cd /usr/share/common-licenses; /bin/pwd`"
-# 	(cd "$i"; find -type f) |
-# 	sed 's#^\./##;
-# s#.*#<a href="/cgi-bin/dwww?type=text\&location='"$i"'/&">&</a>#' \
-# >> $tmpdir/copyrights.html
-# 	sed "s#DATE#$DATE#g" $dwww_libdir/copyrights.end >> $tmpdir/copyrights.html
-# }
-
-
-# #
-# # Create list of package specific documentation directories.
-# #
-# make_package_dirs() {
-# 	cat $dwww_libdir/packagedoc.start > $tmpdir/packagedoc.html
-# 	i="`cd /usr/doc; /bin/pwd`"
-# 	(cd "$i"; \
-# 	find . -type d -maxdepth 1  \
-# 	) | sort | grep -v '^\.$' |
-# 	sed 's#^\./##;s#.*#<a href="/cgi-bin/dwww?type=dir\&location='"$i"'/&">&</a>#' \
-# 	>> $tmpdir/packagedoc.html
-# 	sed "s#DATE#$DATE#g" $dwww_libdir/packagedoc.end >> $tmpdir/packagedoc.html
-# }
-
-
-#
-# Create the long and the short document index.
-#
-# make_indexes() {
-# 	dwww-doc-index
-# }
-
+	print M &TemplateFile($template_midx_end, 
+		 	    { });
+}
 
 #
 # Create the front page.
 #
-make_front_page() {
-	sed "s#DATE#$DATE#g;s#VERSION#$dwww_version#g;s#TITLE#$DWWW_TITLE#g" \
-		$dwww_libdir/dwww.template > $tmpdir/index.html
+sub make_front_page() {
+	open M, ">$tgttmp/index.html" or die "Cannot open file $tgttmp/index.html: $!";
+	print M &TemplateFile($template_index_main, 
+		 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+			    });
+	close M;
 }
 
-#
+
 # This is a special routine for the wn webserver
-# stolen from that package
 #
-recurse()
+sub make_wnindex
 {
-        local x
-        cd $1
-        if [ ! -e index ]; then
-                echo "Attribute=serveall" >index
-        fi
-        /usr/bin/wndex >/dev/null
-        for x in *; do
-                if [ ! -L $x -a -d $x ]; then
-                        recurse $x
-                fi
-        done
-	cd ..
+	my $dir = shift;
+        
+	chdir("$dir");
+        if ( ! -e "index" ) {
+		open I, ">index";
+                print I "Attribute=serveall\n";
+		close I;
+	}
+        
+        &system("/usr/bin/wndex >/dev/null");
 }
 
-umask 022
+#########################################
+# 
+# MAIN PROGRAM
+# 
+#########################################
 
-mkdir "$tmpdir" || exit 1
-mkdir -p "$tgttmp" || exit 1
+STDOUT->autoflush(1);
 
-trap "rm -rf '$tmpdir' '$tgttmp' ; exit 1" HUP INT QUIT TERM
+print "Building dwww pages (a-g):\n";
 
+print "  a) list of manual pages... ";
+&find_man();
+print "done\n";
 
-echo "Building dwww pages (a-e):"
+print "  b) list of sections and names... ";
+&find_sections_and_letters();
+print "done\n";
 
-echo -n "  a) list of manual pages... "
-find_man
-echo "done"
+print "  c) manual pages by name... ";
+&man_by_name();
+print "done\n";
 
-DATE="`date`"
-SECTIONS="`find_sections`"
-LETTERS="`find_letters`"
+print "  d) manual pages by section... ";
+&man_by_section();
+print "done\n";
 
-echo -n "  b) manual pages by name... "
-mkdir -p $tgttmp/man/byname
-man_by_name
-man_by_name_index
-echo "done"
+print "  e) manual pages index... ";
+&man_index();
+print "done\n";
 
-echo -n "  c) manual pages by section... "
-mkdir -p $tgttmp/man/bysection
-man_by_section
-man_by_section_index
-man_index
-echo "done"
+print "  f) front page... ";
+&make_front_page();
+print "done\n";
 
-echo -n "  d) front page... "
-make_front_page
-echo "done"
+print "  g) copying files... ";
+system("cp -a $dwww_lib_dir/*.png \"$tgttmp/.\"");
 
-echo -n "  e) copying files... "
-cp -a $tmpdir/*.html $dwww_libdir/*.jpg $tgttmp/.
-# copying menu file
-[ -f $tgt/menu.html ] && cp -a $tgt/menu.html $tgttmp/.
-chmod -R a+rX,go-w $tgttmp/.
-rm -rf $tmpdir
-rm -rf $tgt
-mv $tgttmp $tgt
-# remove previous trap
-trap - HUP INT QUIT TERM
+# copying menu directory;
+( -d "$tgt/menu" ) && system("cp -a \"$tgt/menu\" \"$tgttmp/\"");
 
-echo "done"
+rmtree("$tgt");
+rename("$tgttmp", "$tgt") or die "Cannot rename $tgttmp to $tgt: $!";
 
-# echo -n "  f) list of HTML documents... "
-# make_indexes
-# echo "done"
+print "done\n";
+# 
+# For wn, special handling is required:
+if ( -x "/usr/bin/wndex" ) {
+	&make_wnindex("$tgt");
+	&make_wnindex("$tgt/man");
+	&make_wnindex("$tgt/menu");
+}
 
-# if [ -x /usr/bin/update-menus ]; then
-#  echo -n "  g) document index (by menu package)... "
-#  update-menus
-#  echo "done"
-# fi
+print "The dwww pages have been re-built.\n";
 
-# For wn, special handling is required -- this
-# stuff is stolen from update-debian-www
-if [ -x /usr/bin/wndex ]; then
-  recurse /var/lib/dwww/html >/dev/null
-fi
-
-echo "The dwww pages have been re-built."
-
-exit 0
+exit (0);

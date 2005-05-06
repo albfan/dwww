@@ -1,0 +1,21 @@
+#!/bin/sh
+# $Id: dwww.cron.daily,v 1.15 2005/04/09 10:03:27 robert Exp $
+#
+# This housekeeping shell script is installed as /etc/cron.daily/dwww.
+# Cron automatically runs it once a day.
+#
+# This script re-builds the dwww web pages, and removes old documents
+# from the cache that have not been accessed for some number of days.
+
+# check if dwww is still installed
+test -x /usr/sbin/dwww-build || exit 0
+
+set -e
+
+. /usr/share/dwww/functions.sh && dwww_initialize  || exit 1
+
+dwww-refresh-cache   > /dev/null
+dwww-build --default > /dev/null
+dwww-build-menu      > /dev/null
+
+exit 0

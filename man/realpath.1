@@ -1,0 +1,80 @@
+.\" $Id: realpath.1,v 1.8 2004/01/24 11:04:22 robert Exp $
+.TH REALPATH 1 "January 24th, 2004" "Debian" "Debian"
+.SH NAME
+realpath \- return the canonicalized absolute pathname
+.SH SYNOPSIS
+.B realpath
+.RB [ \-s ]
+.I " pathname " ...
+.SH "DESCRIPTION"
+.B realpath
+converts each
+.I pathname
+argument to an absolute pathname, which has no
+components that are symbolic links or the special
+.B .
+or
+.B ..
+directory entries.
+(See
+.BR realpath (3)
+for more information.)
+.br
+Please note that mostly the same functionality is provided by the `-f' option
+of the
+.BR readlink (1)
+command. 
+.PP
+If option
+.B \-s
+is used
+.B realpath
+only removes
+.B .
+and
+.B ..
+directories, but not symbolic links from
+.IR pathname .
+.PP
+Each converted pathname is output to the standard output,
+on its own line.
+.SH EXIT STATUS
+.B realpath
+returns a zero exit code when 
+.I all 
+pathnames was successfully converted.
+.br
+In case of any errors (e.g. missing or unavailable directories in the path),
+.B realpath 
+prints error message to stderr and returns a non-zero exit code.
+.SH EXAMPLES
+.br
+Let's suppose that file
+.I /usr/doc/dwww
+is a symlink, which points to directory
+.IR /usr/share/doc/dwww .
+.br
+Than
+.br
+.RS
+.I realpath /../usr/doc/dwww/./copyright
+.RE
+prints
+.RS
+/usr/share/doc/dwww/copyright
+.RE
+but
+.RS
+.I realpath -s /../usr/doc/dwww/./copyright
+.RE
+outputs
+.RS
+/usr/doc/dwww/copyright
+.RE
+.SH "SEE ALSO"
+.BR readlink (1),
+.BR realpath (3)
+.SH AUTHOR
+Lars Wirzenius <liw@iki.fi>, as part of the dwww package.
+.br
+Modified by Robert Luberda <robert@debian.org>.

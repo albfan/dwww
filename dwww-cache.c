@@ -3,7 +3,7 @@
  * File:	dwww-cache.c
  * Purpose:	Manage the dwww cache of converted documents.
  * Author:	Lars Wirzenius
- * Version:	"(#)dwww:$Id: dwww-cache.c,v 1.10 2002/03/14 20:18:17 robert Exp $"
+ * Version:	"(#)dwww:$Id: dwww-cache.c,v 1.14 2005/03/08 20:15:10 robert Exp $"
  * Description:	See the manual page for how to use this program.
  *
  *		Basically, what we do is read in a file from stdin,
@@ -119,7 +119,7 @@ struct dochash {
 /*
  * Where we store the files and the database.
  */
-#define SPOOL_DIR "/var/cache/dwww/"
+#define SPOOL_DIR "/var/cache/dwww/db/"
 
 /*
  * The name of the database in SPOOL_DIR.
@@ -265,7 +265,7 @@ static int list(char *type, char *location) {
 	
 	data = hash.tab.data;
 	snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
-	snprintf(buf,  sizeof(buf),  "%s%20s", SPOOL_DIR, data[i].converted);
+	snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
 	if (mtime(orig) != mtime(buf)) {
 		(void) close_db(db);
 		(void) truncate(buf, 0);
@@ -297,7 +297,7 @@ static int list_all(char *type, char *location) {
 	
 	for (i = 0; i < hash.tab.used; ++i) {
 		snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
-		snprintf(buf,  sizeof(buf),  "%s%20s", SPOOL_DIR, data[i].converted);
+		snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
 		if (mtime(orig) != mtime(buf)) 
 			(void) truncate(buf, 0);
 		else
@@ -331,7 +331,7 @@ static int lookup(char *type, char *location) {
 		return -1;
 	data = hash.tab.data;
 	snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
-	snprintf(buf,  sizeof(buf),  "%s%20s", SPOOL_DIR, data[i].converted);
+	snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
 	if (mtime(orig) != mtime(buf)) {
 		(void) close_db(db);
 		(void) truncate(buf, 0);
@@ -446,7 +446,7 @@ static int clean(char *type, char *location) {
 	j = 0;
 	for (i = 0; i < hash.tab.used; ++i) {
 		snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
-		snprintf(buf,  sizeof(buf),  "%s%20s", SPOOL_DIR, data[i].converted);
+		snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
 		if (mtime(orig) == mtime(buf)) 
 			data[j++] = data[i];
 		else
@@ -524,13 +524,13 @@ static int read_db(int db, struct dochash *hash) {
 		return -1;
 	}
 
-	p = malloc(st.st_size);
+	p = malloc((size_t)st.st_size);
 	if (p == NULL) {
 		errormsg(0, -1, "out of memory");
 		return -1;
 	}
 	
-	if (read(db, p, st.st_size) != st.st_size) {
+	if (read(db, p, (size_t)st.st_size) != st.st_size) {
 		errormsg(0, -1, "couldn't read database");
 		return -1;
 	}
@@ -725,8 +725,8 @@ static int output_file(char *name) {
 static int copy_fd_to_fd(int from, int to_prim, int to_sec) {
 	char buf[BUF_SIZE];
 	size_t n;
-	size_t n_prim = 0;
-	size_t n_sec  = 0;
+	ssize_t n_prim = 0;
+	ssize_t n_sec  = 0;
 
 	
 	if (to_prim == to_sec)
