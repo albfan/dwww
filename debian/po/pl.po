@@ -150,7 +150,7 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"Program dwww-index++(8) bêdzie raz w tygodniu genereowa³ indeks plików z "
+"Program dwww-index++(8) bêdzie raz w tygodniu generowa³ indeks plików z "
 "dokumentacj±, zarejestrowanych przez pakiet doc-base."
 
 #. Type: boolean

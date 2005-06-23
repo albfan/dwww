@@ -1,8 +1,8 @@
 #!/usr/bin/perl
-# vim:ft=perl:cindent:ts=8:et
+# vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
 #
 # Find all docs related to one program or find matching entries in Debian Doc. Menu
-# "$Id: dwww-find,v 1.39 2004/01/24 11:04:17 robert Exp $"
+# "$Id: dwww-find,v 1.44 2005/05/06 21:11:56 robert Exp $"
 #
 
 use strict;
@@ -13,10 +13,12 @@ use Debian::Dwww::Initialize;
 
 my $dwwwvars = &DwwwInitialize("/etc/dwww/dwww.conf");
 
-my $dwww_quickfind_db = $dwwwvars->{'DWWW_QUICKFIND_DB'};
-my $dwww_menu_dir     = $dwwwvars->{'DWWW_HTMLDIR'} . "/menu";
-my $dwww_swish_index  = "/var/lib/dwww/dwww.swish++.index";
-my $dwww_swish_conf   = "/usr/share/dwww/swish++.conf";
+my $dwww_quickfind_db   = $dwwwvars->{'DWWW_QUICKFIND_DB'};
+my $dwww_menu_dir       = $dwwwvars->{'DWWW_HTMLDIR'} . "/menu";
+my $dwww_swish_index    = "/var/cache/dwww/dwww.swish++.index";
+my $dwww_swish_conf     = "/usr/share/dwww/swish++.conf";
+my $dwww_regdocs_cache  = $dwwwvars->{'DWWW_REGDOCS_DB'};
+$dwww_regdocs_cache     = undef if "$dwww_regdocs_cache" eq "" and not  ( -r "$dwww_regdocs_cache" );
 
 undef %{$dwwwvars};
 
@@ -106,30 +108,41 @@ print &TemplateFile($template_end, { } );
 # Local functions
 #
 
-sub FindPkg {
+#########   Package search functions   ###################################
+#
+sub FindPkg { # {{{
         my $searchfor = shift;
         my @ret = ();
 
-        if ( -f "$dwww_quickfind_db" ) {
+        if ( -r "$dwww_quickfind_db" ) {
                 open (FINDPKG, "dwww-quickfind \"$searchfor\" \"$dwww_quickfind_db\"|");
                 while (<FINDPKG>) {
-                    chomp();    
+                    chomp();
                     push(@ret, $_);
-                }   
-        } else {
-                open (FINDPKG, "$dpkg \"$searchfor\"|");
-                while (<FINDPKG>) {
-                    chomp();    
-                    if (m/^([^:]+):.*bin.*\/$searchfor\$/o) {
-                            push(@ret, $1);
-                    }
                 }
+        } else {
+                my %pkgs = ();
+                my @searchargs = ("$dpkg", "-S", "\"$searchfor\"");
+                open (FINDPKG, "@searchargs |")
+                        or die "can't open $dpkg -S: $!\n";
+                while (<FINDPKG>) {
+                    chomp();
+                    my ($pkg, $file) = split(/:\s*/, $_, 2);
+                    next if $pkg =~ /\s/;             # skip divertions
+                    if ($pkg eq $searchfor) {
+                            $pkgs{$pkg} = 1;
+                    }
+                    elsif ( $file =~ m/^.*\/(usr\/games|s?bin)\/$searchfor$/o ) {
+                            $pkgs{$pkg} = 1;
+                    };
+                }
+                @ret = sort( keys %pkgs );
         }
         close FINDPKG;
         return @ret;
-}
+} # }}}
 
-sub SearchPackage {
+sub SearchPackage { # {{{
         my @args  = @_;
         my $f_cnt = 0;
         
@@ -138,7 +151,7 @@ sub SearchPackage {
                 foreach my $pkg (&FindPkg("$arg")) {
                         print "<h3><strong>Package:</strong> ";
                         if ( -x "$dpkgwwwcgi" ) {
-                                print "<a href=" . $hrefs{'dpkg'} . &URLEncode("$pkg"). ">"
+                                print "<a href=\"" . $hrefs{'dpkg'} . &URLEncode("$pkg"). "\">"
                                         . &HTMLEncode("$pkg") . "</a>";
                         } else {
                                 print &HTMLEncode("$pkg");
@@ -147,6 +160,7 @@ sub SearchPackage {
                         
                         $f_cnt += &PkgDescription("$pkg");
                         my @filelist = sort &GetPkgFileList("$pkg");
+                        $f_cnt += &RegisteredDocBaseInPkg(@filelist);
                         $f_cnt += &MansInPkg(@filelist);
                         $f_cnt += &InfosInPkg (@filelist);
                         $f_cnt += &DocsInPkg (@filelist);
@@ -154,10 +168,9 @@ sub SearchPackage {
                 $f_cnt += &Apropos ("$arg");
         }
         return $f_cnt;
-}
+} # }}}
 
-
-sub GetPkgFileList {
+sub GetPkgFileList { # {{{
         my $pkg = shift;
         my @ret = ();
         
@@ -168,10 +181,9 @@ sub GetPkgFileList {
         }
         close FILELIST;
         return @ret;
-}
+} # }}}
 
-
-sub MansInPkg {
+sub MansInPkg { # {{{
         my @files       = @_;
         my $res         = 0;
         my $table       = undef;
@@ -194,9 +206,9 @@ sub MansInPkg {
                 &EndTable(\*STDOUT, $table);
         }
         return $res;
-}
+} # }}}
 
-sub InfosInPkg() {
+sub InfosInPkg() { # {{{
         my @files       = @_;
         my $res         = 0;
         my $table       = undef;
@@ -218,37 +230,52 @@ sub InfosInPkg() {
                 &EndTable(\*STDOUT, $table);
         }
         return $res;
-}
+} # }}}
 
-### sub RegisteredDocsInPkg {
-###     my @files  = @_;
-###     my $res = 0;
-###     my $table = undef;
-###     my $entry = undef;
-### 
-###         foreach $_ (@files) {
-###                 next unless m/^\/usr\/share\/doc-base\//;
-###                 next unless ( -f "$_");
-### 
-###             $entry = &ParseDocBaseFile("$_");
-###             next unless defined $entry;
-###             
-###             if (!$res) {
-###                     $res = 1;
-###                         $table = &BeginTable(\*STDOUT, "Registered documents:", 1);
-###             }
-###                 my $uri = &URLEncode($_);
-###                 &AddToTable(\*STDOUT, $table, 
-###                         "<a href=\"" . $hrefs{'dir'} . "$uri\">$_</a>");
-###             undef %{$entry};
-###         }
-###         if ($res) {
-###                 &EndTable(\*STDOUT, $table);
-###         }
-###         return $res;
-### }
+sub RegisteredDocBaseInPkg { # {{{
+        my @files       = @_;
+        my $res         = 0;
+        my $table       = undef;
+        my @docb_files  = ();
 
-sub DocsInPkg {
+        return 0 unless defined $dwww_regdocs_cache;
+
+        foreach $_ (@files) {
+                next unless m/\/usr\/share\/doc-base\/([^\/]+)/;
+                next unless ( -f "$_");
+                push (@docb_files, $1);
+        }
+
+        return 0 unless $#docb_files > -1;
+        return 0 unless open (CACHE, "<$dwww_regdocs_cache");
+        
+        while (<CACHE>) {
+                my ($name,$section,$menulink,$link,$doctitle)  = split(/\001/, $_, 5);
+                foreach my $i (0 .. $#docb_files) {
+                        if ($docb_files[$i] eq $name) {
+                                if (!$res) {
+                                        $res = 1;
+                                        $table = &BeginTable(\*STDOUT, "Registered documentation:", 1);
+                                }        
+                                &AddToTable(\*STDOUT, $table, 
+                                        "<a href=\"" . $link ."\">" . &HTMLEncode($doctitle) . "</a>" .
+                                        " &nbsp; <small><i>(menu section: <a href=\"" . $hrefs{'menu'} . $menulink . "\">" .
+                                        &HTMLEncode($section) . "</a>)</i><small>" );
+                                delete $docb_files[$i];
+                                last;
+                        }
+                }
+                last if $#docb_files < 0;
+        }
+        close CACHE;
+                
+        if ($res) {
+                &EndTable(\*STDOUT, $table);
+        }
+        return $res;
+} # }}}
+
+sub DocsInPkg { # {{{
         my @files       = @_;
         my $res         = 0;
         my $table       = undef;
@@ -268,15 +295,17 @@ sub DocsInPkg {
                 &EndTable(\*STDOUT, $table);
         }
         return $res;
-}
+} # }}}
 
-sub Apropos {
+sub Apropos { # {{{
         my $searchfor   = shift;
         my @apropos     = ();
         my $res         = 0;
         my $table       = undef;
-
-        open (APROPOS, "man -k \"$searchfor\"|");
+        my @searchargs  = ("man", "-k", "\"$searchfor\"");
+        
+        open (APROPOS, "@searchargs |")
+                or die "can't open man -k: $!\n";
         while (<APROPOS>) {
                 chomp();
                 push (@apropos, $_);
@@ -313,9 +342,9 @@ sub Apropos {
                 &EndTable(\*STDOUT, $table);
         }
         return $res;
-}
+} # }}}
 
-sub PkgDescription () {
+sub PkgDescription () { # {{{
         my $pkg         = shift;
         my $descr       = '';
         my $synopsis    = undef;
@@ -342,10 +371,12 @@ sub PkgDescription () {
         print "\n<br>";
         print &HTMLEncodeAbstract($descr);
         return 1;
-}
+} # }}}
 
 
-sub SearchMenus {
+#########   Menu search functions   #######################################
+#
+sub SearchMenus { # {{{
         my $dir        = shift;
         my $searchfor  = shift;
         my $match_cnt  = 0;
@@ -369,11 +400,9 @@ sub SearchMenus {
                 $match_cnt += &SearchinMenuFile($dir, $f, @patterns);
         }
         return $match_cnt;
-}
+} # }}}
 
-
-
-sub SearchinMenuFile() {
+sub SearchinMenuFile() { # {{{
         my $dir       = shift;
         my $file      = shift;
         my @patterns  = @_;
@@ -426,10 +455,12 @@ sub SearchinMenuFile() {
                 print "</dl>\n";
         }
         return $match_cnt;
-}   
+} # }}}
 
 
-sub PrintRegDocsPages {
+#########   Registered docs search functions   #############################
+#
+sub PrintRegDocsPages { # {{{
         my $searchfor  = shift;
         my $startwith  = shift;
         my $maxperpage = shift;
@@ -481,9 +512,9 @@ sub PrintRegDocsPages {
                 }
         }
         print "</center>\n";
-}
+} # }}}
         
-sub SearchRegisteredDocumentation {
+sub SearchRegisteredDocumentation { # {{{
         my $searchfor  = shift;
         my $startwith  = shift;
         my $maxperpage = shift;
@@ -523,7 +554,7 @@ sub SearchRegisteredDocumentation {
         open (SEARCH, "@searchargs |")
                 or die "can't open search++: $!\n";
 
-        print "Search results: " . &HTMLEncode($searchfor) . "\n";
+        print "<h2>Registered documents related to <em>" . &HTMLEncode($searchfor) . "</em></h2>\n";
         print "<dl>\n";
 
         while (<SEARCH>) {
@@ -554,6 +585,8 @@ sub SearchRegisteredDocumentation {
                 $desc = &HTMLEncode($title) if $desc eq '';
                 
                 print "<dd>" . $desc . "</dd>\n";
+                print "<dt><br></dt>\n";
+
         }
         print "</dl>\n";
 
@@ -563,4 +596,5 @@ sub SearchRegisteredDocumentation {
 
         return $resultcnt;
         
-}
+} # }}}
+

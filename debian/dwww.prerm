@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Debian prerm script for dwww.
-# "@(#)dwww:$Id: dwww.prerm,v 1.1 2001/12/05 07:29:50 robert Exp $"
+# "@(#)dwww:$Id: dwww.prerm,v 1.2 2005/03/13 10:08:20 robert Exp $"
 #
 
 set -e
@@ -24,6 +24,17 @@ if [ "X$1" = "Xremove" ] ; then
 			rm -f "$DWWW_DOCROOTDIR/dwww"
 		fi
 	fi
+
+	for apache in "apache" "apache-perl" "apache-ssl" "apache2"; do
+		cfile="/etc/$apache/conf.d/dwww"
+		dwwwf="/etc/dwww/apache.conf"
+		if [ -L "$cfile" ] && [ x`realpath "$cfile"` = x"$dwwwf" ]; then
+			rm -f "$cfile"
+		elif [ -e "$cfile" ]; then
+			echo "$cfile exists, but it isn't symlinked to $dwwwf. Not removing"
+		fi
+	done		
+		
 fi
 
 exit 0

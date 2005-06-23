@@ -19,16 +19,21 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #  
 #
-# $Id: dwww-index++,v 1.9 2003/03/16 16:15:53 robert Exp $
+# $Id: dwww-index++,v 1.12 2005/03/13 10:08:18 robert Exp $
 #
 
 use strict;
 
 use Debian::Dwww::Utils;
+use Debian::Dwww::Version;
 use Debian::Dwww::DocBase;
+use Debian::Dwww::Initialize;
 use File::Glob ':glob';
+use File::Copy;
+use Getopt::Std;
 
 $| = 1;
+
 
 my @index_formats=(
 	'html',
@@ -40,41 +45,61 @@ my @index_formats=(
 #	'ps',
 	);
 
-my $dwww_url = "/cgi-bin/dwww";
-my $opt_verbose = 0;
-
-my $dwww_swish_conf   	  = "/usr/share/dwww/swish++.conf";
-my $dwww_swish_index  	  = "/var/lib/dwww/dwww.swish++.index";
+my $dwww_url 			= "/cgi-bin/dwww";
+my $dwww_swish_conf   	  	= "/usr/share/dwww/swish++.conf";
+my $dwww_swish_index  	  	= "/var/cache/dwww/dwww.swish++.index";
 # Why index++ does not create temporary file by itself???
-my $dwww_swish_index_tmp  = "/var/lib/dwww/dwww.swish++.index.tmp";
-my @files 	= ();	# list of files to index;
+my $dwww_swish_index_tmp  	= "/var/cache/dwww/dwww.swish++.index.tmp";
+my $dwww_swish_index_res  	= $dwww_swish_index_tmp;
+my @files 			= ();		# list of files to index;
+our($opt_v, $opt_f);				# set by getopt
 
-my @index_command = ('/usr/bin/index++', '--config-file', "$dwww_swish_conf",
-		     '--index-file', "$dwww_swish_index_tmp");
+my $dwwwconf   		= &DwwwInitialize("/etc/dwww/dwww.conf");
+&DwwwSetupDirs($dwwwconf);
 
-if ($#ARGV > 0 && $ARGV[0] eq '--') {
-	shift @ARGV;
-	push(@index_command, @ARGV);
-}
-push (@index_command, '-');
-
-
+my @index_command 	= ('/usr/bin/index++', '--config-file', "$dwww_swish_conf",
+		     		'--index-file', "$dwww_swish_index_tmp");
 if (! -x $index_command[0]) {
 	print STDERR "Can't find index++ command.\n";
         print STDERR "Do you have swish++ package installed?\n";
 	exit(1);
 }
+$Getopt::Std::STANDARD_HELP_VERSION=1;
+&getopts('vf');
+
+my $do_index	=	$dwwwconf->{'DWWW_INDEX_DOCUMENTATION'};
+if (!$opt_f and defined $do_index and lc($do_index) eq "no") {
+	print STDERR "Building index disabled in configuration\n" if $opt_v;
+	exit(0);
+}
+
+
+
+my $m2h_merge = $dwwwconf->{'DWWW_MERGE_MAN2HTML_INDEX'};
+my $m2h_idx_file = '/var/cache/man2html/man2html.swish++.index';
+if (defined $m2h_merge and lc($m2h_merge) eq "yes" and -r $m2h_idx_file) {
+	if (copy($m2h_idx_file, $dwww_swish_index_tmp)) {
+		$dwww_swish_index_res  = $dwww_swish_index_tmp . '.new';
+		push(@index_command, '--incremental');
+	}
+}
+
+if ($#ARGV > -1)  {
+	push(@index_command, @ARGV);
+}
+push (@index_command, '-');
+
 
 $ErrorProc = \&ErrorHandle;
-print STDERR "Parsing doc-base files\n" if $opt_verbose;
+print STDERR "Parsing doc-base files\n" if $opt_v;
 
 &FilesFromDocBaseDir("/usr/share/doc-base");
 &FilesFromDocBaseDir("/var/lib/dwww/menu-method");
 
-print STDERR "Sorting list of files\n" if $opt_verbose;
+print STDERR "Sorting list of files\n" if $opt_v;
 @files = sort @files;
 
-print STDERR "Executing: @index_command\n" if $opt_verbose;
+print STDERR "Executing: @index_command\n" if $opt_v;
 open (INDEX, '|-')
 	|| exec { $index_command[0] } @index_command;
 
@@ -89,12 +114,14 @@ close INDEX;
 
 wait;
 
-if ( -s $dwww_swish_index_tmp) {
+if ( -s $dwww_swish_index_res ) {
 	unlink($dwww_swish_index);
-	rename($dwww_swish_index_tmp, $dwww_swish_index);
+	rename($dwww_swish_index_res, $dwww_swish_index);
 }
 
-
+if ( -e $dwww_swish_index_tmp ) {
+	unlink($dwww_swish_index_tmp)
+}
 
 
 #########################################################################
@@ -105,14 +132,14 @@ sub ErrorHandle {
 	my $file = shift;
 	my $msg  = shift;
 
-	print STDERR "$file: $msg\n" if $opt_verbose;
+	print STDERR "$file: $msg\n" if $opt_v;
 }
 
 sub FilesFromDocBaseDir {
         my $dir = shift;
 
         if (not opendir DOCBASEDIR, $dir) {
-                print STDERR "Can't open directory $dir: $!\n" if $opt_verbose;
+                print STDERR "Can't open directory $dir: $!\n" if $opt_v;
                 return;
         }
         
@@ -150,11 +177,13 @@ sub FilesFromEntry() {
 			$entry->{'formats'}->{$f}->{'files'} : '';
 
 		
-		if ($ei ne '') {
-			push(@globbed, &bsd_glob($ei, GLOB_NOSORT));
+		if ($ei ne '' && -r $ei) {
+			push(@globbed, $ei);
 		}
-                if ($ef ne '' && $ei ne $ef) {
-			push(@globbed, &bsd_glob($ef, GLOB_NOSORT));
+                if ($ef ne '') {
+			foreach my $f (split(/\s+/, $ef)) {
+				push(@globbed, &bsd_glob($f, GLOB_NOSORT)) unless ($f eq $ei);
+			}
 		}
 
 		if ($#globbed >= 0) {
@@ -163,3 +192,23 @@ sub FilesFromEntry() {
 		}
 	}
 }
+
+#########################################################################
+#
+# GetOpt callbacks
+#
+sub VERSION_MESSAGE() {
+	my $prog = $0;
+	$prog 	 =~ s/^.*\///;
+	print STDOUT "$prog version $Debian::Dwww::Version::version\n";
+}
+
+sub HELP_MESSAGE() {
+	my $prog = $0;
+	$prog 	 =~ s/^.*\///;
+	print STDOUT "Usage: $prog [-v] [-f] [-- swish_option [...]]\n";
+	print STDOUT "   -v     be more verbose\n";
+	print STDOUT "   -f     build the index even if it's disabled in the configuration file\n";
+	print STDOUT "   -- opt option passed to swish's index++ program\n";
+}	
+

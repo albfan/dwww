@@ -1,6 +1,6 @@
-.\" $Id: dwww-cache.8,v 1.12 2003/03/08 16:23:24 robert Exp $
+.\" $Id: dwww-cache.8,v 1.13 2005/03/08 20:06:40 robert Exp $
 .\"
-.TH DWWW\-CACHE 8 "March 6th, 2003" "dwww 1.9.0" "Debian"
+.TH DWWW\-CACHE 8 "March 8th, 2005" "dwww 1.9.17" "Debian"
 .SH NAME
 dwww\-cache \- manage the dwww cache of converted documents
 .SH SYNOPSIS
@@ -82,10 +82,10 @@ installation creates a
 which automatically cleans the cache each day.
 .SH FILES
 .TP 
-.I /var/cache/dwww
+.I /var/cache/dwww/db
 The cache directory.
 .TP 
-.I /var/cache/dwww/.cache_db
+.I /var/cache/dwww/db/.cache_db
 The database with information about all cached documents.
 This is a binary file, specially encoded for small size and
 high speed, and should not be touched by anyone but

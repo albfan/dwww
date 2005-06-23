@@ -1,15 +1,22 @@
-.\" $Id: realpath.1,v 1.8 2004/01/24 11:04:22 robert Exp $
+.\" $Id: realpath.1,v 1.9 2005/06/11 10:41:46 robert Exp $
 .TH REALPATH 1 "January 24th, 2004" "Debian" "Debian"
 .SH NAME
-realpath \- return the canonicalized absolute pathname
+realpath \- return the canonicalised absolute pathname
 .SH SYNOPSIS
 .B realpath
-.RB [ \-s ]
-.I " pathname " ...
+.RB [ \-s | \-\-strip ]
+.RB [ \-z | \-\-zero ]
+.I " filename " ...
+.br
+.B realpath
+.BR  \-\-h | \-\-help 
+.br
+.B realpath
+.BR  \-\-v | \-\-version
 .SH "DESCRIPTION"
 .B realpath
 converts each
-.I pathname
+.I filename
 argument to an absolute pathname, which has no
 components that are symbolic links or the special
 .B .
@@ -34,10 +41,61 @@ only removes
 and
 .B ..
 directories, but not symbolic links from
-.IR pathname .
+.IR filename .
 .PP
 Each converted pathname is output to the standard output,
 on its own line.
+.SH OPTIONS
+.TP 5
+.BR \-s , \-\-strip
+Only strip 
+.B .
+and
+.BR .. ,
+but do not resolve symbolic links.
+.\"
+.TP 5
+.BR \-z , \-\-zero
+Separate output filenames with the null character instead of newline,
+so it can be used with the
+.RI ` \-0 '
+option of
+.BR xargs (1).
+.\"
+.TP 5
+.BR \-h , \-\-help
+Print short usage information.
+.\"
+.TP 5
+.BR \-v , \-\-version
+Show
+.BR realpath 's
+version number.
+.SH EXAMPLES
+.br
+Let's suppose that
+.I /usr/bin/X11
+is a symbolic link, which points to directory
+.IR /usr/X11R6/bin .
+.br
+Than
+.br
+.RS
+.I realpath /../usr/bin/X11/./xterm
+.RE
+prints
+.RS
+/usr/X11R6/bin/xterm
+.RE
+but
+.RS
+.I realpath 
+.BI "\-s " /../usr/bin/X11/./xterm
+.RE
+outputs
+.RS
+/usr/bin/X11/xterm
+.RE
 .SH EXIT STATUS
 .B realpath
 returns a zero exit code when 
@@ -47,29 +105,6 @@ pathnames was successfully converted.
 In case of any errors (e.g. missing or unavailable directories in the path),
 .B realpath 
 prints error message to stderr and returns a non-zero exit code.
-.SH EXAMPLES
-.br
-Let's suppose that file
-.I /usr/doc/dwww
-is a symlink, which points to directory
-.IR /usr/share/doc/dwww .
-.br
-Than
-.br
-.RS
-.I realpath /../usr/doc/dwww/./copyright
-.RE
-prints
-.RS
-/usr/share/doc/dwww/copyright
-.RE
-but
-.RS
-.I realpath -s /../usr/doc/dwww/./copyright
-.RE
-outputs
-.RS
-/usr/doc/dwww/copyright
 .RE
 .SH "SEE ALSO"
 .BR readlink (1),

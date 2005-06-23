@@ -1,6 +1,6 @@
 #
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile,v 1.26 2003/09/02 20:02:00 robert Exp $"
+# "@(#)dwww:$Id: Makefile,v 1.27 2005/04/07 23:40:08 robert Exp $"
 #
 
 VERSION	= $(shell dpkg-parsechangelog | sed -ne 's/^Version: *//p')
@@ -55,7 +55,7 @@ bin		= realpath dwww
 cgi		= dwww.cgi
 sbin		= dwww-convert dwww-build dwww-cache dwww-find \
 		  dwww-quickfind  dwww-txt2html dwww-format-man \
-		  dwww-build-menu dwww-index++
+		  dwww-build-menu dwww-index++ dwww-refresh-cache
 doc		= README TODO
 man1		= man/*.1
 man8		= man/*.8
@@ -70,14 +70,20 @@ all: $(source_links) $(generated)
 
 
 %::%.in $(source_links)
-	perl -pe '				\
-		use lib "."; 			\
-		use Debian::Dwww::Initialize; 	\
-		$$d=&DwwwInitialize;		\
-		foreach $$k (keys %{$$d}) {	\
-			s/#$$k#/$$d->{$$k}/g;	\
-		}				\
-		s/#VERSION#/$(VERSION)/g; ' 	\
+	perl -e '					\
+		use lib "."; 				\
+		use Debian::Dwww::Initialize; 		\
+		$$d=&DwwwInitialize;			\
+		$$v="";					\
+		foreach $$k (sort keys %{$$d}) {	\
+			$$v.="\t$$k=\"$$d->{$$k}\"\n" 	\
+				if $$k ne "DWWW_TITLE";	\
+		}					\
+		while (<>) {				\
+			s/#VERSION#/$(VERSION)/g;  	\
+			s/^.*#DWWWVARS#.*$$/$$v/g;	\
+			print;				\
+		}'					\
 	  < $< > $@
 	touch -r $< $@
 

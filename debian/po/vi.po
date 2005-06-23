@@ -1,0 +1,144 @@
+# Vietnamese Translation for dwww.
+# Copyright © 2005 Free Software Foundation, Inc.
+# Clytie Siddall <clytie@riverland.net.au>, 2005.
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: dwww 1.9.21\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"PO-Revision-Date: 2005-06-02 15:57+0930\n"
+"Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
+"Language-Team: Vietnamese <gnomevi-list@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+
+#.Type: string
+#.Description
+#:../dwww.templates:4
+msgid "Location of web server's document root."
+msgstr "Ví trị của gốc tài liệu của máy phục vụ Mạng."
+
+#.Type: string
+#.Description
+#:../dwww.templates:4
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
+msgstr "Trình dwww cần biết đường dẫn thư mục chứa gốc tài liệu của trình phục vụ Mạng của bạn. Tiêu chuẩn Mạng đệ nghị: /var/www"
+
+#.Type: string
+#.Description
+#:../dwww.templates:11
+msgid "Location of web server's cgi directory."
+msgstr "Ví trị của thư mục CGI của trình phục vụ Mạng."
+
+#.Type: string
+#.Description
+#:../dwww.templates:11
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
+msgstr "Trình dwww cần biết đường dẫn thư mục chứa các tập lệnh CGI của máy phục vụ Mạng. Tiêu chuẩn Mạng đệ nghị /usr/lib/cgi-bin, nhưng mà có lẽ bạn đã cấu hình một ví trị khác trên máy phục vụ Mạng này."
+
+#.Type: string
+#.Description
+#:../dwww.templates:19
+msgid "Name of CGI user."
+msgstr "Tên của người dùng CGI."
+
+#.Type: string
+#.Description
+#:../dwww.templates:19
+msgid ""
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
+msgstr "Trình dwww cần biết người dùng nào sẽ chạy tập lệnh CGI dwww, vì người dùng ấy phải sở hữu thư mục nhớ tạm."
+
+#.Type: string
+#.Description
+#:../dwww.templates:26
+msgid "Host name of the web server."
+msgstr "Tên máy của máy phục vụ Mạng."
+
+#.Type: string
+#.Description
+#:../dwww.templates:26
+msgid "dwww needs to know the host name of your web server."
+msgstr "Trình dwww cần biết tên máy của máy phục vụ Mạng của bạn."
+
+#.Type: string
+#.Description
+#:../dwww.templates:32
+msgid "Web server's port."
+msgstr "Cổng máy phục vụ Mạng:"
+
+#.Type: string
+#.Description
+#:../dwww.templates:32
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr "Trình dwww cần biết máy phục vụ bạn dùng cổng nào. Thường là cổng 80."
+
+#.Type: note
+#.Description
+#:../dwww.templates:38
+msgid "Directory does not exist!"
+msgstr "Không có thư mục ấy."
+
+#.Type: note
+#.Description
+#:../dwww.templates:38
+msgid "Directory ${dir} does not exist."
+msgstr "Không có thư mục ${dir}."
+
+#.Type: note
+#.Description
+#:../dwww.templates:43
+msgid "User not found!"
+msgstr "Không tìm thấy người dùng ấy."
+
+#.Type: note
+#.Description
+#:../dwww.templates:43
+msgid "User ${user} does not exist."
+msgstr "Không tìm thấy người dùng ${user}."
+
+#.Type: note
+#.Description
+#:../dwww.templates:48
+msgid "Port value should be a number!"
+msgstr "Giá trị cỗng phải là số."
+
+#.Type: note
+#.Description
+#:../dwww.templates:48
+msgid "Value entered for port: ${port} is invalid."
+msgstr "Đã gõ giá trị không hợp lệ cho cổng: ${port}."
+
+#.Type: boolean
+#.Description
+#:../dwww.templates:54
+msgid "Should post-installation script index your documentation files?"
+msgstr "Tập lệnh sẽ chạy sau khi cài đặt thì sẽ chỉ mục các tập tin tài liệu của bạn không?"
+
+#.Type: boolean
+#.Description
+#:../dwww.templates:54
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr "Trình dwww-index++(8) sẽ chạy một lần trong mỗi tuần, để chỉ mục các tập tin tài liệu củã bạn mà được đăng ký với gói tin doc-base."
+
+#.Type: boolean
+#.Description
+#:../dwww.templates:54
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr "Tập lệnh sẽ chạy sau khi cài đặt cũng có thể tạo ra mục lục này (nằm nền). Tiến trình ấy cần thiết nhiều tiềm năng máy, và có lẽ sẽ mất vài phút, thì lúc này bạn có thể chọn nếu muốn làm như thế."

@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# vim:ft=perl:cindent:ts=8
+# vim:ft=perl:cindent:ts=8:fdm=marker:cms=\ #\ %s
 #
 #    dwww-build-menu - create Debian Documentation Menu
 #    Copyright (C) 2003 Robert Luberda <robert@debian.org>
@@ -17,9 +17,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#  
 #
-# $Id: dwww-build-menu,v 1.14 2003/05/16 17:51:15 robert Exp $
+#
+# $Id: dwww-build-menu,v 1.18 2005/04/09 11:11:44 robert Exp $
 #
 
 use strict;
@@ -30,9 +30,15 @@ use Debian::Dwww::Initialize;
 
 my $dwwwconf 	= &DwwwInitialize("/etc/dwww/dwww.conf");
 
-my $out_dir    	= $dwwwconf->{'DWWW_HTMLDIR'} . "/menu";
-my $out_dir_tmp	= "$out_dir.temp.$$";
-my $title    	= $dwwwconf->{'DWWW_TITLE'};
+my $out_dir    		= $dwwwconf->{'DWWW_HTMLDIR'} . "/menu";
+my $out_dir_tmp		= "$out_dir.temp.$$";
+my $title    		= $dwwwconf->{'DWWW_TITLE'};
+my $dwww_regdocs_cache 	= $dwwwconf->{'DWWW_REGDOCS_DB'};
+my $dwww_db2pkg_cache 	= $dwwwconf->{'DWWW_DOCBASE2PKG_DB'};
+$dwww_regdocs_cache 	= undef if "$dwww_regdocs_cache" eq "";
+$dwww_db2pkg_cache	= undef if "$dwww_db2pkg_cache" eq "" and not ( -r "$dwww_db2pkg_cache" );
+
+
 undef %{$dwwwconf};
 
 my $templates_dir 		= "/usr/share/dwww";
@@ -65,7 +71,7 @@ my @known_formats=(
 	'dwww-url' # internal dwww's format
 	);
 my $dwww_url = "/cgi-bin/dwww";
-my %href  = 
+my %href  =
 	(
 	'debiandoc-sgml'=>	 "$dwww_url?type=application/sgml&amp;location=",
 	'docbook-xml'	=>	 "$dwww_url?type=text/xml&amp;location=",
@@ -82,20 +88,22 @@ my %href  =
 	'tar'		=>	 "$dwww_url?type=application/tar&amp;location=",
 	'texinfo'	=>	 "$dwww_url?type=application/x-texinfo&amp;location=",
 	'dwww-url'	=>	 "",
-	'text'		=>	 "$dwww_url?type=text/plain&amp;location="
+	'text'		=>	 "$dwww_url?type=text/plain&amp;location=",
+	'pkgsearch'	=> 	 "$dwww_url?search="
 	);
 
-		
-my %sections =  ();
+
+my %sections      =  ();
 my %section_names = (); # real names of sections
 my %node_section  = (); # is node section ?
 my %map_section   = (); # for section without docs, the nearest section with docs
-my %doc_list      = (); # list of documents 
+my %doc_list      = (); # list of documents
 my %files         = (); # list of files
+my %dbfile2pkg    = (); # maps doc-base file names to package names (filled by ReadDocb2PkgCache)
 
 
-my $opt_verbose = 0;
-my $opt_debug   = 0;
+my $opt_verbose   = 0;
+my $opt_debug     = 0;
 
 
 mkdir($out_dir_tmp, 0755) or die "Can't create directory $out_dir_tmp: $!\n";
@@ -109,9 +117,11 @@ $ErrorProc = \&ErrorHandle;
 
 &FindMapSections;
 
+
+&ReadDocb2PkgCache;
 &BuildMenus;
 
-link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index), 
+link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index),
      "$out_dir_tmp/index.html") or
 	print STDERR "Can't create index.html link: $!\n";
 system("rm -f \"$out_dir\"/*; rmdir \"$out_dir\"") if (-d "$out_dir");
@@ -125,79 +135,90 @@ exit (0);
 #
 # Local functions
 #
-sub CleanAndDie {
+sub CleanAndDie { # {{{
 	print STDERR "$_\n";
 	system("rm -f \"$out_dir_tmp\"/*; rmdir \"$out_dir_tmp\"") if (-d "$out_dir_tmp");
 	exit(1);
-}
+} # }}}
 
 my $last_err_file = '';
+
 ## ErrorHandle($file, $message)
-sub ErrorHandle {
+sub ErrorHandle { # {{{
 	my $file = shift;
 	my $msg  = shift;
 
 	print ERRFILE "<dt><br></dt>\n" unless $last_err_file eq $file;
-	print ERRFILE "<dt><a href=\"file://" . &URLEncode($file)  . "\">" 
+	print ERRFILE "<dt><a href=\"file://" . &URLEncode($file)  . "\">"
 			. &HTMLEncode($file) . "</a></dt>\n";
 	print ERRFILE "<dd>" . &HTMLEncode($msg) . "</dd>\n";
 	$last_err_file = $file;
-}
+} # }}}
 
-
-sub ParseDocDir {
+sub ParseDocDir { # {{{
         my $dir = shift;
 
         if (not (opendir DOCBASEDIR, $dir)) {
                 print STDERR "Can't open directory $dir: $!\n" if $opt_verbose;
                 return;
         }
-        
+
         while (my $f = readdir(DOCBASEDIR))
         {
 		next if $f =~ /^\./;
 		next if -d $f;
-		
+
                 if (defined (my $entry = &ParseDocBaseFile("$dir/$f"))) {
                         &AddNewEntry("$dir/$f", $entry);
 			undef %{$entry};
                 }
         }
-                        
-}
 
+} # }}}
+
+
+sub ReadDocb2PkgCache { # {{{
+	return unless defined $dwww_db2pkg_cache;
+	return unless open CACHE, "<$dwww_db2pkg_cache";
+	while (<CACHE>) {
+		chomp();
+		my ($docb_file, $pkg) 	= split (/\001/, $_, 2);
+		$dbfile2pkg{$docb_file} = $pkg;
+	}
+	close CACHE;
+} # }}}
 
 # Adds %entry to @documents
-sub AddNewEntry() {
+sub AddNewEntry() { # {{{
         my $file = shift;
 	my $entry = shift;
 	my $doc_entry = { };
         my $known = 0;
 	my $sec   = undef;
-        
+
 	if (exists $entry->{'dwww-section'}) {
 		&DwwwSection2Section($entry);
 	}
-	
+
         if (defined $entry->{'document'}) {
                 $doc_entry->{'document'} = $entry->{'document'};
 	}
-	
+
         if ((not defined $entry->{'title'}) or $entry->{'title'} =~ m/^\s*$/) {
                 &ErrorHandle($file,"No (or empty) title!");
-                $doc_entry->{'title'} = "dwww error: No (or empty) title found in $file";
+                $doc_entry->{'title'} = "(No title)";
         } else {
 		$doc_entry->{'title'} = $entry->{'title'};
 	}
-			
+
 
         if ((not defined $entry->{'abstract'}) or $entry->{'abstract'} =~ m/^\s*$/) {
                 &ErrorHandle($file, "Warning: no (or empty) abstract!");
-                $doc_entry->{'abstract'} = "dwww warning: No (or empty) abstract found in $file";
+                $doc_entry->{'abstract'} = "";
         } else {
 		$doc_entry->{'abstract'} = $entry->{'abstract'}
 	}
-        
+
         if ((not defined ($sec = $entry->{'section'})) or $sec =~ m/^\s*$/)
         {
                 &ErrorHandle($file, "No (or empty) section!");
@@ -208,12 +229,12 @@ sub AddNewEntry() {
 		my $w;
                 if (defined ( $w = $entry->{'formats'}->{$f}->{'index'})
 		     or defined ($w = $entry->{'formats'}->{$f}->{'files'})) {
-                        if (exists $files{$w}) 
+                        if (exists $files{$w})
                         {
                 		&ErrorHandle($file, "File already known: \"$w\"");
                                 return;
                         }
-                                
+
                         if ( $f eq 'dwww-url' or -r $w) {
                                 $files{$w} = '1';
 				$doc_entry->{'frm_name_' . $known} = $f;
@@ -229,27 +250,29 @@ sub AddNewEntry() {
                 &ErrorHandle($file, "No known formats!");
                 return;
         }
-	
+
 	$sec = &AddCanonSection($sec);
 	$doc_entry->{'section'} = $sec;
-        $doc_entry->{'frm_count'} = $known; 
-        
+        $doc_entry->{'frm_count'} = $known;
+
+	if ($file =~ m/usr\/share\/doc-base\/(.*)/) {
+		$doc_entry->{'db_fname'} = $1;
+	}
 	push(@{$doc_list{$sec}}, $doc_entry);
 
-}
+} # }}}
 
-
-sub sort_documents {
+sub sort_documents { # {{{
 	my $res;
 
         $res = $a->{'section'} cmp $b->{'section'};
-        
+
         $res = lc $a->{'title'} cmp lc $b->{'title'} if $res == 0;
 
         return $res;
-}
+} # }}}
 
-sub AddCanonSection ($) {
+sub AddCanonSection ($) { # {{{
         my $arg  = shift;
         my $sec  = '';
         my $nsec = '';
@@ -265,14 +288,14 @@ sub AddCanonSection ($) {
 		$node_section{$prev}    = 1 unless $prev eq '';
 		$prev    = $sec;
         }
-                
+
         $sections{$sec}++;
         return $sec;
-        
-}
+
+} # }}}
 
 
-sub FindMapSections() {
+sub FindMapSections() { # {{{
 	my @ss = sort keys %sections;
 	undef %map_section;
 
@@ -293,20 +316,20 @@ sub FindMapSections() {
 			$map_section{$sec} = $sec;
 		}
 	}
-}
+} # }}}
 
-sub SectionToFileName() {
+sub SectionToFileName() { # {{{
 	$_    = shift;
-	my $type = shift; 
-	
+	my $type = shift;
+
 	$_ = $map_section{$_};
 	s/\//_/g;
 	return "s$_.html" if ($type eq $single_index);
 	return "$_";
-}
-	
+} # }}}
 
-sub SectionsToHTML() {
+
+sub SectionsToHTML() { # {{{
         my $cur_sec = shift;
 	my $type  = shift;
         my $depth = 0;
@@ -315,16 +338,16 @@ sub SectionsToHTML() {
 	my $node='';
 	my $cur_depth = ($cur_sec =~ s;/;/;g) + 0;
 
-        foreach my $s (sort keys %sections) {		
+        foreach my $s (sort keys %sections) {
                 $depth = ($s =~ s;/;/;g) + 0;
 		my $ps = $s;
-		$ps =~ s#[^/]+$##; 
+		$ps =~ s#[^/]+$##;
 
 		next unless ($type eq $all_index or $ps eq '' or index($cur_sec .'/', $ps) == 0);
-		
+
                 &CleanAndDie('Internal error') if ($depth > $pr_depth + 1);
                 $res .= "<ul>\n" if ($depth > $pr_depth);
-                
+
                 while ($pr_depth > $depth) {
                         $res .= "</ul>\n";
                         $pr_depth--;
@@ -334,7 +357,7 @@ sub SectionsToHTML() {
 		$node = exists $node_section{$s} ? ' ...' : '';
 		$ns =~ s|^.*/||g;
 		$ns .= $node;
-                
+
                 if ($s eq $cur_sec) {
                         $res .= "<li><strong>$ns</strong>\n";
                 } elsif ($type eq $single_index and ($sections{$s} > 0 or index($cur_sec, $s .'/') != 0 )){
@@ -344,99 +367,136 @@ sub SectionsToHTML() {
                 } else {
                         $res .= "<li>$ns\n";
                 }
-                        
+
         }
-        
+
         while ($pr_depth > -1) {
                 $res .= "</ul>\n";
                 $pr_depth--;
         }
 
 	return $res;
-                
-}
+
+} # }}}
 
 
-sub GetURL{
+sub GetURL{ # {{{
 	my $format_name = shift;
 	my $format_url  = shift;
 
 	$format_url = &URLEncode($format_url) unless ($format_name eq 'dwww-url');
 
-	return "\"$href{$format_name}" . $format_url . "\"";
-	
-	
-}
+	return "$href{$format_name}" . $format_url ;
 
 
-	
-sub DocumentToHTML($) {
-	my $doc = shift; # reference to hash 
-	my $res = '';	
+} # }}}
+
+
+sub DocumentToHTML($) { # {{{
+	my $doc = shift; # reference to hash
+	my $res = '';
+	my $pkg = undef;
+
+	if (exists $doc->{'db_fname'}) {
+		$pkg = $dbfile2pkg{ $doc->{'db_fname'} };
+	}
 
 	$res .= "<dt>";
-	$res .= "<a href=" . &GetURL($doc->{'frm_name_0'}, $doc->{'frm_file_0'}); 
+	$res .= "<a href=\"" . &GetURL($doc->{'frm_name_0'}, $doc->{'frm_file_0'}) . "\"";
 	$res .= " name=\"" . &HTMLEncode($doc->{'document'}) . "\""
 	       if defined ($doc->{'document'});
-	$res .= ">" . &HTMLEncode($doc->{'title'}) . "</a></dt>\n";
+	$res .= ">" . &HTMLEncode($doc->{'title'}) . "</a>\n";
+
+	if (defined $pkg) {
+		$res .= "&nbsp; <small><i>(package: <a href=\"" . $href{'pkgsearch'} . &URLEncode($pkg);
+		$res .= "\">" . &HTMLEncode($pkg) . "</a>)";
+		$res .= "</i></small>\n";
+	}
+
+	$res .= "</dt>\n";
 	$res .= "<dd>" . &HTMLEncodeAbstract($doc->{'abstract'});
 	if ($doc->{'frm_count'} > 1) {
 		$res .= "\n<br><b>Formats:</b> ";
 		for (my $i=0; $i < $doc->{'frm_count'}; $i++) {
 			my $f="frm_name_$i";
 			my $g="frm_file_$i";
-			$res .= "[<a href=" . &GetURL($doc->{$f}, $doc->{$g});
-			$res .= ">" . $doc->{$f} . "</a>] ";
+			$res .= "[<a href=\"" . &GetURL($doc->{$f}, $doc->{$g});
+			$res .= "\">" . $doc->{$f} . "</a>] ";
 		}
-	
+
 	}
+
+
 	$res .= "</dd>\n";
 	$res .= "<dt><br></dt>\n";
 	return $res;
-}	
+} # }}}
 
-		
-sub BuildMenus {
+
+sub BuildMenus { # {{{
         my $res      = '';
         my $last_sec = '';
 	my $need_close = undef;
 
 	open ALL_INDEX, ">$out_dir_tmp/all.html" or &CleanAndDie("Can't create all.html file: $!");
-	print ALL_INDEX &TemplateFile($template_all_start, 
+	print ALL_INDEX &TemplateFile($template_all_start,
 					{ 'TITLE'       => &HTMLEncode($title),
 					  'SECTIONLIST' => &SectionsToHTML('', 'all') });
+
+	if (defined $dwww_regdocs_cache) {
+		open CACHE, ">$dwww_regdocs_cache.tmp.$$" or $dwww_regdocs_cache = undef;
+	}
 
         foreach my $sec (sort keys %doc_list) {
 		my $fname = &SectionToFileName($sec, $single_index);
 		open SINGLE_INDEX, ">$out_dir_tmp/" . $fname
 				or &CleanAndDie("Can't create $fname: $!");
-		
+
 		print SINGLE_INDEX  &TemplateFile($template_single_start,
 						  { 'TITLE'       => &HTMLEncode($title),
 						    'SECTION' 	  => &HTMLEncode($section_names{$sec}),
 						    'SECTIONLIST' => &SectionsToHTML($sec, $single_index)});
 		print SINGLE_INDEX "<dl>\n";
 
-		print ALL_INDEX "<h2 align=\"center\"><a name=\"" . 
-				&SectionToFileName($sec, $all_index) . 
+		print ALL_INDEX "<h2 align=\"center\"><a name=\"" .
+				&SectionToFileName($sec, $all_index) .
 				"\"><strong> Section: ". &HTMLEncode($section_names{$sec}) . "</strong></a></h2>\n<dl>";
-		
+
 		print SINGLE_INDEX "\n<!-- Section: " . &HTMLEncode($section_names{$sec}) . " -->\n";
-		foreach my $d (sort sort_documents @{$doc_list{$sec}}) {
-			$res = &DocumentToHTML($d);
+		foreach my $doc (sort sort_documents @{$doc_list{$sec}}) {
+			$res = &DocumentToHTML($doc);
 			print SINGLE_INDEX "<!-- begin entry -->\n";
 			print SINGLE_INDEX $res;
 			print SINGLE_INDEX "<!-- end entry -->\n";
 			print ALL_INDEX $res;
+
+			if (defined $dwww_regdocs_cache and exists $doc->{'db_fname'}) {
+				print CACHE join( "\01", ( $doc->{'db_fname'},
+							   $section_names{$sec},
+							   $fname . '#' . &HTMLEncode($doc->{'document'}),
+							   &GetURL($doc->{'frm_name_0'}, $doc->{'frm_file_0'}),
+							   $doc->{'title'}
+							) ) . "\n";
+			}
+
 		}
-		
+
 		print SINGLE_INDEX "</dl>\n";
 		print ALL_INDEX "</dl>\n";
 		print SINGLE_INDEX  &TemplateFile($template_single_end, {});
 		close SINGLE_INDEX;
+
+
 	}
-	
+
 	print ALL_INDEX &TemplateFile($template_all_end, {});
 	close ALL_INDEX;
-	
-}
+
+	if (defined $dwww_regdocs_cache) {
+		close CACHE;
+		rename("$dwww_regdocs_cache.tmp.$$", "$dwww_regdocs_cache");
+		chmod (0644, "$dwww_regdocs_cache");
+		return 0;
+	}
+
+} # }}}

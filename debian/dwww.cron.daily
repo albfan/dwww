@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: dwww.cron.daily,v 1.12 2004/04/18 16:10:38 robert Exp $
+# $Id: dwww.cron.daily,v 1.15 2005/04/09 10:03:27 robert Exp $
 #
 # This housekeeping shell script is installed as /etc/cron.daily/dwww.
 # Cron automatically runs it once a day.
@@ -14,22 +14,8 @@ set -e
 
 . /usr/share/dwww/functions.sh && dwww_initialize  || exit 1
 
+dwww-refresh-cache   > /dev/null
 dwww-build --default > /dev/null
 dwww-build-menu      > /dev/null
-
-dpkg --search '*' | dwww-quickfind --build "$DWWW_QUICKFIND_DB.new"
-mv -f "$DWWW_QUICKFIND_DB.new" "$DWWW_QUICKFIND_DB"
-
-if [ ! -d /var/cache/dwww ] ; then
-	mkdir /var/cache/dwww
-	chmod 755 /var/cache/dwww
-	chown "$DWWW_CGIUSER" /var/cache/dwww
-fi
-
-find /var/cache/dwww -atime +"$DWWW_KEEPDAYS" -name '[^.]*' \
-	-maxdepth 2 -type f -print0 | xargs -0 rm -f
-
-cd /var/cache/dwww
-su -s /bin/sh "$DWWW_CGIUSER" -c '/usr/sbin/dwww-cache --clean'
 
 exit 0

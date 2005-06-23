@@ -1,11 +1,12 @@
 # Common functions used by dwww shell scripts
 #
-# $Id: functions.sh.in,v 1.4 2003/03/02 17:22:49 robert Exp $
+# $Id: functions.sh.in,v 1.6 2005/04/07 23:40:08 robert Exp $
 #
 
 readonly dwww_config="/etc/dwww/dwww.conf"
 readonly dwww_libdir="/usr/share/dwww"
 readonly dwww_version="#VERSION#"
+readonly dwww_cache_dir="/var/cache/dwww"
 
 #
 # Initialize dwww: set default variables, read config file, set umask & PATH
@@ -13,15 +14,8 @@ readonly dwww_version="#VERSION#"
 dwww_initialize() {
 
 	
-	DWWW_DOCPATH="#DWWW_DOCPATH#"
-	DWWW_ALLOWEDLINKPATH="#DWWW_ALLOWEDLINKPATH#"
-	DWWW_HTMLDIR="#DWWW_HTMLDIR#"
-	DWWW_USE_CACHE="#DWWW_USE_CACHE#"
-	DWWW_KEEPDAYS="#DWWW_KEEPDAYS#"
-	DWWW_QUICKFIND_DB="#DWWW_QUICKFIND_DB#"
-	DWWW_CGIUSER="#DWWW_CGIUSER#"
+	#DWWWVARS#
 
-	
 	
 	if [ -r "$dwww_config" ]  ; then
 		. "$dwww_config"
@@ -31,6 +25,22 @@ dwww_initialize() {
 	PATH="/usr/sbin:/usr/bin:/bin:$PATH"
 }
 
+#
+# Recreate /var/cache/dwww if it's removed
+#
+dwww_setup_cache_dir() {
+	if [ ! -d "$dwww_cache_dir" ]; then
+		mkdwww_cache_dir "$dwww_cache_dir"
+		chmod 755 "$dwww_cache_dir"
+		chown root "$dwww_cache_dir"
+	fi		
+	if [ ! -d "$dwww_cache_dir/db" ]; then
+		mkdwww_cache_dir "$dwww_cache_dir/db"
+		chmod 755 "$dwww_cache_dir/db"
+		chown "$DWWW_CGIUSER" "$dwww_cache_dir/db"
+	fi
+}	
+	
 #
 # Encode URLs
 #

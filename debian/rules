@@ -48,6 +48,9 @@ install: build
 	install -p -m 0644 debian/dwww.lintian \
                         $(CURDIR)/debian/tmp/usr/share/lintian/overrides/dwww
 
+	install -p -m 0644 apache.conf \
+                        $(CURDIR)/debian/tmp/etc/dwww/apache.conf
+
 	dh_install --sourcedir=debian/tmp -p realpath
 	dh_install --sourcedir=debian/tmp -p dwww -X'realpath*'
 

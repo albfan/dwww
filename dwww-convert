@@ -14,7 +14,7 @@
 #
 # Part of the Debian dwww package.  Written by Lars Wirzenius.
 # Modified by Robert Luberda
-# "@(#)dwww:$Id: dwww-convert,v 1.40 2003/07/27 16:17:32 robert Exp $"
+# "@(#)dwww:$Id: dwww-convert,v 1.41 2005/04/09 15:43:48 robert Exp $"
 
 #
 # Setup defaults.
@@ -231,7 +231,7 @@ builtin_man2html() {
 
 	dir=`dirname "$1"`
 	cd "$dir/.."
-	man -P/bin/cat -l "$1" | dwww-txt2html --man
+	man -P/bin/cat -l "$1" 2>/dev/null | dwww-txt2html --man
 	cd /
 
 	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then

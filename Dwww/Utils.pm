@@ -1,10 +1,12 @@
+# vim:ft=perl:cindent:ts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Utils.pm,v 1.6 2003/09/02 20:02:02 robert Exp $
+# $Id: Utils.pm,v 1.8 2005/06/23 20:58:55 robert Exp $
 #
 package Debian::Dwww::Utils;
 
 use Exporter();
 use Debian::Dwww::Version;
+use POSIX qw(strftime locale_h);
 use strict;
 
 use vars qw(@ISA @EXPORT);
@@ -45,20 +47,27 @@ sub HTMLEncodeAbstract {
 	return $text;
 }
 
+sub GetDate {
+    my $old_locale = &setlocale(LC_ALL, "C");
+    my $date = &strftime ("%a %b %e %H:%M:%S %Z %Y", localtime(time));
+    &setlocale(LC_ALL, $old_locale) unless $old_locale eq "C";
+    return $date;
+}
+    
+
 sub TemplateFile {
 	my $file= shift;
 	my $vars= shift; # hash reference 
  	my $res = '';		
 	local $_;
-
-
+    
 	open TEMPLATE , "<$file" or die "Can't open $file: $!";
 	while (<TEMPLATE>) {
 		foreach my $k (keys %{$vars}) {
 			s/\%$k\%/$vars->{$k}/g
 		}
-		s/\%VERSION\%/$Debian::Dwww::Version::version/o;
-		s/\%DATE\%/`LC_ALL=C date| tr -d '\n'`/eg;
+		s/\%VERSION\%/$Debian::Dwww::Version::version/go;
+		s/\%DATE\%/&GetDate()/eg;
 		$res .= $_;
 	}
 
@@ -104,9 +113,9 @@ sub AddToTable {
         
         if ($r == 0 && $c + 1 < $table->{'columns'}) {
 		if (defined $table->{'widths'}) {
-			$wdth = ' width = "' . $table->{'widths'}[int($c)] .'%"';
+			$wdth = ' width="' . $table->{'widths'}[int($c)] .'%"';
 		} else	{
-	                $wdth = ' width= "' . int(100 / $table->{'columns'}) . '%"';
+	                $wdth = ' width="' . int(100 / $table->{'columns'}) . '%"';
 		}
         } else {
                 $wdth = '';

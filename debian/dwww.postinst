@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.5 2003/03/16 13:38:49 robert Exp $
+# $Id: dwww.postinst,v 1.7 2005/03/13 10:08:20 robert Exp $
 #
 
 use Debconf::Client::ConfModule qw(:all);
@@ -31,7 +31,7 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 	$dwwwcfg{'servername'} = get('dwww/servername');
 	
 	my $do_index = (-x '/usr/bin/index++' 
-		        and not -s '/var/lib/dwww/dwww.swish++.index'
+		        and not -s '/var/cache/dwww/dwww.swish++.index'
 			and scalar get('dwww/index_docs') eq 'true') ? 1 : 0;
 
 	stop(); # stop debconf
@@ -41,10 +41,22 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 
 	&WriteDwwwConfFile( "$cfgfile" );
 
-	system("rm", "-rf", "/var/cache/dwww");
+	if ( ! -d "/var/cache/dwww" ) {
+		mkdir "/var/cache/dwww", 0755 or die "Cannot create directory /var/cache/dwww: $!\n";
+		chown 0, 0, "/var/cache/dwww";
+	} else {			
+		system("rm", "-rf", "/var/cache/dwww/db");
+	}
+	mkdir "/var/cache/dwww/db", 0755 or die "Cannot create directory /var/cache/dwww/db: $!\n";
 	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] or die "User $dwwwcfg{'cgiuser'} does not exist\n";
-	mkdir "/var/cache/dwww", 0755 or die "Cannot create directory /var/cache/dwww: $!\n";
-	chown $uid, 0, "/var/cache/dwww";
+	chown $uid, 0, "/var/cache/dwww/db";
+
+	if ( -r "/etc/dwww/apache.conf") {
+		foreach my $apache ("apache","apache-perl", "apache-ssl", "apache2") {
+			my $confd="/etc/$apache/conf.d";
+			symlink ("../../dwww/apache.conf", "$confd/dwww") if (-d "$confd" && ! -e "$confd/dwww");
+		}
+	}
 
 	if ( -x "/etc/cron.daily/dwww" )
 	{

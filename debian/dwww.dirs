@@ -1,4 +1,4 @@
 usr/share/lintian/overrides
 etc/dwww
 var/lib/dwww/html
-var/cache/dwww
+var/cache/dwww/db

@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # preinst for dwww
-# "@(#)dwww:$Id: dwww.preinst,v 1.3 2003/03/02 17:30:09 robert Exp $"
+# "@(#)dwww:$Id: dwww.preinst,v 1.4 2005/03/08 20:06:35 robert Exp $"
 #
 
 set -e
@@ -33,6 +33,14 @@ if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl "1.8.8"; then
 		
 fi
 			
+if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl "1.9.17"; then
+	[ -d /var/cache/dwww ]  && rm -rf /var/cache/dwww
+	mkdir -m 755 /var/cache/dwww
+	[ -e /var/lib/dwww/dwww.swish++.index ] && \
+		mv /var/lib/dwww/dwww.swish++.index /var/cache/dwww
+	[ -e /var/lib/dwww/quickfind.dat ] && \
+		mv /var/lib/dwww/quickfind.dat /var/cache/dwww
+fi		
 	
 
 #DEBHELPER#
