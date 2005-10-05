@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Debian prerm script for dwww.
-# "@(#)dwww:$Id: dwww.prerm,v 1.2 2005/03/13 10:08:20 robert Exp $"
+# "@(#)dwww:$Id: dwww.prerm,v 1.3 2005/09/15 22:30:26 robert Exp $"
 #
 
 set -e
@@ -16,11 +16,11 @@ if [ "X$1" = "Xremove" ] ; then
 		set +e
 		. /etc/dwww/dwww.conf
 
-		if [ -n "$DWWW_CGIDIR" -a -x "$DWWW_CGIDIR/dwww" ] ; then
+		if [ -n "$DWWW_CGIDIR" ] && [ -x "$DWWW_CGIDIR/dwww" ] ; then
 			rm -f "$DWWW_CGIDIR/dwww"
 		fi
 
-		if [ -n "$DWWW_DOCROOTDIR" -a -L "$DWWW_DOCROOTDIR/dwww" ] ; then
+		if [ -n "$DWWW_DOCROOTDIR" ] && [ -L "$DWWW_DOCROOTDIR/dwww" ] ; then
 			rm -f "$DWWW_DOCROOTDIR/dwww"
 		fi
 	fi

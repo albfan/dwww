@@ -1,12 +1,12 @@
 #!/bin/sh
 #
 # Debian postrm script for dwww.
-# "@(#)dwww:$Id: dwww.postrm,v 1.1 2001/12/05 07:29:50 robert Exp $"
+# "@(#)dwww:$Id: dwww.postrm,v 1.2 2005/09/15 22:30:26 robert Exp $"
 #
 
 set -e
 
-if [ "X$1" = "Xpurge" -a -d /etc/dwww ] ; then
+if [ "X$1" = "Xpurge" ] && [ -d /etc/dwww ] ; then
 	echo -n "Purging configuration data in /etc/dwww/ ... "
 	rm -rf /etc/dwww
 	echo "done."

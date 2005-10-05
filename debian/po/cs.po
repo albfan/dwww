@@ -1,0 +1,166 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dwww\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"PO-Revision-Date: 2005-06-25 20:05+0200\n"
+"Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
+"Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid "Location of web server's document root."
+msgstr "Umístění kořene dokumentů webového serveru."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
+msgstr ""
+"dwww potřebuje znát cestu k adresáři, který obsahuje kořen dokumentů "
+"vašeho webového serveru. Obvykle to bývá /var/www."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid "Location of web server's cgi directory."
+msgstr "Umístění adresáře cgi webového serveru."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:11
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
+msgstr ""
+"dwww potřebuje znát cestu k adresáři, který obsahuje CGI skripty vašeho "
+"webového serveru. Obvykle to bývá /usr/lib/cgi-bin, ale je možné, že je "
+"váš webový server nastaven jinak."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid "Name of CGI user."
+msgstr "Jméno CGI uživatele."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:19
+msgid ""
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
+msgstr ""
+"dwww potřebuje vědět, pod kterým uživatelem poběží CGI skript dwww, "
+"protože adresář s cache musí být tímto uživatelem vlastněn."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "Host name of the web server."
+msgstr "Jméno počítače s webovým serverem."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:26
+msgid "dwww needs to know the host name of your web server."
+msgstr "dwww potřebuje znát jméno počítače s vaším webovým serverem."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid "Web server's port."
+msgstr "Port webového serveru."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:32
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr ""
+"dwww potřebuje znát port, na kterém běží váš webový server. Webové servery "
+"obvykle běží na portu 80."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory does not exist!"
+msgstr "Adresář neexistuje!"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:38
+msgid "Directory ${dir} does not exist."
+msgstr "Adresář ${dir} neexistuje."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User not found!"
+msgstr "Uživatel nebyl nalezen!"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:43
+msgid "User ${user} does not exist."
+msgstr "Uživatel ${user} neexistuje."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Port value should be a number!"
+msgstr "Hodnota portu by mělo být číslo!"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:48
+msgid "Value entered for port: ${port} is invalid."
+msgstr "Zadaná hodnota portu ${port} není platná."
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid "Should post-installation script index your documentation files?"
+msgstr "Má poinstalační skript vytvořit index vašich souborů s dokumentací?"
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr ""
+"Program dwww-index++(8) se bude spouštět jednou týdně, aby vytvořil "
+"index všech dokumentačních souborů registrovaných s balíkem doc-base."
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:54
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr ""
+"Index se také může vytvořit (na pozadí) poinstalačním skriptem. Proces "
+"vyžaduje spoustu počítačových prostředků a může trvat několik minut, "
+"takže máte na vybranou, zda jej chcete spustit nyní nebo až později."

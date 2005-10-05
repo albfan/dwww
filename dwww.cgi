@@ -7,13 +7,14 @@
 #  (if you are using apache2, see /usr/share/doc/dwww/README)
 #
 #
-# $Id: dwww.cgi,v 1.17 2004/08/26 17:40:40 robert Exp $
+# $Id: dwww.cgi,v 1.18 2005/10/05 21:25:04 robert Exp $
 #
 
 $doc2html 	= '/usr/sbin/dwww-convert'; # Document-to-HTML converter
 $search2html 	= '/usr/sbin/dwww-find';    # Search and output results as HTML
 @searchargs   	= ('--package');	    # Default argument for $search2html	
 $ENV{PATH} 	= '/bin:/usr/bin:/usr/sbin';
+delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'}; # Delete unsafe variables
 
 $TRUE  = 1;
 $FALSE = 0;

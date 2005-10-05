@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # preinst for dwww
-# "@(#)dwww:$Id: dwww.preinst,v 1.4 2005/03/08 20:06:35 robert Exp $"
+# "@(#)dwww:$Id: dwww.preinst,v 1.5 2005/09/15 22:30:26 robert Exp $"
 #
 
 set -e
@@ -9,7 +9,7 @@ set -e
 if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl "1.8.8"; then
  	
 	# dwww spool directory was moved in dwww 1.5.0
-	if [ -d /var/spool/dwww -a -d /var/cache -a ! -e /var/cache/dwww ]; then
+	if [ -d /var/spool/dwww ] && [ -d /var/cache ] && [ ! -e /var/cache/dwww ]; then
  		echo "Moving dwww cache directory to /var/cache/dwww."
  		mv -f /var/spool/dwww /var/cache/dwww
  	fi

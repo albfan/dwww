@@ -1,12 +1,39 @@
+dwww (1.9.26) unstable; urgency=low
+
+  * dwww.cgi: delete unsafe environment variables like IFS (closes: #330663).
+  * dwww-refresh-cache: fix the find command warnings (closes: #328721).
+  * Install searchplugins for mozilla & firefox (closes: #328945).
+
+ -- Robert Luberda <robert@debian.org>  Wed,  5 Oct 2005 22:06:41 +0200
+
+dwww (1.9.25) unstable; urgency=low
+
+  * dwww.postinst: Fix confusing error message when $cgiuser is set to
+    "root" (closes: #326796).
+  * dwww-find: Remove the newly introduced 'Tag:' field from packages
+    descriptions.
+  * Fix possible bashisms as found by lintian in the maintainer scripts.
+
+ -- Robert Luberda <robert@debian.org>  Fri, 16 Sep 2005 00:27:35 +0200
+
+dwww (1.9.24) unstable; urgency=low
+
+  * Initial Czech translation of debconf messages (closes: #315836).
+    Thanks to Miroslav Kure <kurem(at)upcase.inf.upol.cz>.
+  * dww-index++: change temporary file name, so it can be eventually
+    cleaned by dwww-refresh-cache.
+
+ -- Robert Luberda <robert@debian.org>  Sat, 16 Jul 2005 21:09:01 +0200
+
 dwww (1.9.23) unstable; urgency=low
 
   * realpath: implement --zero option (closes: #307018), update man page.
   * Correct German translation of debconf templates (closes: #312410)
-    Thanks to Jens Seidel <jensseidel@users.sf.net>.
+    Thanks to Jens Seidel <jensseidel(at)users.sf.net>.
   * Depend on httpd-cgi, not on httpd (closes: #186395).
   * Build-depend on the newest debhelper to have menu file moved to
     /usr/share/menu.
-  * Dwww/*.pm: use perl built-in functions to get date and hostname instead 
+  * Dwww/*.pm: use perl built-in functions to get date and hostname instead
     of spawning external programs.
   * Standards-Version: 3.6.2.
 
@@ -15,7 +42,7 @@ dwww (1.9.23) unstable; urgency=low
 dwww (1.9.22) unstable; urgency=low
 
   * Add Vietnamese translation of debconf templates (closes: #311600).
-    Thanks to Clytie Siddall <clytie@riverland.net.au>.
+    Thanks to Clytie Siddall <clytie(at)riverland.net.au>.
   * dwww-build: refer to external BTS documentation if the doc-debian
     is not installed (closes: #309951).
   * dwww-build: use Cwd 'realpath' instead of local no-op function.
@@ -103,10 +130,10 @@ dwww (1.9.17) unstable; urgency=low
 dwww (1.9.16) unstable; urgency=low
 
   * dwww.menu-method: rename repeat_lang to outputlanguage (closes: #282494).
-  * lib/menu.end: temporaily removed link to the "errors & warnings" page 
+  * lib/menu.end: temporaily removed link to the "errors & warnings" page
     (but the page itself is still generated); I will restore it after sarge is
-    released. 
-    BTW. I think it should be lintian (or linda) job to report errors in 
+    released.
+    BTW. I think it should be lintian (or linda) job to report errors in
     doc-base files.
 
  -- Robert Luberda <robert@debian.org>  Tue, 23 Nov 2004 20:25:02 +0100
@@ -405,7 +432,7 @@ dwww (1.8.2) unstable; urgency=low
 
 dwww (1.8.1) unstable; urgency=high
 
-  * dwww-build: Oops, don't create index.html in the root directory 
+  * dwww-build: Oops, don't create index.html in the root directory
     (closes: #162905).
 
  -- Robert Luberda <robert@debian.org>  Thu,  3 Oct 2002 09:25:54 +0200
@@ -518,7 +545,7 @@ dwww (1.7.5) unstable; urgency=medium
 dwww (1.7.4) unstable; urgency=low
 
   * dwww-find:
-    + call tmpfile to create temporary files insted of putting them in 
+    + call tmpfile to create temporary files insted of putting them in
       /var/cache/dwww.
     + it now can display packages' description (using apt-cache for that).
     + to speedup use dlocate, if found.
@@ -572,16 +599,16 @@ dwww (1.7.2) unstable; urgency=low
     + added utils.c with dwww_initialize, which sets umask and reopens stdin,
       stdout and stderr.
     + dwww-cache.c: s/sprintf/snprintf/ almost all.
- 
+
   * dwww-convert:
     + builtin_html2html no longer uses DWWW_SERVERNAME when converting
-      anchors. Now it outputs anchors like "/cgi-bin/dwww....", not 
+      anchors. Now it outputs anchors like "/cgi-bin/dwww....", not
       "http://$DWWW_SERVERNAME/cgi-bin/dwww..." (closes: #112843).
     + it also converts <APPLET ARCHIVE=""> links.
     + correctly handles case when type=dir and location=/path/to/not/dir.
 
   * dwww-quickfind rewritten, now it stores informations about packages,
-    not only programs (closes: #132000). 
+    not only programs (closes: #132000).
     + removed an item from TODO, updated dwww(1) man page.
 
   * dwww.template: rewritten by William Clifford <wobh@yahoo.com>, so it now
@@ -599,7 +626,7 @@ dwww (1.7.1) unstable; urgency=low
     + http and ftp sites (e.g. ftp.somewhere.com)
     + mail addresses (foo@bar.com)
     + documentation references in /usr{/|/share|/local}/{doc|man} dirs
-    + closes: #bug_no statements
+    + `closes #bug_no' statements
   * Option --man is ignored, dwww-txt2html converts manual page references in
     all documents.
 
@@ -640,7 +667,7 @@ dwww (1.7.0) unstable; urgency=low
 
 dwww (1.6.12) unstable; urgency=low
 
-  * Fixed long description of realpath package (closes: #125306, #124253). 
+  * Fixed long description of realpath package (closes: #125306, #124253).
 
  -- Robert Luberda <robert@debian.org>  Sat, 22 Dec 2001 21:52:27 +0100
 
@@ -874,7 +901,7 @@ dwww (1.4.3.5-1.8) frozen unstable; urgency=medium
     Patch by Jon Nelson. (Closes: #17478)
   * These bugs seem to be already fixed !
     (Closes: #48892, #49060, #49132, #49336, #10756, #37250, #42979)
-    (Closes: #45151, #53424, #38317, #37856, #34855, #9338) 
+    (Closes: #45151, #53424, #38317, #37856, #34855, #9338)
 
  -- Jean-Philippe Guerard <jean-philippe.guerard@mail.dotcom.fr>  Mon,  8 May 2000 21:26:54 +0000
 
@@ -893,7 +920,7 @@ dwww (1.4.3.5-1.7) frozen unstable; urgency=medium
   * Fixed HTML files and added DOCTYPE; they now validate using nsgmls.
   * Updated locations in copyright file.
   * Remove /etc/dwww/dwww.conf on purge. (Fixes: #37621)
-  * Some bug reports are no longer applicable/reproducable. 
+  * Some bug reports are no longer applicable/reproducable.
     (Fixes: #10449, #34398, #25477, #26492, #32556, #32032, #34447, #36701, #46697)
 
  -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Sun,  5 Mar 2000 15:45:34 +0100
@@ -923,7 +950,7 @@ dwww (1.4.3.5-1.4) unstable; urgency=low
 dwww (1.4.3.5-1.3) unstable; urgency=low
 
   * Non maintainer upload.
-  * [debian/rules] Added removal of debian/files to clean target 
+  * [debian/rules] Added removal of debian/files to clean target
     (closes: #49072).
 
  -- Torsten Landschoff <torsten@debian.org>  Mon,  8 Nov 1999 19:33:23 +0100
@@ -943,14 +970,14 @@ dwww (1.4.3.5-1.1) unstable; urgency=low
     case of pilot error. (Closes: #43094).
   * [dwww-find] use /bin/sh rather than bash. (Closes: #19054).
   * [dwww.cgi] Fixed filename match regexp as per Mark Summerfield's
-    suggestion. Makes dwww deal with perl module man pages properly. 
+    suggestion. Makes dwww deal with perl module man pages properly.
     (Closes: #26794, #34015, #34456, #35788, #41106)
   * [Makefile] Use '!' as negator in character-class glob to remove '^'
     bashism. (Closes: #47469)
   * Applied AMAZING CURE 4 HAIR LOSS to README and make it go boldly.
     (Closes: #34432)
   * Put in a note in the README to point to doc-base as the uniform
-    documentation registration system. 
+    documentation registration system.
   * My older NMU has been acknowledged implictly. (Closes: #37378)
   * The cron job cds to a known-good directory since 1.4.1-1 (Closes: #10042)
   * The cron job does not seem to call update-menus anymore. (Closes: #29502)
@@ -981,7 +1008,7 @@ dwww (1.4.3.4-0.2) frozen unstable; urgency=high
 
 dwww (1.4.3.4-0.1) frozen unstable; urgency=high
 
-  * Fix detection of wn webserver to make it work with newer version.  
+  * Fix detection of wn webserver to make it work with newer version.
     (Bug#23790)
 
  -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Tue, 23 Jun 1998 11:55:20 +0200
@@ -995,40 +1022,40 @@ dwww (1.4.3.3-0.1) frozen unstable; urgency=high
 
 dwww (1.4.3.2-0.1) frozen unstable; urgency=high
 
-  * Fix use of /tmp for tempfiles in a lot of places: tempfiles are now 
-    created in /var/spool/dwww.  Also fixed earlier "fix" that used 
+  * Fix use of /tmp for tempfiles in a lot of places: tempfiles are now
+    created in /var/spool/dwww.  Also fixed earlier "fix" that used
     /var/lib/dwww for tempfiles.  This should fix the errors from various
-    dwww-* tools that also caused cron.daily/dwww to send a daily complaint 
-    mail to root.  (Bug#16212) 
-  * Install the dwww cgi script in /usr/lib/cgi-bin instead of /usr/lib/dwww.  
-    Changed dwwwconfig to create a copy instead of a symlink of the dwww cgi 
-    script to the effective cgi-bin directory if it is in a non-standard 
-    location.  (Bug#11584,22018,22153,22173,23439) 
-  * Fix $ENV{PATH} in /usr/lib/dwww/dwww.cgi ; don't be so paranoid that 
-    dwww's children can't find basic stuff like grep and awk anymore.  
+    dwww-* tools that also caused cron.daily/dwww to send a daily complaint
+    mail to root.  (Bug#16212)
+  * Install the dwww cgi script in /usr/lib/cgi-bin instead of /usr/lib/dwww.
+    Changed dwwwconfig to create a copy instead of a symlink of the dwww cgi
+    script to the effective cgi-bin directory if it is in a non-standard
+    location.  (Bug#11584,22018,22153,22173,23439)
+  * Fix $ENV{PATH} in /usr/lib/dwww/dwww.cgi ; don't be so paranoid that
+    dwww's children can't find basic stuff like grep and awk anymore.
     (Bug#16506,19045)
-  * The "_" character is not a real security hazard. But it is used in a 
-    surprisingly high number of documentation filenames. 
+  * The "_" character is not a real security hazard. But it is used in a
+    surprisingly high number of documentation filenames.
     (Bug#18203,18356,22229,23440)
   * Actually install dwww.1 man page.  (Bug#9366,9369,9817)
   * Remove old backup file dwww.cgi~ from the source
-  * Fixed the following reported lintian errors & warnings: 
+  * Fixed the following reported lintian errors & warnings:
      - binaries w/o man pages (linked to undocumented.7.gz);  (Bug#8327)
-     - don't compress copyright file; 
+     - don't compress copyright file;
      - do compress man pages;  (Bug#15706)
-     - made symlinks to cgidir and webroot absolute. 
-    This should leave only the warning about the standards version, which 
+     - made symlinks to cgidir and webroot absolute.
+    This should leave only the warning about the standards version, which
     is a good reminder to really audit dwww sometime soon. (Bug#6356)
-  * No need to use the anti-social bashist "function" keyword in a /bin/sh 
+  * No need to use the anti-social bashist "function" keyword in a /bin/sh
     script. ;-) (Bug#23624,10713)
-  * Added descriptions for man pages in section 3thr (Bug#8875) and section 1db. 
+  * Added descriptions for man pages in section 3thr (Bug#8875) and section 1db.
   * Added postrm script that can purge /etc/dwww/dwww.conf.  (Bug#18110)
-  * Added perl to the Depends: because dwwwconfig uses Getopts::Long which 
+  * Added perl to the Depends: because dwwwconfig uses Getopts::Long which
     is only available in perl.  (Bug#9101)
   * Added Suggests: lynx.  (Bug#23546)
-  * Upped the upstreams version number. 
+  * Upped the upstreams version number.
 
- -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Thu, 18 Jun 1998 9:25:58 +0200 
+ -- Joost Kooij <Joost.Kooij@nl.origin-it.com>  Thu, 18 Jun 1998 9:25:58 +0200
 
 dwww (1.4.3-1) unstable; urgency=high
 
@@ -1043,7 +1070,7 @@ dwww (1.4.3-1) unstable; urgency=high
  -- Jim Pick <jim@jimpick.com>  Thu, 12 Feb 1998 00:51:17 -0800
 
 dwww (1.4.2-1) stable; urgency=high
-  
+
     * Another CGI security bug that allowed execution of arbitrary
       commands.  I am now specifying a set of acceptable characters, rather
       than excluding certain ones and using perl -T.  Fixes bug #18107
@@ -1051,11 +1078,11 @@ dwww (1.4.2-1) stable; urgency=high
     * I know there are lots of other non-security bugs outstanding.  They will
       be fixed in an upcoming, more substantial release.
     * Compiled for libc5 for bo-updates.
-  
-   -- Jim Pick <jim@jimpick.com>  Wed, 11 Feb 1998 23:22:37 -0800
-  
+
+ -- Jim Pick <jim@jimpick.com>  Wed, 11 Feb 1998 23:22:37 -0800
+
 dwww (1.4.1-1.1) unstable; urgency=high
-  
+
   * libc6 compile
   * non-maintainer release
   * changed filelist="/tmp/dwww-find.list.$$" in dwww-find to
@@ -1073,7 +1100,7 @@ dwww (1.4.1-1) frozen unstable; urgency=high
     backquotes and dollar signs into underscores.
   * dwww.cgi: don't convert '+' characters into spaces - fixes
     bug #8563 (Thanks Lars Wirzenius and Joost Witteveen)
-  * dwwwconfig: place quotes around DWWW_SERVERTYPE in 
+  * dwwwconfig: place quotes around DWWW_SERVERTYPE in
     /etc/dwww/dwww.conf to cope with server names with space
     such as CERN httpd - fixes bug #8525
   * /etc/cron.daily/dwww: added line to cd to /var/spool/dwww
@@ -1085,12 +1112,12 @@ dwww (1.4.1-1) frozen unstable; urgency=high
 dwww (1.4-1) unstable; urgency=low
 
   * Added emacs lines to changelog
-  * dwww-convert: accepts HTML files that end in .htm  - previously 
-    only .html was supported) 
+  * dwww-convert: accepts HTML files that end in .htm  - previously
+    only .html was supported)
     (Thanks to Susan G. Kleinmann)
   * dwww-convert: properly handles files that do not exist
-  * dwww-convert: checks for a .html.gz file if a .html file does 
-    not exist, and vice-versa  
+  * dwww-convert: checks for a .html.gz file if a .html file does
+    not exist, and vice-versa
     (Thanks to Brian C. White)
   * dwww-convert: modified perl code in script to do replacements
     over the entire HTML file instead of doing it line by line
@@ -1103,7 +1130,7 @@ dwww (1.4-1) unstable; urgency=low
   * dwww-convert: fixed small bug which confused newlines with
     contents of href tags
   * dwww-convert: recognize when filename is a directories.  It it
-    is, then check for index.htm* files, and display them as 
+    is, then check for index.htm* files, and display them as
     standard files if found.  Removed code from
     builtin_dir2html() that would display index.htm* files.
   * dwww-convert: optimized builtin_dir2html() by using new
@@ -1114,7 +1141,7 @@ dwww (1.4-1) unstable; urgency=low
   * dwww-convert: added code to check for .htm, .html, .htm.gz,
     and .html.gz files when file not found.  Also, strip off
     HTML anchors.
-  * Makefile, debian/rules: reworked directories, added 
+  * Makefile, debian/rules: reworked directories, added
     /var/lib/dwww/html.  Changed documentation files to be mode
     0644.  Removed sticky bit from /var/spool/dwww directory and
     removed /var/spool/dwww/.cache_db file.
@@ -1123,12 +1150,12 @@ dwww (1.4-1) unstable; urgency=low
     (Thanks Bill Wohler)
   * adminlinks.htm, docintro.html, search-docs.html: removed these
     incomplete .html files to ./lib/editorial directory
-  * dwww-build, dwww.template: Make more lynx friendly -- build man 
-    page indexes in separate directories.  Put search engine first.  
+  * dwww-build, dwww.template: Make more lynx friendly -- build man
+    page indexes in separate directories.  Put search engine first.
     Remove link to docintro.html (it's incomplete).  Add link to
     menu.html.
   * dwww, dwww-build, dwww.1, dwww.8, postinst:  Change location of
-    main index page from http://localhost/dwww/dwww.html to 
+    main index page from http://localhost/dwww/dwww.html to
     http://localhost/dwww/index.html.
   * dwww-build, html templates: modified so that there are new
     indexes to the man pages, and they are in separate directories
@@ -1174,9 +1201,9 @@ dwww (1.3-1) unstable; urgency=low
  -- Jim Pick <jim@jimpick.com>  Sun, 19 Jan 1997 20:28:51 -0800
 
 dwww (1.2.1-1) unstable; urgency=low
-  
+
   * New maintainer, Jim Pick <jim@jimpick.com>
-  * Added dwww-txt2html, dwww-doc-index and dwww-format-man to 
+  * Added dwww-txt2html, dwww-doc-index and dwww-format-man to
     /usr/sbin directory - this should fix bugs #5604, #5674, #5785
   * Added set -e to postinst, prerm - fixes bug #5975
   * Modified dwww-daily, postinst to use www-data user when

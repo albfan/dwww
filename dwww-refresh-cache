@@ -5,7 +5,7 @@
 #
 # Part of the dwww package.  Written by Robert Luberda.
 #
-# "@(#)dwww:$Id: dwww-refresh-cache,v 1.3 2005/04/09 11:59:20 robert Exp $"
+# "@(#)dwww:$Id: dwww-refresh-cache,v 1.4 2005/10/05 21:25:04 robert Exp $"
 
 set -e
 
@@ -19,19 +19,21 @@ echo done
 
 # always remove temporary files, generated mostly by index++
 echo -n "removing temporary files in cache dir..."
-find "$dwww_cache_dir" -atime +2 \( -name '*.tmp.*' \
+find "$dwww_cache_dir" -maxdepth 1 \
+        -atime +2 \( -name '*.tmp.*' \
         -o -name '[0-9]*.[0-9]*' \) \
-        -maxdepth 1 -type f -print0 | xargs -0 rm -f
+        -type f -print0 | xargs -0 rm -f
 echo done
 
 
 # remove accessed documents cache
 if [ -n "$DWWW_KEEPDAYS" ] ; then
         echo -n "removing stale cache entries..."
-        find "$dwww_cache_dir" -atime +"$DWWW_KEEPDAYS" -name '[^.]*' \
+        find "$dwww_cache_dir" -maxdepth 3 \
+                 -atime +"$DWWW_KEEPDAYS" -name '[^.]*' \
                 ! -name 'dwww.swish++.index' \
                 ! -name '*.dat' \
-                -maxdepth 3 -type f -print0 | xargs -0 rm -f
+                -type f -print0 | xargs -0 rm -f
         echo done
 
         su -s /bin/sh "$DWWW_CGIUSER" -c '/usr/sbin/dwww-cache --clean' || true

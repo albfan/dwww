@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.7 2005/03/13 10:08:20 robert Exp $
+# $Id: dwww.postinst,v 1.8 2005/09/15 22:15:16 robert Exp $
 #
 
 use Debconf::Client::ConfModule qw(:all);
@@ -48,7 +48,9 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 		system("rm", "-rf", "/var/cache/dwww/db");
 	}
 	mkdir "/var/cache/dwww/db", 0755 or die "Cannot create directory /var/cache/dwww/db: $!\n";
-	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] or die "User $dwwwcfg{'cgiuser'} does not exist\n";
+	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] ;
+	defined $uid or die "User $dwwwcfg{'cgiuser'} does not exist\n";
+	$uid or die "You DON'T want to run the dwww CGI script as root!\n";
 	chown $uid, 0, "/var/cache/dwww/db";
 
 	if ( -r "/etc/dwww/apache.conf") {

@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
 #
 # Find all docs related to one program or find matching entries in Debian Doc. Menu
-# "$Id: dwww-find,v 1.44 2005/05/06 21:11:56 robert Exp $"
+# "$Id: dwww-find,v 1.46 2005/10/05 21:25:04 robert Exp $"
 #
 
 use strict;
@@ -59,10 +59,12 @@ if (! defined $ARGV[0]) {
 }
 
 my $mode="p";
-if ($ARGV[0] =~ m/^--(.*)$/) {
+my $skip=0;
+while ($ARGV[0] =~ m/^--(.*)$/) {
         if ($1 eq "package") { $mode = "p"; }
         elsif ($1 eq "menu") { $mode = "m"; }
         elsif ($1 eq "documentation") { $mode = "d"; }
+        elsif ($1 =~ m/^skip=(\d+)$/) { $skip=$1 ; }
         else {
                 print STDERR "usage: $0 [--package|--menu|--documentation] searcharg\n";
                 exit(1);
@@ -70,11 +72,6 @@ if ($ARGV[0] =~ m/^--(.*)$/) {
         shift @ARGV;
 }
 
-my $skip=0;
-if ($ARGV[0] =~ m/^--skip=([0-9]+)$/) {
-        $skip=$1;
-        shift @ARGV;
-}
 
 
 
@@ -361,6 +358,7 @@ sub PkgDescription () { # {{{
                         $synopsis = $_;
                         $fdescr = 1;
                 } elsif ($fdescr) {
+                    last unless /^ /;                            
                     $descr .= $_;
                 }
         }
