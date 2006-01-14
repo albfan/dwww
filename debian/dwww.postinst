@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.8 2005/09/15 22:15:16 robert Exp $
+# $Id: dwww.postinst,v 1.8 2005-09-15 22:15:16 robert Exp $
 #
 
 use Debconf::Client::ConfModule qw(:all);

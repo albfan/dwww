@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: dwww.cron.weekly,v 1.1 2003/02/25 22:01:45 robert Exp $
+# $Id: dwww.cron.weekly,v 1.1 2003-02-25 22:01:45 robert Exp $
 #
 # This script creates an index of Debian documentation registered
 # with doc-base. See dwww-index++(8) man page for details.

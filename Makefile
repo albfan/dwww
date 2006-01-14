@@ -1,6 +1,6 @@
 #
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile,v 1.27 2005/04/07 23:40:08 robert Exp $"
+# "@(#)dwww:$Id: Makefile,v 1.28 2006-01-14 11:06:21 robert Exp $"
 #
 
 VERSION	= $(shell dpkg-parsechangelog | sed -ne 's/^Version: *//p')
@@ -9,6 +9,7 @@ CC	= gcc
 CFLAGS	= -Wall -Wstrict-prototypes -Wmissing-prototypes -DVERSION='"$(VERSION)"' 
 LDFLAGS	=
 LIBS	= -lpub
+PERL	= /usr/bin/perl
 
 
 ifeq (,$(findstring nodebug,$(DEB_BUILD_OPTIONS)))
@@ -70,20 +71,22 @@ all: $(source_links) $(generated)
 
 
 %::%.in $(source_links)
-	perl -e '					\
-		use lib "."; 				\
-		use Debian::Dwww::Initialize; 		\
-		$$d=&DwwwInitialize;			\
-		$$v="";					\
-		foreach $$k (sort keys %{$$d}) {	\
-			$$v.="\t$$k=\"$$d->{$$k}\"\n" 	\
-				if $$k ne "DWWW_TITLE";	\
-		}					\
-		while (<>) {				\
-			s/#VERSION#/$(VERSION)/g;  	\
-			s/^.*#DWWWVARS#.*$$/$$v/g;	\
-			print;				\
-		}'					\
+	# try to be compatible with the both sarge and sid versions of make
+	PERL5LIB="." $(PERL)  -e \
+	'exec ("'$(PERL)'", "-e", join("",@ARGV)) if $$#ARGV >-1; '\
+	'	$$|=1;					'\
+	'	use Debian::Dwww::Initialize; 		'\
+	'	$$d=&DwwwInitialize;			'\
+	'	$$v="";					'\
+	'	foreach $$k (sort keys %{$$d}) {	'\
+	'		$$v.="\t$$k=\"$$d->{$$k}\"\n"	'\
+	'			if $$k ne "DWWW_TITLE";	'\
+	'	}					'\
+	'	while (<>) {				'\
+	'		s/#VERSION#/$(VERSION)/g;  	'\
+	'		s/^.*#DWWWVARS#.*$$/$$v/g;	'\
+	'		print;				'\
+	'	}					'\
 	  < $< > $@
 	touch -r $< $@
 

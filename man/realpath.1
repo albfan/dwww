@@ -1,5 +1,5 @@
-.\" $Id: realpath.1,v 1.9 2005/06/11 10:41:46 robert Exp $
-.TH REALPATH 1 "January 24th, 2004" "Debian" "Debian"
+.\" $Id: realpath.1,v 1.10 2006-01-14 11:06:27 robert Exp $
+.TH REALPATH 1 "January 14th, 2006" "Debian" "Debian"
 .SH NAME
 realpath \- return the canonicalised absolute pathname
 .SH SYNOPSIS
@@ -107,6 +107,8 @@ In case of any errors (e.g. missing or unavailable directories in the path),
 prints error message to stderr and returns a non-zero exit code.
 .RE
 .SH "SEE ALSO"
+.BR basename (1),
+.BR dirname (1),
 .BR readlink (1),
 .BR realpath (3)
 .SH AUTHOR

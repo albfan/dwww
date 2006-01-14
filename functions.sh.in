@@ -1,6 +1,6 @@
 # Common functions used by dwww shell scripts
 #
-# $Id: functions.sh.in,v 1.6 2005/04/07 23:40:08 robert Exp $
+# $Id: functions.sh.in,v 1.6 2005-04-07 23:40:08 robert Exp $
 #
 
 readonly dwww_config="/etc/dwww/dwww.conf"

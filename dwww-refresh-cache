@@ -5,7 +5,7 @@
 #
 # Part of the dwww package.  Written by Robert Luberda.
 #
-# "@(#)dwww:$Id: dwww-refresh-cache,v 1.4 2005/10/05 21:25:04 robert Exp $"
+# "@(#)dwww:$Id: dwww-refresh-cache,v 1.4 2005-10-05 21:25:04 robert Exp $"
 
 set -e
 

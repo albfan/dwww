@@ -6,7 +6,7 @@
 # Part of the dwww package.  Written by Lars Wirzenius.
 # Rewritten in perl by Robert Luberda <robert@debian.org> on Sep, 2003.
 #
-# "@(#)dwww:$Id: dwww-build,v 1.44 2005/06/05 14:11:09 robert Exp $"
+# "@(#)dwww:$Id: dwww-build,v 1.44 2005-06-05 14:11:09 robert Exp $"
 
 use strict;
 

@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
 #
 # Find all docs related to one program or find matching entries in Debian Doc. Menu
-# "$Id: dwww-find,v 1.46 2005/10/05 21:25:04 robert Exp $"
+# "$Id: dwww-find,v 1.46 2005-10-05 21:25:04 robert Exp $"
 #
 
 use strict;

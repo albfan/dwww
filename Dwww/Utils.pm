@@ -1,6 +1,6 @@
 # vim:ft=perl:cindent:ts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Utils.pm,v 1.8 2005/06/23 20:58:55 robert Exp $
+# $Id: Utils.pm,v 1.8 2005-06-23 20:58:55 robert Exp $
 #
 package Debian::Dwww::Utils;
 

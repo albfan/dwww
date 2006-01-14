@@ -3,7 +3,7 @@
  * File:	dwww-cache.c
  * Purpose:	Manage the dwww cache of converted documents.
  * Author:	Lars Wirzenius
- * Version:	"(#)dwww:$Id: dwww-cache.c,v 1.14 2005/03/08 20:15:10 robert Exp $"
+ * Version:	"(#)dwww:$Id: dwww-cache.c,v 1.14 2005-03-08 20:15:10 robert Exp $"
  * Description:	See the manual page for how to use this program.
  *
  *		Basically, what we do is read in a file from stdin,

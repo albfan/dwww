@@ -8,7 +8,7 @@
 # Example: $0 `manpath -q | tr : ' '`
 #
 # Lars Wirzenius
-# "@(#)dwww:$Id: dwww-format-man,v 1.7 2002/04/07 17:51:53 robert Exp $"
+# "@(#)dwww:$Id: dwww-format-man,v 1.7 2002-04-07 17:51:53 robert Exp $"
 #
 
 . /usr/share/dwww/functions.sh && dwww_initialize || exit 1

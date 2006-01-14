@@ -7,7 +7,7 @@
 #  (if you are using apache2, see /usr/share/doc/dwww/README)
 #
 #
-# $Id: dwww.cgi,v 1.18 2005/10/05 21:25:04 robert Exp $
+# $Id: dwww.cgi,v 1.18 2005-10-05 21:25:04 robert Exp $
 #
 
 $doc2html 	= '/usr/sbin/dwww-convert'; # Document-to-HTML converter

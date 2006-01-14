@@ -1,13 +1,13 @@
-#!/usr/sbin/install-menu
+#!/usr/bin/install-menu
 # I need menu-1!
-# $Id: dwww.menu-method,v 1.9 2004/11/23 19:51:25 robert Exp $
+# $Id: dwww.menu-method,v 1.10 2005-10-13 21:03:07 robert Exp $
 #
 # Dwww compatibility menu-method to create
 # in /var/lib/dwww/menu-method directory docbase-like
 # files structure
 #
 # NOTE: the first line of this script _must_ be
-# equal to "#!/usr/sbin/install-menu", otherwise update-menus
+# equal to "#!/usr/bin/install-menu", otherwise update-menus
 # will feed this script old-compat-mode data.
 #
 # More info: /usr/share/doc/menu/html.

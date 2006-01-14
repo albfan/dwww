@@ -14,7 +14,7 @@
 #
 # Part of the Debian dwww package.  Written by Lars Wirzenius.
 # Modified by Robert Luberda
-# "@(#)dwww:$Id: dwww-convert,v 1.41 2005/04/09 15:43:48 robert Exp $"
+# "@(#)dwww:$Id: dwww-convert,v 1.41 2005-04-09 15:43:48 robert Exp $"
 
 #
 # Setup defaults.

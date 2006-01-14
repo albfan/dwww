@@ -2,7 +2,7 @@
  * File:	dwww-quickfind.c
  * Purpose:	Find quickly which package a program belongs to.
  * Author:	Lars Wirzenius <liw@iki.fi>
- * Version:	"@(#)dwww:$Id: dwww-quickfind.c,v 1.5 2005/03/08 20:06:26 robert Exp $"
+ * Version:	"@(#)dwww:$Id: dwww-quickfind.c,v 1.5 2005-03-08 20:06:26 robert Exp $"
  * Description:	Builds a database (--build):
  *			line pairs
  *			first is filename (reversed: /bin/ls -> sl/nib/)

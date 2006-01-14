@@ -1,6 +1,6 @@
 /* vim:ts=4
  * dwww-txt2html.c
- * "@(#)dwww:$Id: dwww-txt2html.c,v 1.19 2004/07/29 21:44:48 robert Exp $"
+ * "@(#)dwww:$Id: dwww-txt2html.c,v 1.19 2004-07-29 21:44:48 robert Exp $"
  *
  * A very simple converter from formatted manual pages to HTML. Handles
   * backspace characters. Converts `<', `>', and `&' properly. Does _NOT_ add
