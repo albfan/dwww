@@ -21,13 +21,13 @@
 <a href="menu/">Debian Documentation Menu</a>
 | <a href="man/">Manual pages</a>
 | <a href="/cgi-bin/info2www">GNU Info documents</a>
-| <a href="/cgi-bin/dwww?type=dir&amp;location=/usr/share/doc">/usr/share/doc folders</a>
+| <a href="/cgi-bin/dwww/usr/share/doc/?type=dir">/usr/share/doc folders</a>
 </p>
 
 <hr />
 
 
-<form method="post" action="/cgi-bin/dwww" id="docsearch">
+<form method="get" action="/cgi-bin/dwww" id="docsearch">
 <p>
 <b>Find documentation:</b><br />
 <input name="search" id="searchfield" size="50" tabindex="0" />

@@ -1,5 +1,5 @@
 usr/share/man/man8/dwww.8 usr/share/man/man5/dwww.conf.5
-usr/share/dwww/mozilla-dwww.src usr/lib/mozilla-firefox/searchplugins/dwww.src
-usr/share/dwww/mozilla-dwww.gif usr/lib/mozilla-firefox/searchplugins/dwww.gif
+usr/share/dwww/mozilla-dwww.src usr/share/firefox/searchplugins/dwww.src
+usr/share/dwww/mozilla-dwww.gif usr/share/firefox/searchplugins/dwww.gif
 usr/share/dwww/mozilla-dwww.src usr/lib/mozilla/searchplugins/dwww.src
 usr/share/dwww/mozilla-dwww.gif usr/lib/mozilla/searchplugins/dwww.gif

@@ -11,19 +11,6 @@ dwww requires running a web server with CGI support (i.e. apache,
 boa, roxen, wn, etc., but NOT dhttpd or fnord.)
 Sorry.
 
-    <===================================================>
-    |     Using dwww with the APACHE2 web server        |
-    |    ----------------------------------------       |
-    |                                                   |
-    |  For some unknown reason the apache2 web server   |
-    |  has the CGI support DISABLED by default          |
-    |                                                   |
-    |  Therefore to use dwww you have to enable the     |
-    |  CGI module by giving the following command:      |
-    |        a2enmod cgi                                |
-    |                                                   |
-    +===================================================+
-
 
 For more information, read the manual page dwww(8), and the other
 manual pages it refers to.

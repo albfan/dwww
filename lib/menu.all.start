@@ -10,7 +10,7 @@
 <small><a href="/dwww/">dwww Home</a> | <a href="/dwww/menu/">Each section in separate page</a></small>
 <br>
 <hr>
-<form method="POST" action="/cgi-bin/dwww">
+<form method="get" action="/cgi-bin/dwww">
     <input name="search" size="30">
     <input type="submit" name="programsubmit" value="Search">
 <br>

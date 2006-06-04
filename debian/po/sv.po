@@ -14,8 +14,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dwww 1.9.25\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"Report-Msgid-Bugs-To: robert@debian.org\n"
+"POT-Creation-Date: 2006-05-30 21:26+0200\n"
 "PO-Revision-Date: 2005-11-17 03:08+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -28,44 +28,58 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:4
-msgid "Location of web server's document root."
-msgstr "Plats för webbserverns dokumentrot."
+msgid "Location of web server's document root:"
+msgstr "Plats för webbserverns dokumentrot:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4
-msgid "dwww needs to know the path of the directory which contains your web server's document root. The web standard suggests /var/www."
-msgstr "dwww behöver veta sökvägen till den katalog som innehåller din webbservers dokumentrot. Webbstandarden föreslår /var/www."
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
+msgstr ""
+"dwww behöver veta sökvägen till den katalog som innehåller din webbservers "
+"dokumentrot. Webbstandarden föreslår /var/www."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:11
-msgid "Location of web server's cgi directory."
-msgstr "Plats för webbserverns cgi-katalog."
+msgid "Location of web server's cgi directory:"
+msgstr "Plats för webbserverns cgi-katalog:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:11
-msgid "dwww needs to know the path of the directory which contains your web server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your web server may already be configured for a different location."
-msgstr "dwww behöver veta sökvägen till katalogen som innehåller din webbservers CGI-skript. Webbstandarden föreslår /usr/lib/cgi-bin men din webbserver kan redan vara konfigurerad för en annan plats."
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
+msgstr ""
+"dwww behöver veta sökvägen till katalogen som innehåller din webbservers CGI-"
+"skript. Webbstandarden föreslår /usr/lib/cgi-bin men din webbserver kan "
+"redan vara konfigurerad för en annan plats."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:19
-msgid "Name of CGI user."
-msgstr "Namnet på CGI-användaren."
+msgid "Name of CGI user:"
+msgstr "Namnet på CGI-användaren:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:19
-msgid "dwww needs to know what user will be running the dwww CGI script, as the cache directory must be owned by that user."
-msgstr "dwww behöver veta vilken användare som kommer att köra dwww:s CGI-skript eftersom cache-katalogen måste ägas av den användaren."
+msgid ""
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
+msgstr ""
+"dwww behöver veta vilken användare som kommer att köra dwww:s CGI-skript "
+"eftersom cache-katalogen måste ägas av den användaren."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "Host name of the web server."
-msgstr "Värdnamnet för webbservern."
+msgid "Host name of the web server:"
+msgstr "Värdnamnet för webbservern:"
 
 #. Type: string
 #. Description
@@ -76,14 +90,18 @@ msgstr "dwww behöver veta värdnamnet för din webbserver."
 #. Type: string
 #. Description
 #: ../dwww.templates:32
-msgid "Web server's port."
-msgstr "Webbserverns port."
+msgid "Web server's port:"
+msgstr "Webbserverns port:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:32
-msgid "dwww needs to know what port your web server is running on.  Normally web servers run on port 80."
-msgstr "dwww behöver veta vilken port din webbserver körs på. Normalt sett körs webbservrar på port 80."
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr ""
+"dwww behöver veta vilken port din webbserver körs på. Normalt sett körs "
+"webbservrar på port 80."
 
 #. Type: note
 #. Description
@@ -125,17 +143,27 @@ msgstr "Värdet som angavs för porten: ${port} är ogiltig."
 #. Description
 #: ../dwww.templates:54
 msgid "Should post-installation script index your documentation files?"
-msgstr "Ska skriptet som körs efter installationen indexera dina dokumentationsfiler?"
+msgstr ""
+"Ska skriptet som körs efter installationen indexera dina dokumentationsfiler?"
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:54
-msgid "dwww-index++(8) program will be run once a week to index your documentation files registered with doc-base package."
-msgstr "Programmet dwww-index++(8) kommer att köras en gång i veckan för att indexera dina dokumenationsfiler som är registrerade med paketet doc-base."
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr ""
+"Programmet dwww-index++(8) kommer att köras en gång i veckan för att "
+"indexera dina dokumenationsfiler som är registrerade med paketet doc-base."
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:54
-msgid "The index can also be generated (in the background) by the post-installation script. This process needs quite a lot of computer resources, and can take several minutes so you can choose now if you would like to do this."
-msgstr "Indexet kan också genereras (i bakgrunden) av skriptet som körs efter installationen. Denna process behöver ganska mycket av datorns resurser och kan ta flera minuter så du kan välja nu om du vill göra detta."
-
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr ""
+"Indexet kan också genereras (i bakgrunden) av skriptet som körs efter "
+"installationen. Denna process behöver ganska mycket av datorns resurser och "
+"kan ta flera minuter så du kan välja nu om du vill göra detta."

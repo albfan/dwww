@@ -1,5 +1,6 @@
-#!/bin/sh
-# vim: ts=4
+#!/usr/bin/perl
+# vim:ft=perl:cindent:ts=4:sw=4:et:fdm=marker:cms=\ #\ %s
+#
 # dwww-convert -- convert docs to HTML if necessary
 #
 # Some types of files (e.g. UNIX man pages) are typically not handled by most
@@ -10,30 +11,38 @@
 # 	<type> is document type: text, man, html, ps, and so on
 #	<location> is full pathname to original document
 #
-# In future versions, the converted HTML will be stored into a cache.
-#
 # Part of the Debian dwww package.  Written by Lars Wirzenius.
-# Modified by Robert Luberda
-# "@(#)dwww:$Id: dwww-convert,v 1.41 2005-04-09 15:43:48 robert Exp $"
+# Modified by Robert Luberda.
+# "@(#)dwww:$Id: dwww-convert,v 1.45 2006-05-30 19:22:51 robert Exp $"
+
+use strict;
+
+use Debian::Dwww::Utils;
+use Debian::Dwww::Initialize;
+use MIME::Types;
+use Cwd qw(realpath);
+#$|=1;
 
 #
 # Setup defaults.
 #
-DWWW_MAN2HTML=builtin_man2html
-DWWW_DIR2HTML=builtin_dir2html
-DWWW_TEXT2HTML=builtin_text2html
-DWWW_HTML2HTML=builtin_html2html
-DWWW_INFO2HTML=builtin_info2html
-DWWW_CSS2CSS=builtin_css2css
-
 ################################################################
 #
 # Initialization
 #
 
-DATE=`LC_ALL=C date`
 
-. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+
+my $dwwwvars = &DwwwInitialize("/etc/dwww/dwww.conf");
+
+my $templates_dir  = "/usr/share/dwww";
+my $template_start = "$templates_dir/dwww-convert.start";
+my $template_end   = "$templates_dir/dwww-convert.end";
+my $template_dir_start = "$templates_dir/dwww-convert.dir.start";
+my $template_dir_end   = "$templates_dir/dwww-convert.dir.end";
+my $dwww_use_cache     = lc($dwwwvars->{'DWWW_USE_CACHE'}) eq "yes";
+my $dwww_usefileurl    = lc($dwwwvars->{'DWWW_USEFILEURL'}) eq "yes";
+
 
 
 ################################################################
@@ -41,687 +50,457 @@ DATE=`LC_ALL=C date`
 # Local dwww-convert functions
 #
 
-#
-# Print error message and exit the program
-# usage: ErrorMsg status title message
-ErrorMsg() {
-	status="$1"
-	title="$2"
-	message="$3"
-
-	echo "Status: $status"
-	echo "Content-type: text/html; charset=iso-8895-1"
-	echo ""
-	echo "<HTML>"
-	echo "<HEAD>"
-	echo " <TITLE>$title</TITLE>"
-	echo "</HEAD>"
-	echo "<BODY>"
-	echo " <H1 align=\"center\">$title</H1>"
-	echo "$message"
-	echo "</BODY>"
-	echo "</HTML>"
-	exit 1
-}
 
 #
 # Get Last Modification date
 #
-PrintLastMod() {
-	lastmod=`LC_ALL=C  date -ur "$1" +"%a, %d %b %Y %H:%M:%S %Z"`
-	[ "$lastmod" ] && echo "Last-Modified: $lastmod"
-}
-
-#
-# Are we allowed to show this file?
-#
-# Note: getting this check wrong compromises security.
-#
-badfile() {
-	d="$1"
-	[ -z "$d" ] && return 0
-	link=""
-	[ "$2" = "symlink" ] && link="-s"
-
-	dw_path=`echo $DWWW_DOCPATH | tr : ' '`
-	for i in `realpath $link $dw_path 2>/dev/null`
-	do
-	  if [ -d "$i" ]; then
-		case "$d/" in
-		"$i"/*) return 1 ;;
-		esac
-	  fi
-	done
-	return 0
-}
-
-#
-# Checks if original_file is a symlink from file in directory included in
-# $DWWW_DOC_PATH to file from $DWWW_ALLOWEDLINKPATH
-#
-# Please note that orig_f must not contain /../ (eg. this can be output
-# of `realpath -s`)
-#
-bad_symlink() {
-	orig_f="$1"
-	real_f="$2"
-
-	badfile "$orig_f" "symlink" && return 0
-
-	all_sym_path=`echo "$DWWW_ALLOWEDLINKPATH" | tr : ' '`
-	for i in `realpath $all_sym_path 2>/dev/null`
-	do
-		if [ -d "$i" ]; then
-			case "$real_f/" in
-				"$i"/*) return 1 ;;
-			esac
-		fi
-	done
-
-	return 0
-}
 
 
 #######################################################################
 #
-# Builtin converters
+# Builtin convertFunctions
 #
 
+sub OpenPipe() { # {{{
+    my $program = shift;
+    my $mode    = shift;
+
+    my $FH      = undef;
+
+    if ($mode eq "r") {
+        return \*STDIN unless defined $program;
+        $program = "$program |";
+    } elsif ($mode eq "w") {
+        return \*STDOUT unless defined $program;
+        $program = "| $program";
+    } else {
+        die("OpenPipe: Unknown mode: $mode\n");
+    }
+
+    open($FH, $program) or die "Can't open pipe for $program: $!\n";
+
+    return $FH;
+} # }}}
+
+
+sub ClosePipe() { # {{{
+    my $FH = shift;
+
+#    &fflush($FH) or die("Can't flush: $!");
+    return if ($FH == \*STDIN || $FH == \*STDOUT);
+    close($FH) or die("Cannot close filehandle: $!\n");
+} # }}}
+
+
+sub DecompressFile() { # {{{
+    my $filename        = shift;
+    my $OUT_FH          = shift;
+    my $add_filtr_prog  = shift;
+    my $decompressor    = undef;
+    my $IN_FH           = shift;
+
+    if ($filename =~ /\.gz$/) {
+        $decompressor = "zcat \"$filename\"";
+    } elsif ($filename =~ /\.bz2$/) {
+        $decompressor = "bzcat \"$filename\"";
+    }
+
+    if (defined $add_filtr_prog) {
+        if (defined $decompressor) {
+            $decompressor .= " | $add_filtr_prog";
+        } else {
+            $decompressor = "$add_filtr_prog < \"$filename\"";
+        }
+    }
+
+
+    if (defined $decompressor) {
+        if (defined $OUT_FH) {
+            $IN_FH = &OpenPipe($decompressor, "r")
+        } else {
+            system($decompressor);
+            return;
+        }
+    } else {
+        open($IN_FH, $filename) or die("Can't open file $filename: $!\n");
+        $OUT_FH = \*STDOUT unless defined $OUT_FH;
+    }
+
+    my $s=$/;
+    $/=4096;
+    while (<$IN_FH>) {
+        print $OUT_FH $_;
+    }
+    $/=$s;
+    &ClosePipe($IN_FH);
+} # }}}
 
 #
 # Create a directory listing in HTML.
 #
-builtin_dir2html() {
-	dir="$1"
+sub IsTopLevelDir() { # {{{
+    my $dir         = shift;
 
-	if [ -r "$dwww_libdir/dwww-convert.dir.start" ] ; then
-	                sed "s|%TITLE%|Files in $dir|g" \
-                        "$dwww_libdir/dwww-convert.dir.start"
-	else
-		echo "<html><head><title>Files in $dir</title></head><body>"
-		echo "<h1>Files in $dir</h1>"
-	fi
+    my $dwww_docpath            = $dwwwvars->{'DWWW_DOCPATH'};
+    # file does exist, check if it match any files in @dwww_docpath
+    foreach my $path  (@$dwww_docpath)  {
+        if ( -d $path ) {
+            $path = &realpath( $path );
+            return 1 if ($dir eq $path);
+        }
+    }
+    return 0;
+} # }}}
+    
+sub BuiltinDir2Html() { # {{{
+	my $dir         = shift;
+    my $cacheProg   = shift;
+    my $f           = undef;
+    my @filelist = ();
+    my @dirlist  = ();
 
-	case "$1" in
-		*[!a-zA-Z0-9/_.-]*)
-			j_d="`urlencode $dir`"
-			;;
-		*)
-			j_d="$dir"
-			;;
-	esac
 
-#	Files:
-	find "$dir" -type f -follow -maxdepth 1 -printf "%f\n" 2>/dev/null | sort |
-	while read i
-	do
-			case "$i" in
-				*[!a-zA-Z0-9/_.-]*)
-					j="$j_d/`urlencode \"$i\"`"
-					;;
-				*)
-					j="$j_d/$i"
-					;;
-			esac
 
-			case "$i" in
-				*.htm*)
-					if [ -n "$DWWW_USEFILEURL" ] ; then
-						echo "<a href=\"file://localhost$j\">$i</a>"
-					else
-						echo "<a href=\"/cgi-bin/dwww?type=file&amp;location=$j\">$i</a>"
-					fi
-					;;
-				*)
-						echo "<a href=\"/cgi-bin/dwww?type=file&amp;location=$j\">$i</a>"
-					;;
-			esac
-	done | table_it
+    my $OUT_FH = &OpenPipe($cacheProg, "w");
 
-# Subdirectores
-	if  find "$dir/." -type d -follow -maxdepth 1 ! -name . ! -name .. 2>/dev/null| grep . > /dev/null
-	then
-		echo "<p><h2>Subdirectories:</h2>"
-		find "$dir/." -type d  -follow -maxdepth 1 ! -name . ! -name .. -printf "%f\n" 2>/dev/null | sort |
-		while read i
-		do
-			case $i in
-				*[!a-zA-Z0-9/_.-]*)
-					j="$j_d/`urlencode \"$i\"`"
-					;;
-				*)
-					j="$j_d/$i"
-					;;
-			esac
+    my $html_dir = &HTMLEncode($dir);
+    my $url_dir  = &URLEncode($dir);
 
-			if [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.html" ]; then
-				echo "<a href=\"file://localhost$j/index.html\">$i</a>"
-			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.html.gz" ]; then
-				echo "<a href=\"file://localhost$j/index.html.gz\">$i</a>"
-			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.htm" ]; then
-				echo "<a href=\"file://localhost$j/index.htm\">$i</a>"
-			elif [ -n "$DWWW_USEFILEURL" ] && [ -f "$1/$i/index.htm.gz" ]; then
-				echo "<a href=\"file://localhost$j/index.htm.gz\">$i</a>"
-			else
-				echo "<a href=\"/cgi-bin/dwww?type=file&amp;location=$j\">$i</a>"
-			fi
-		done | table_it
-	fi
+    print $OUT_FH &TemplateFile($template_dir_start, 
+                                        { 'TITLE'   => "Files in $html_dir",
+                                          'MENUADD' => &IsTopLevelDir($dir) ? "" : "| <a href=\"../?type=dir\">Up one level</a> ",
+                                          'FILEURL' => $url_dir });
 
-	if [ -r "$dwww_libdir/dwww-convert.dir.end" ] ; then
-		sed "s|%DATE%|$DATE|g;s|%VERSION%|$dwww_version|g" \
-            "$dwww_libdir/dwww-convert.dir.end"
-	else
-		echo "<hr>Created automatically: $DATE</body></html>"
-	fi
-}
+    opendir (DIR, $dir) or die "Can't open directory $dir:$!\n";
+    while ($f = readdir(DIR)) {
+            next if $f eq ".";
+            next if $f eq "..";
+            if ( -d $dir . "/" . $f ) {
+                push(@dirlist, $f);
+            } else {
+                push(@filelist, $f);
+            }
+    }
+    closedir(DIR);
+
+    if ($#filelist > -1 ) {
+            @filelist = sort(@filelist);
+            my $table = &BeginTable($OUT_FH, "", 3);
+            foreach $f (@filelist) {
+                    if ($dwww_usefileurl && ($f =~ /\.htm.*$/)) {
+                        &AddToTable($OUT_FH, $table,
+                                    "<a href=\"file://localhost/" . $url_dir . '/' .  &URLEncode($f) . "\">" . &HTMLEncode($f) . "</a>");
+                    } else {
+                        &AddToTable($OUT_FH, $table,
+                                    "<a href=\"" . &URLEncode($f) . "\">" . &HTMLEncode($f) . "</a>");
+                    }
+            }
+           &EndTable($OUT_FH, $table);
+    }
+
+    if ($#dirlist > -1 ) {
+            @dirlist = sort(@dirlist);
+            my $table = &BeginTable($OUT_FH, "<FONT SIZE=\"+2\">Subdirectories:</FONT>", 3);
+            foreach $f (@dirlist) {
+                    if ($dwww_usefileurl && defined (my $g = &GuessFileName("$dir/$f/index", 1 ))) {
+                        &AddToTable($OUT_FH, $table,
+                                    "<a href=\"file://localhost" . &URLEncode($g) . 
+                                    "\">" . &HTMLEncode($f) . "</a>");
+                    } else {                        
+                        &AddToTable($OUT_FH, $table,
+                                "<a href=\"" .&URLEncode($f) 
+                                 . "/?type=dir\">" . &HTMLEncode($f) . "</a>");
+                    }     
+            }
+           &EndTable($OUT_FH, $table);
+    }
+
+    print $OUT_FH &TemplateFile($template_dir_end, { } );
+    &ClosePipe($OUT_FH);
+} # }}}
 
 
 #
 # Convert a manual page source code file to HTML.
 #
-builtin_man2html() {
+sub BuiltinMan2Html() { # {{{
+    my $filename    = shift;
+    my $cacheProg   = shift;
+    my $title       = undef;
 
-	if [ -r "$dwww_libdir/dwww-convert.start" ] ; then
-	                sed "s|%TITLE%|${2:-$1}|g" \
-                        "$dwww_libdir/dwww-convert.start"
-	else
-		echo "<html><head><title>${2:-1}</title></head><body>"
-	fi
+    my $OUT_FH      = &OpenPipe($cacheProg, "w");
 
-	dir=`dirname "$1"`
-	cd "$dir/.."
-	man -P/bin/cat -l "$1" 2>/dev/null | dwww-txt2html --man
-	cd /
+    ($title  = $filename) =~ s/^.*\/(.+)\.(\d[^\.\\]*)(\.gz|\.bz2)?$/$1($2)/;
 
-	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then
-		sed "s|%DATE%|$DATE|g;s|%VERSION%|$dwww_version|g" \
-            "$dwww_libdir/dwww-convert.end"
-	else
-		echo "</body></html>"
-	fi
-}
+    print $OUT_FH &TemplateFile($template_start, 
+                                    { 'TITLE'   => $title,
+                                      'MENUADD' => "| <a href=\"/dwww/man/\">Manual pages</a> ",
+                                      'FILEURL' => &URLEncode($filename)
+                                    });
 
+    my $dir = $filename;
+    $dir =~ s/\/[^\/]*$//;
+    chdir ("$dir/..") or die "Can't chdir!\n";
+    my $IN_FH = &OpenPipe("man -Tascii8 -P/bin/cat -l \"$filename\" 2>/dev/null | dwww-txt2html --man", "r");
+    chdir ("/");
+    while (<$IN_FH>) {
+        print $OUT_FH $_;
+    }
+
+    print $OUT_FH &TemplateFile($template_end, { });
+    &ClosePipe($IN_FH);
+    &ClosePipe($OUT_FH);
+} # }}}
 
 #
 # Convert plain text to HTML.  This is really trivial, and buggy.
 # Input from stdin.
 #
-builtin_text2html() {
-	if [ -r "$dwww_libdir/dwww-convert.start" ] ; then
-	                sed "s|%TITLE%|$1|g" \
-                        "$dwww_libdir/dwww-convert.start"
-	else
-		echo "<html><head><title>$1</title></head><body>"
-	fi
+sub BuiltinText2Html() { # {{{
+    my $filename    = shift;
+    my $cacheProg   = shift;
 
-	$decompress "$1" | dwww-txt2html
+    my $OUT_FH      = &OpenPipe($cacheProg, "w");
+    print $OUT_FH &TemplateFile($template_start, 
+                                    { 'TITLE'   => &HTMLEncode($filename),
+                                      'MENUADD' => "| <a href=\"./?type=dir\"> Show directory contents </a> ",
+                                      'FILEURL' => &URLEncode($filename) 
+                                    });
 
-	if [ -r "$dwww_libdir/dwww-convert.end" ] ; then
-		sed "s|%DATE%|$DATE|g;s|%VERSION%|$dwww_version|g" \
-            "$dwww_libdir/dwww-convert.end"
-	else
-		echo "</body></html>"
-	fi
-}
+    &DecompressFile($filename, $OUT_FH, "dwww-txt2html");
 
+    print $OUT_FH &TemplateFile($template_end, { }) or die "Can't print\n";
+    &ClosePipe($OUT_FH);
+} # }}}
 
 #
 # Convert info file to HTML using info2www
 #
-builtin_info2html() {
-	/usr/lib/cgi-bin/info2www "$1"
-}
+sub BuiltinInfo2Html() { # {{{
+    my $filename    = shift;
+    my $cacheProg   = shift;
+
+    my $cachePipe   = defined $cacheProg ? " | $cacheProg" : "";
+	system("/usr/lib/cgi-bin/info2www \"$filename\"" . $cachePipe);
+} # }}}
 
 
-#
-# Convert links in an HTML and CSS documents, to be able to use the automatic
-# decompression and conversion features.
-#
-# Usage: convert_html_anchors file "html"/"css"
-# 
-convert_html_anchors() {
+sub GuessFileName() { # {{{
+    my $basefile = shift;
+    my $is_html  = shift;
 
-# The procedure below was written by Daniel Martin <martin@snowplow.org>
-# See bug #151637 for more info, how it works...
-
-    $decompress "$1" | perl -0777ne '
-
-$file = '\'"$1"\'';
-$type = '\'"$2"\'';
-
-($directory = $file) =~ s/^[^\/]*(\/.*\/)[^\/]*$/$1/;
-
-if ($type eq "css") {
-	$cgi = "/cgi-bin/dwww?type=file&location=";
-} else {
-	$cgi = "/cgi-bin/dwww?type=file&amp;location=";
-}
-
-sub make_cgi_ref {
-  my($target) = shift;
-  # technically, according to rfc 2396, s. 3.4, we should also escape /,
-  # but for our uses it does not matter and it significantly uglifies our URLs
-  $target =~ s|[^\w_.!~/\-]|sprintf("%%%02X",unpack("C",$&))|ge;
-  return ($cgi . $target);
-}
-
-sub mangle_anchor {
-  my($anchortext) = shift;
-  # We do not deal with anything that starts with /cgi-bin/
-  if ($anchortext =~ m|^/cgi-bin/|) {return $anchortext;}
-  # We do not deal with anything that includes a protocol or query
-  if ($anchortext =~ /[:?]/) {return $anchortext;}
-  # first undo html escaping
-  $anchortext =~ s/^\s*//;
-  $anchortext =~ s/\&lt;/</g;
-  $anchortext =~ s/\&gt;/>/g;
-  $anchortext =~ s/\&(amp|(#x?)([a-fA-F\d]+));/($1 eq "amp")?"&":pack("C",($2 eq "#x")?hex($3):$3)/ge;
-  # Now it is safe to pull of the partial fragment
-  my ($partial) = "";
-  if ($anchortext =~ s/(#.*)//) {$partial=$1;}
-  # now undo URI escaping
-  $anchortext =~ s/%([a-fA-F\d]{2})/pack("C",hex($1))/ge;
-  # re-html-encode potentially unsafe characters in partial.
-  # shouldnt happen, but...
-  if ($partial =~ s/^#//) {
-    $partial =~ s/[<>&'\''"]/"&".unpack("C",$&).";"/ge;
-    $partial = "#" . $partial;
-  }
-  # now...
-  if (!$anchortext) {return $partial;}
-  if ($anchortext =~ m[^/]) {
-    return (make_cgi_ref($anchortext) . $partial);
-  } else {
-    return (make_cgi_ref($directory . $anchortext) . $partial);
-  }
-}
-
-sub handle_simple_tag {
-  # handle the substitution
-  my($tag,$attr) = @_;
-  # quoted
-  s/(<\s*$tag[^>]*\s+$attr\s*=\s*)(["'\''])([^>\2]*?)(\2[^>]*>)/$1.$2.mangle_anchor($3).$4/iges;
-  s/(<\s*$tag[^>]*\s+$attr\s*=\s*)([^\s"'\''][^>\s]*)(.*?>)/$1.mangle_anchor($2).$3/iegs;
-}
-
-sub transform_meta_tag {
-  my($metatext) = shift;
-  if ($metatext =~ m/equiv\s*=\s*["'\'']?refresh/is) {
-    $metatext =~ s/(URL\s*=\s*)([^>:\s"]*)/$1.mangle_anchor($2)/ies;
-  }
-  return($metatext);
-}
-
-if ($type eq "css") {
-
-  s/(url\s*\(\s*)(["'\'']?)([^)\2]+)\2(\s*\))/$1.$2.mangle_anchor($3).$2.$4/ges;
-
-} else {
-
-  handle_simple_tag(qw(a href));
-  handle_simple_tag(qw(link href));
-  
-  handle_simple_tag(qw(img src));
-  handle_simple_tag(qw(frame src));
-  
-  handle_simple_tag(qw(body background));
-  
-  # Meta tags need their own sub since the matching is a little different
-  s/<META\s+[^>]*>/transform_meta_tag($&)/iges;
-  
-  handle_simple_tag(qw(applet archive));
-
-}
-  
-  print $_;
-
-        '
-}
-
-#
-# Convert links in an HTML documents
-#
-
-builtin_html2html() {
-
-	convert_html_anchors "$1" "html"
-	echo "<!-- Generated by dwww $dwww_version on $DATE -->"
-	exit 0
+    foreach my $lang ( ("", ".en") ) {
+        foreach my $comp ( ("", ".gz", ".bz2") ) {
+            if ($is_html) {
+    			foreach my $suff (".html", ".htm" ) {
+                    my $f = "${basefile}${suff}${lang}${comp}";
+                    return $f if (-f $f and -r $f);
+                }
+            } else {
+                my $f = "${basefile}${lang}${comp}";
+                return $f if (-f $f and -r $f);
+            }
+        }
+    }
+    return undef;
+} # }}}
 
 
-}
 
-#
-# Convert links inside CSS url() function
-#
+sub PrintHeaders() { # {{{
+    my $filename    = shift;
+    my $base_name   = shift;
+    my $mime_type   = shift;
+    my $mime_charset= shift;
 
-builtin_css2css() {
+	print "Content-type: $mime_type" . (defined $mime_charset ? "; charset=$mime_charset\n" : "\n");
+    my @stat = stat( $filename );
+    my $mtime = $stat[9];
+    print "Last modified: " . gmtime($mtime) . "\n";
+	print "Content-Disposition: inline; filename=\"$base_name\"\n";
+    print "\n";
+} # }}}
 
-	convert_html_anchors "$1" "css"
-	echo "/* Generated by dwww $dwww_version on $DATE */"
-	exit 0
-
-}
 
 ################################################################
 #
 # Main program
 #
 
+my $uses_path_info =  defined $ARGV[0] && ($ARGV[0] ne '--no-path-info');
+shift @ARGV unless $uses_path_info;
 
-if [ "$1" = "" -o "$2" = "" ]
-then
-	echo "Error: invalid arguments" 1>&2
-	echo "Usage: $0 <type> <location>" 1>&2
-	exit 1
-fi
+if ( $#ARGV < 1 || $ARGV[0] eq "" || $ARGV[1] eq "" ) {
+    print STDERR "Error: invalid arguments\n";
+	print STDERR "Usage: $0 <type> <location>\n";
+	exit 1;
+}
 
-if [ -n "$DWWW_DEBUG" ] ; then
-	echo "--- dwww-convert $1 $2 ---" 1>&2
-	set -x
-fi
+my $type = $ARGV[0];
+my $file = $ARGV[1];
+my $orig_file=$file;
 
-type="$1"
-file="$2"
-orig_file="$file"
-# anchor=$(echo $file | sed -e "s/^*\(#.*$\)/$1/")
-file=$(echo $file | sed -e "s/#.*$//")
+# remove anchor
+$file =~ s/#.*$//;
 
-# Check for directory
-if [ -d "$file" ] ; then
-	if [ "$type" != "dir" ] ; then
-		type="dir"
+if ( ! -e $file ) {
 
-		# search for HTML indexes
-		for lang in "" ".en"; do
-			for comp in "" ".gz" ".bz2"; do
-				for suff in ".html" ".htm"; do
-					if [ -f  "$file/index$suff$lang$comp" ] ; then
-						file="$file/index$suff$lang$comp"
-						type="html"
-						break 3
-					fi
-				done
-			done
-		done
-	fi
+    if ( $type eq "runman" ) {
+        if ( $file =~ /^(.+)\/([^\/]+)$/ ) {
+            my $name  = $1;
+            my $sect  = $2;
+            my @files = &GetCommandOutput("man", "--location", "-e", $sect, $name);
+            $file = $files[0] unless $#files < 0;
+            $file =~ s/\s.*$//;
 
-elif [ "$type" = dir ]; then
-		type="file"
-fi
+            if ( $file eq "" or ! -e $file ) {
+                &ErrorMsg ( "404 Man page not found" ,
+                            "Man page not found" ,
+                            "dwww could not find the man page $name($sect)" );
+            }
+        }
 
-# Check	info file
-if [ "$type" = "info" -a ! -x /usr/lib/cgi-bin/info2www ] ; then
-    ErrorMsg "500 dwww error" \
-             "Cannot convert info files" \
-             "dwww could not find the <B>info2www</B> program, which is required to conver the info files"
-fi
+    } elsif ( $type eq "html" || $type eq "text/html" ) {
 
+    	# A link may have referred to a .html file
+    	# when only a .html.gz file exists.  So check
+    	# to see if alternate file exists, and use
+    	# that one if it does
+	    my $tmp=$file;
+        $tmp =~ s/(.*)\.htm.*$//;   # remove suffix
+        if (defined ( $tmp = &GuessFileName($tmp, 1) ) ) {
+            $file = $tmp;
+        }
 
+    } elsif (  defined ( my $tmp = &GuessFileName($file) ) ) {
+        $file = $tmp;
+    }
+}
 
-# Check for man page
-if [ "$type" = "runman" ]; then
+# Check if we can show file
+$file = &CheckAccess( $dwwwvars, $file, $orig_file );
+die "Internal error" if $file eq ""; # CheckAccess should have written the error message and exited.
 
-	type="man"
-	name="`echo \"$orig_file\" | sed 's/\/.*//'`"
-	section="`echo \"$orig_file\" | sed 's/.*\///'`"
-	file="`man --location -e \"$section\" \"$name\" | sed 's/ .*//;1q'`"
-
-    if [ "X$file" = "X" -o ! -f "$file" ] ; then
-        ErrorMsg "404 Man page not found" \
-                 "Man page not found" \
-                 "dwww could not find the man page $name($section)"
-    fi
+# Check if we should send redirect
+if ( -d $file && $orig_file !~ /\/$/) {
+    $orig_file          .= "/";
+    $uses_path_info     = $FALSE;
+}
+if (!$uses_path_info && $type ne "runman") {
+    &RedirectToURL("/cgi-bin/dwww" . &URLEncode($orig_file) . "?type=" . &URLEncode($type));
+    exit(0);
+}
 
 
-# Check to see if html file exists
-elif [ \( "$type" = "html" -o "$type" = "text/html" \) -a ! -e "$file" ]; then
-	# A link may have referred to a .html file
-	# when only a .html.gz file exists.  So check
-	# to see if alternate file exists, and use
-	# that one if it does
-	basefile=$(echo $file | sed -e "s/\.htm.*$//")
 
-	for lang in "" ".en"; do
-		for comp in "" ".gz" ".bz2"; do
-			for suff in ".html" ".htm"; do
-				if [ -f  "$basefile$suff$lang$comp" ] ; then
-					file="$basefile$suff$lang$comp"
-					type="html"
-					break 3
-				fi
-			done
-		done
-	done
+if ( -d $file ) {
+    if ( $type ne "dir" ) {
+        $type = "dir";
 
-# Check for compressed/translated file
-elif [ ! -e "$file" ]; then
-	for lang in "" ".en"; do
-		for comp in "" ".gz" ".bz2"; do
-			if [ \( "$comp" != "$lang" \) -a -f  "$file$lang$comp" ] ; then
-				file="$file$lang$comp"
-				break 2
-			fi
-		done
-	done
-fi
+        if (defined (my $f = &GuessFileName( "$file/index", 1 ) ) ){
+            if ($f ne $file) {
+                $type       = "html";
+                $file       = $f;
+            }
+       }
+    }
+} elsif ( $type eq "dir" ) {
+    $type = "file";
+}
 
-if [ -e "$file" ] ; then
 
-    real_file="`realpath \"$file\"`"
-    file="`realpath -s \"$file\"`"
+if ( $type eq "info"  && ! -x "/usr/lib/cgi-bin/info2www" ) {
+    &ErrorMsg ("500 dwww error",
+               "Cannot convert info files",
+               "dwww could not find the <B>info2www</B> program, which is required to conver the info files" );
+    # NOT REACHED
+}
 
-    if badfile "$real_file"  ; then
-        if [ ! -s "$file" ] || bad_symlink "$file" "$real_file" ; then
-            ErrorMsg "403 Access denied" \
-                     "Access denied" \
-                     "dwww will not allow you to read the file $orig_file"
-        fi
-    fi
-
-else
-
-    real_file=""
-    file="`realpath -s \"$file\"`"
-
-    if badfile "$file" "symlink" ; then
-            ErrorMsg "403 Access denied" \
-                     "Access denied" \
-                     "dwww will not allow you to read the file $orig_file"
-    else
-            ErrorMsg "404 File not found" \
-                     "File not found" \
-                     "dwww will could not find the file $orig_file"
-    fi
-
-fi
-
+(my $base_name = $file) =~ s/^.*\///g;
 
 # identify the compression algorithm used for non-directories
 # then, calculate the name of the uncompressed file (in extension)
-if [ "$type" != "dir" -a -e "$real_file" ]; then
+if ( ! -d $file ) {
+    $base_name =~ s/\.(gz|bz2)$//;
 
-	case `file -Lb "$real_file"` in
-		gzip*)
-			decompress="zcat"
-			base_name=`basename "$real_file" .gz`
-			;;
+    # identify the file type from the file extension
+    # or using the "file" command.
 
-		GNUzip*)
-			decompress="zcat"
-			base_name=`basename "$real_file" .gz`
-			;;
+    if ( $type eq "file" )  {
+        # first find the file extension
+        my $extension = ($base_name =~ /\.([^\/\.]+)$/) ? $1 : "";
 
-		bzip2*)
-			decompress="bzcat"
-			base_name=`basename "$real_file" .bz2`
-			;;
-		*)
-			decompress="cat"
-			base_name=`basename "$real_file"`
-			;;
-	esac
-else
-	base_name=`basename "$real_file"`
-fi
+	    # then guess the file type depending on the extension
+    	# if the extension is of size 0 or more than 4
+    	# text is assumed.
 
-
-
-# identify the file type from the file extension
-# or using the "file" command.
-
-if [ "$type" = "file" -a -e "$real_file" ] ; then
-
-# first find the file extension
-
-	noslash=$(echo "$base_name" | sed -e "s/[^\/]*\///g" | tr A-Z a-z )
-	extension=$(echo "$noslash" | sed -e "s/[^\.]*\.//g" )
-
-	if [ "$noslash" = "$extension" ] ; then
-		extension=""
-	fi
-
-	# then guess the file type depending on the extension
-	# if the extension is of size 0 or more than 4
-	# text is assumed.
- 
-	case "$extension" in 
-		txt|text)
-			type=text/plain
-			;;
-		htm|html)
-			type=text/html
-			;;
-		css)
-			type=text/css
-			;;
-		[1-9]|[1-9][a-z]*)
-			if [ "${file#*/man/}" != "${file}" ] ; then
+        if ($extension eq "" || $extension eq "txt" || $extension eq "text") {
+            $type = "text/plain";
+        } elsif ($extension eq "htm" || $extension eq "html") {
+            $type = "text/html";
+        } elsif ($extension eq "css") {
+            $type = "text/css";
+        } elsif ($extension =~ /^[1-9][a-z]*/ && $file =~ /\/man\//) {
 			# if file is located in */man/* directory, assume it's a man page
-				type=runman
-			elif [ "X${ext#????}" != "X" ] ;then
-			# size of extension > 4, assume text/plain
-				type=text/plain
-			fi
-			;;				
-		""|?????*)
-			# extension is empty or its size is > 4
-			type=text/plain
-			;;
-		*)
-			;;
-	esac	
+            $type = "man";
+        } elsif ($extension =~ /^info.*/ && $file =~ /\/info\//) {
+            $type = "info";
+        }  elsif (length($extension) > 4) {
+            $type = "text/plain";
+        } else {
+            # use MIME:Types to guess extension
+             my $mimetypes = MIME::Types->new();
+             if (defined (my $t = $mimetypes->mimeTypeOf($extension))) {
+                $type = $t;
+             } else {
+                $type = "text/plain"; # default
+             }
+        }
+    }
+}
 
-	if [ "$type" = "file" ] ; then
-		tmptype="`"$decompress" "$real_file" | file -bi -`"
-		type="${tmptype%%[!a-zA-Z/-]*}"
-	fi
-fi
+my $convertFunction = undef;
+my $mime_type = "text/html";
+# Ok, now we can convert the file
+if ($type eq "man" || $type eq "runman") {
+	$convertFunction  =   \&BuiltinMan2Html;
+} elsif ($type eq "dir") {
+	$convertFunction  =   \&BuiltinDir2Html;
+} elsif ($type eq "info") {
+	$convertFunction  =   \&BuiltinInfo2Html;
+} elsif ($type eq "text/plain") {
+	$convertFunction  =   \&BuiltinText2Html;
+} elsif ($type ne  "html") {
+	$mime_type  =   $type;
+}
 
+my $mime_charset=undef;
+if ($mime_type =~ /^text\//) {
+    $mime_charset="ISO-8859-1";
+    if ($file =~ /(^\/usr\/share\/doc\/[^\/]+\/)([^\/]+)$/o) {
+        if (($2 eq "changelog.Debian.gz") || ($2 eq "copyright") ||
+            ($2 eq "changelog.gz" && ! -e "$1/changelog.Debian.gz")) {
+		        $mime_charset="UTF-8";
+        }
+    } 
+}
 
+&PrintHeaders($file, $base_name, $mime_type, $mime_charset);
 
-mime_type="text/html" #default
+if ( not defined $convertFunction )  {
+	&DecompressFile($file);
+	exit 0;
+}
 
-case "$type" in
-	html)
-		converter="$DWWW_HTML2HTML"
-		;;
-	text/html)
-		converter="$DWWW_HTML2HTML"
-		type=html
-		;;
-	man)
-		converter="$DWWW_MAN2HTML"
-		;;
-	runman)	# impossible
-		converter="$DWWW_MAN2HTML"
-		type=man
-		;;
-	dir)
-		converter="$DWWW_DIR2HTML"
-		;;
-	info)
-		converter="$DWWW_INFO2HTML"
-		;;
-	text/plain)
-		converter="$DWWW_TEXT2HTML"
-		;;
-	text/css)
-		converter="$DWWW_CSS2CSS"
-		mime_type="$type"
-		;;
-	*)
-		converter=""
-		mime_type="$type"
-esac
-
-mime_charset=""
-if [ "$type" != "html" ] ; then
-	if [ "$base_name" = "changelog.Debian" ] ; then
-		mime_charset="UTF-8"
-	else
-		mime_charset="ISO-8859-1"
-	fi
-fi
-
-
-if [ "X$converter" = "X"  ]; then
-	echo "Content-type: $mime_type"
-	PrintLastMod "$real_file"
-	echo "Content-Disposition: inline; filename=\"$base_name\""
-	echo ""
-	"$decompress" "$real_file"
-	exit 0
-fi
-
-# Check to see if user wants to access HTML files directly.
-
-if [ "$type" = "html" -a -n "$DWWW_USEFILEURL" ]; then
-		if [ -n "$mime_charset" ] ; then
-	        echo "Content-type: text/html; charset=$mime_charset"
-		else
-	        echo "Content-type: text/html"
-		fi
-        echo ""
-        "$decompress" "$real_file"
-        exit 0
-fi
-
-
-
-# Print the header
-if [ -n "$mime_charset" ] ; then
-	echo "Content-type: $mime_type; charset=$mime_charset"
-else
-    echo "Content-type: $mime_type"
-fi
-PrintLastMod "$real_file"
-if [ \( "$mime_type" != 'text/html' \) -o \(  "$type" = "html" \) ]; then
-echo "Content-Disposition: inline; filename=\"$base_name\""
-else
-echo "Content-Disposition: inline; filename=\"$base_name.html\""
-fi
-echo ""
-
-case "$DWWW_USE_CACHE" in
-	[Yy][Ee][Ss]*)
+my $cacheProg = undef;
+if ($dwww_use_cache) {
 		# Store the file in the cache unless it is already stored
-		if ! dwww-cache --lookup "$type" "$real_file" ; then
-			if [ "$converter" = builtin_man2html ] ; then
-				"$converter" "$file" "$orig_file" | dwww-cache --store "$type" "$real_file"
-			else
-				"$converter" "$file"  | dwww-cache --store "$type" "$real_file"
-			fi
-		fi
-		;;
-	*)
-		if [ "$converter" = builtin_man2html ] ; then
-			"$converter" "$file" "$orig_file"
-		else
-			"$converter" "$file"
-		fi
-		;;
-esac
+		if (system ("dwww-cache --lookup \"$type\" \"$file\"") == 0) {
+            exit 0;
+        } else {
+            $cacheProg = "dwww-cache --store \"$type\" \"$file\"";
+        }
+}
 
+&$convertFunction( $file, $cacheProg );
 exit 0

@@ -1,0 +1,14 @@
+dwww (1.10.0) unstable; urgency=low
+
+  * dwww no longer touches links in the request HTML files, but just passes
+    them unchanged. This allows embedded javascript to work correctly (see
+    Bug#265573) and of course is more efficient.
+
+  * Because of the above change and broken handling of the CGI specification
+    by the BOA and THTTPD web servers, dwww WON'T WORK correctly with them!
+    (see Bug#164306 and Bug#365763)
+
+  * dwww generates its pages directly in the /var/www/ (or other dir
+    specified with DWWW_DOCROOTDIR variable) instead of creating links.
+
+ -- Robert Luberda <robert@debian.org>  Sun,  4 Jun 2006 16:43:40 +0200

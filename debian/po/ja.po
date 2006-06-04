@@ -14,8 +14,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dwww 1.9.7\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"Report-Msgid-Bugs-To: robert@debian.org\n"
+"POT-Creation-Date: 2006-05-30 21:26+0200\n"
 "PO-Revision-Date: 2004-02-02 23:15+0900\n"
 "Last-Translator: OHURA Makoto <ohura@debian.org>\n"
 "Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:4
-msgid "Location of web server's document root."
+msgid "Location of web server's document root:"
 msgstr "Web サーバの document root の位置"
 
 #. Type: string
@@ -42,7 +42,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:11
-msgid "Location of web server's cgi directory."
+msgid "Location of web server's cgi directory:"
 msgstr "Web サーバの cgi ディレクトリの位置"
 
 #. Type: string
@@ -60,7 +60,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:19
-msgid "Name of CGI user."
+msgid "Name of CGI user:"
 msgstr "CGI を実行するユーザ名"
 
 #. Type: string
@@ -76,7 +76,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "Host name of the web server."
+msgid "Host name of the web server:"
 msgstr "Web サーバのホスト名"
 
 #. Type: string
@@ -88,7 +88,7 @@ msgstr "Web サーバのホスト名が何であるか設定する必要があります。"
 #. Type: string
 #. Description
 #: ../dwww.templates:32
-msgid "Web server's port."
+msgid "Web server's port:"
 msgstr "Web サーバのポート番号"
 
 #. Type: string

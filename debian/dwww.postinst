@@ -2,14 +2,13 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.8 2005-09-15 22:15:16 robert Exp $
+# $Id: dwww.postinst,v 1.9 2006-05-07 18:30:09 robert Exp $
 #
 
 use Debconf::Client::ConfModule qw(:all);
 
 $stddocdir = '/var/www';
 $stdcgidir = '/usr/lib/cgi-bin';
-$dwwwdocdir = '/var/lib/dwww/html';
 $cfgfile   = '/etc/dwww/dwww.conf';
 
 version('2.0');
@@ -100,30 +99,23 @@ exit 0;
 
 sub SetupDwwwLinks
 {
-		my ($olddocdir, $newdocdir, $oldcgidir, $newcgidir) = @_;
+	my ($olddocdir, $newdocdir, $oldcgidir, $newcgidir) = @_;
 
-			if ($olddocdir ne "")
-			{
-					unlink "$olddocdir/dwww";
-			}
+	if (($olddocdir ne "") and ($olddocdir ne $newdocdir))
+	{
+		system("rm", "-rf", "$olddocdir/dwww");
+	}
 
-			if ( -d $newdocdir )
-			{
-					unlink "$newdocdir/dwww";
-					symlink ("$dwwwdocdir", "$newdocdir/dwww")
-						or die "Cannot symlink $newdocdir/dwww to $dwwwdocdir: $!";
-			}
+	if (($oldcgidir ne $stdcgidir) and ($oldcgidir ne ""))
+	{
+		unlink "$oldcgidir/dwww";
+	}
 
-			if (($oldcgidir ne $stdcgidir) and ($oldcgidir ne ""))
-			{
-					unlink "$oldcgidir/dwww";
-			}
-
-			if (($newcgidir ne $stdcgidir) and ( -d $newcgidir ))
-			{
-					unlink "$newcgidir/dwww";
-					system("cp","-p","$stdcgidir/dwww", "$newcgidir/dwww");
-			}
+	if (($newcgidir ne $stdcgidir) and ( -d $newcgidir ))
+	{
+		unlink "$newcgidir/dwww";
+		system("cp","-p","$stdcgidir/dwww", "$newcgidir/dwww");
+	}
 }
 
 

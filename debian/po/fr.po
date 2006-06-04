@@ -14,8 +14,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dwww 1.9.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"Report-Msgid-Bugs-To: robert@debian.org\n"
+"POT-Creation-Date: 2006-05-30 21:26+0200\n"
 "PO-Revision-Date: 2003-03-21 21:51+0100\n"
 "Last-Translator: Denis Barbier <barbier@linuxfr.org>\n"
 "Language-Team: French <debian-l10n-french@lists.debian.org>\n"
@@ -26,7 +26,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:4
-msgid "Location of web server's document root."
+msgid "Location of web server's document root:"
 msgstr "Où se trouve le document racine du serveur web ?"
 
 #. Type: string
@@ -42,7 +42,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:11
-msgid "Location of web server's cgi directory."
+msgid "Location of web server's cgi directory:"
 msgstr "Où se trouve le répertoire cgi du serveur web ?"
 
 #. Type: string
@@ -61,8 +61,8 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:19
-msgid "Name of CGI user."
-msgstr "Nom de l'utilisateur CGI."
+msgid "Name of CGI user:"
+msgstr "Nom de l'utilisateur CGI:"
 
 #. Type: string
 #. Description
@@ -77,7 +77,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "Host name of the web server."
+msgid "Host name of the web server:"
 msgstr "Quel est le nom d'hôte de votre serveur ?"
 
 #. Type: string
@@ -89,7 +89,7 @@ msgstr "dwww doit connaître le nom d'hôte de votre serveur."
 #. Type: string
 #. Description
 #: ../dwww.templates:32
-msgid "Web server's port."
+msgid "Web server's port:"
 msgstr "Quel est le port de votre serveur ?"
 
 #. Type: string

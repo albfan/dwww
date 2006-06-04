@@ -6,17 +6,19 @@
 # Part of the dwww package.  Written by Lars Wirzenius.
 # Rewritten in perl by Robert Luberda <robert@debian.org> on Sep, 2003.
 #
-# "@(#)dwww:$Id: dwww-build,v 1.44 2005-06-05 14:11:09 robert Exp $"
+# "@(#)dwww:$Id: dwww-build,v 1.45 2006-05-07 18:30:06 robert Exp $"
 
 use strict;
 
 use File::Glob ':glob';
-use File::Path;
+use File::Path qw/rmtree mkpath/;
 use File::Temp qw/tempfile tempdir/;
-use Cwd 'realpath';
+use File::NCopy qw/copy/;
+use Cwd qw/realpath/;
 use IO::Handle;
 use Debian::Dwww::Utils;
 use Debian::Dwww::Initialize;
+use Debian::Dwww::Common;
 
 my $conf = &DwwwInitialize("/etc/dwww/dwww.conf");
 
@@ -38,12 +40,11 @@ if ( "x$ARGV[0]" eq "x--verbose" ) {
 my ($tgt, $tgttmp) = undef;
 
 if (($#ARGV < 0) or  ("x$ARGV[0]" eq "x--default" )) {
-	$tgt=$conf->{'DWWW_HTMLDIR'};
+	$tgt=$conf->{'DWWW_DOCROOTDIR'} . "/dwww";
 } else {
 	$tgt="$ARGV[0]";
 }
-my $tgtupdir = $tgt;
-$tgtupdir =~ s|/[^/]+/*$||;
+my $tgtupdir = $conf->{'DWWW_TMPDIR'};
 
 umask 077;
 $tgttmp  = tempdir('dwww-build.XXXXXX', DIR => "$tgtupdir", CLEANUP => 1);
@@ -53,8 +54,6 @@ undef $tgtupdir;
 
 my $sepr = " // "; #  manlist file output separator
 
-my $manurl  ="/cgi-bin/dwww?type=man&amp;location=";
-my $fileurl ="/cgi-bin/dwww?type=file&amp;location=";
 
 umask 022;
 
@@ -67,6 +66,63 @@ $tgttmp = "$tgttmp/data/";
 &mkpath("$tgttmp/man") or die "Can't create temporary directory: $tgttmp";
 &mkpath("$tgttmp/menu") or die "Can't create temporary directory: $tgttmp";
 
+#########################################
+#
+# MAIN PROGRAM
+#
+#########################################
+
+STDOUT->autoflush(1);
+
+print "Building dwww pages (a-g):\n";
+
+print "  a) list of manual pages... ";
+&find_man();
+print "done\n";
+
+print "  b) list of sections and names... ";
+&find_sections_and_letters();
+print "done\n";
+
+print "  c) manual pages by name... ";
+&man_by_name();
+print "done\n";
+
+print "  d) manual pages by section... ";
+&man_by_section();
+print "done\n";
+
+print "  e) manual pages index... ";
+&man_index();
+print "done\n";
+
+print "  f) front page... ";
+&make_front_page();
+print "done\n";
+
+print "  g) copying files... ";
+
+&copy("$dwww_lib_dir/*.png", $tgttmp);
+
+# copying menu directory;
+( -d "$tgt/menu" ) && &copy(\1, "$tgt/menu", $tgttmp);
+
+# rename dirs
+&RenameDir($tgttmp, $tgt);
+print "done\n";
+#
+# For wn, special handling is required:
+if ( -x "/usr/bin/wndex" ) {
+	&make_wnindex("$tgt");
+	&make_wnindex("$tgt/man");
+	&make_wnindex("$tgt/menu");
+}
+
+print "The dwww pages have been re-built.\n";
+
+exit (0);
+
+
 sub debug() { # {{{
 	local $_ = shift;
 	print STDERR "$_\n";
@@ -75,7 +131,7 @@ sub debug() { # {{{
 sub GetBTSDocUrl() { # {{{
         my $btsdoclocal  = "/usr/share/doc/debian/bug-reporting.txt";
         my $btsdocexturi = "http://www.debian.org/Bugs/Reporting";
-        return (-r $btsdoclocal ) ? ${fileurl}.${btsdoclocal} : $btsdocexturi;
+        return (-r $btsdoclocal ) ? &GetURL('file', $btsdoclocal) : $btsdocexturi;
 } # }}}
 
 sub GetSectionDescription() { # {{{
@@ -163,6 +219,7 @@ sub GetSectionDescription() { # {{{
 	elsif ($section eq "3tnm")     { $desc="Tcl shell including the Tnm extensions"; }
 	elsif ($section eq "3vga")     { $desc="Svgalib library"; }
 	elsif ($section eq "3x")       { $desc="X Window System library"; }
+	elsif ($section eq "3xp")      { $desc="X Print Client library"; }
 	elsif ($section eq "4")        { $desc="Device files"; }
 	elsif ($section eq "4b")       { $desc="Device files"; }				# emwin
 	elsif ($section eq "4x")       { $desc="X Window System"; }
@@ -355,7 +412,7 @@ sub man_by_name() { # {{{
 			$tables{$letter} = &BeginTable(\*M, $capt, 4, $desc);
 			$lastsections{$letter} = $section;
 		}
-		&AddToTable(\*M, $tables{$letter}, "<A href=\"$manurl$file\">$name</A>");
+		&AddToTable(\*M, $tables{$letter}, "<A href=\"" . &GetURL('man', $file, $TRUE) . "\">" . &HTMLEncode($name) . "</A>");
 	}
 
 	if ($lastletter ne '') {
@@ -428,7 +485,7 @@ sub man_by_section() { # {{{
 		die ('Internal error: $table should be defined! ($file=' . $file .')')
 			 unless (defined $table);
 
-		&AddToTable(\*M, $table, "<A href=\"$manurl$file\">$name</A>");
+		&AddToTable(\*M, $table, "<A href=\"" . &GetURL('man', $file, $TRUE) . "\">" . &HTMLEncode($name) . "</A>");
 	}
 
 	if ($lastsection ne '') {
@@ -551,58 +608,3 @@ sub make_wnindex # {{{
         &system("/usr/bin/wndex >/dev/null");
 } # }}}
 
-#########################################
-#
-# MAIN PROGRAM
-#
-#########################################
-
-STDOUT->autoflush(1);
-
-print "Building dwww pages (a-g):\n";
-
-print "  a) list of manual pages... ";
-&find_man();
-print "done\n";
-
-print "  b) list of sections and names... ";
-&find_sections_and_letters();
-print "done\n";
-
-print "  c) manual pages by name... ";
-&man_by_name();
-print "done\n";
-
-print "  d) manual pages by section... ";
-&man_by_section();
-print "done\n";
-
-print "  e) manual pages index... ";
-&man_index();
-print "done\n";
-
-print "  f) front page... ";
-&make_front_page();
-print "done\n";
-
-print "  g) copying files... ";
-system("cp -a $dwww_lib_dir/*.png \"$tgttmp/.\"");
-
-# copying menu directory;
-( -d "$tgt/menu" ) && system("cp -a \"$tgt/menu\" \"$tgttmp/\"");
-
-rmtree("$tgt");
-rename("$tgttmp", "$tgt") or die "Cannot rename $tgttmp to $tgt: $!";
-
-print "done\n";
-#
-# For wn, special handling is required:
-if ( -x "/usr/bin/wndex" ) {
-	&make_wnindex("$tgt");
-	&make_wnindex("$tgt/man");
-	&make_wnindex("$tgt/menu");
-}
-
-print "The dwww pages have been re-built.\n";
-
-exit (0);

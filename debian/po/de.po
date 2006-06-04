@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dwww\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-23 21:07+0200\n"
+"Report-Msgid-Bugs-To: robert@debian.org\n"
+"POT-Creation-Date: 2006-05-30 21:26+0200\n"
 "PO-Revision-Date: 2005-06-07 15:00+0200\n"
 "Last-Translator: Debian Description Translation Project <debconf@ddtp.debian."
 "org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:4
-msgid "Location of web server's document root."
+msgid "Location of web server's document root:"
 msgstr "Wo ist das Dokument-Start-Verzeichnis?"
 
 #
@@ -33,8 +33,8 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"dwww muss den Pfad für das Dokument-Start-Verzeichnis des Webservers "
-"kennen. Standardmäßig ist dies das Verzeichnis /var/www."
+"dwww muss den Pfad für das Dokument-Start-Verzeichnis des Webservers kennen. "
+"Standardmäßig ist dies das Verzeichnis /var/www."
 
 #  Template: dwww/cgidir
 #  ddtp-prioritize: 42
@@ -42,7 +42,7 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:11
-msgid "Location of web server's cgi directory."
+msgid "Location of web server's cgi directory:"
 msgstr "Wo ist das CGI-Verzeichnis?"
 
 #
@@ -64,8 +64,8 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:19
-msgid "Name of CGI user."
-msgstr "Name des CGI-Nutzers."
+msgid "Name of CGI user:"
+msgstr "Name des CGI-Nutzers:"
 
 #
 #. Type: string
@@ -84,8 +84,8 @@ msgstr ""
 #. Type: string
 #. Description
 #: ../dwww.templates:26
-msgid "Host name of the web server."
-msgstr "Rechnername des Webservers."
+msgid "Host name of the web server:"
+msgstr "Rechnername des Webservers:"
 
 #
 #. Type: string
@@ -100,8 +100,8 @@ msgstr "dwww muss den Rechnernamen Ihres Webservers kennen."
 #. Type: string
 #. Description
 #: ../dwww.templates:32
-msgid "Web server's port."
-msgstr "Port des Webservers"
+msgid "Web server's port:"
+msgstr "Port des Webservers:"
 
 #
 #. Type: string
