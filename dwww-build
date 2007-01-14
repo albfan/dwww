@@ -1,20 +1,24 @@
 #!/usr/bin/perl
+# vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
 #
 # dwww-build -- build HTML pages for dwww
 #
 # Part of the dwww package.  Written by Lars Wirzenius.
 # Rewritten in perl by Robert Luberda <robert@debian.org> on Sep, 2003.
-# 
-# "@(#)dwww:$Id: dwww-build,v 1.43 2005/04/06 21:28:04 robert Exp $"
+#
+# "@(#)dwww:$Id: dwww-build,v 1.45 2006-05-07 18:30:06 robert Exp $"
 
-use strict; 
+use strict;
 
 use File::Glob ':glob';
-use File::Path;
+use File::Path qw/rmtree mkpath/;
 use File::Temp qw/tempfile tempdir/;
+use File::NCopy qw/copy/;
+use Cwd qw/realpath/;
 use IO::Handle;
 use Debian::Dwww::Utils;
 use Debian::Dwww::Initialize;
+use Debian::Dwww::Common;
 
 my $conf = &DwwwInitialize("/etc/dwww/dwww.conf");
 
@@ -33,15 +37,14 @@ if ( "x$ARGV[0]" eq "x--verbose" ) {
 	$verbose="yes";
 	shift @ARGV;
 }
-my ($tgt, $tgttmp) = undef; 
+my ($tgt, $tgttmp) = undef;
 
 if (($#ARGV < 0) or  ("x$ARGV[0]" eq "x--default" )) {
-	$tgt=$conf->{'DWWW_HTMLDIR'};
+	$tgt=$conf->{'DWWW_DOCROOTDIR'} . "/dwww";
 } else {
 	$tgt="$ARGV[0]";
 }
-my $tgtupdir = $tgt;
-$tgtupdir =~ s|/[^/]+/*$||;
+my $tgtupdir = $conf->{'DWWW_TMPDIR'};
 
 umask 077;
 $tgttmp  = tempdir('dwww-build.XXXXXX', DIR => "$tgtupdir", CLEANUP => 1);
@@ -51,7 +54,6 @@ undef $tgtupdir;
 
 my $sepr = " // "; #  manlist file output separator
 
-my $manurl ="/cgi-bin/dwww?type=man&amp;location=";
 
 umask 022;
 
@@ -64,17 +66,75 @@ $tgttmp = "$tgttmp/data/";
 &mkpath("$tgttmp/man") or die "Can't create temporary directory: $tgttmp";
 &mkpath("$tgttmp/menu") or die "Can't create temporary directory: $tgttmp";
 
-sub debug() {
+#########################################
+#
+# MAIN PROGRAM
+#
+#########################################
+
+STDOUT->autoflush(1);
+
+print "Building dwww pages (a-g):\n";
+
+print "  a) list of manual pages... ";
+&find_man();
+print "done\n";
+
+print "  b) list of sections and names... ";
+&find_sections_and_letters();
+print "done\n";
+
+print "  c) manual pages by name... ";
+&man_by_name();
+print "done\n";
+
+print "  d) manual pages by section... ";
+&man_by_section();
+print "done\n";
+
+print "  e) manual pages index... ";
+&man_index();
+print "done\n";
+
+print "  f) front page... ";
+&make_front_page();
+print "done\n";
+
+print "  g) copying files... ";
+
+&copy("$dwww_lib_dir/*.png", $tgttmp);
+
+# copying menu directory;
+( -d "$tgt/menu" ) && &copy(\1, "$tgt/menu", $tgttmp);
+
+# rename dirs
+&RenameDir($tgttmp, $tgt);
+print "done\n";
+#
+# For wn, special handling is required:
+if ( -x "/usr/bin/wndex" ) {
+	&make_wnindex("$tgt");
+	&make_wnindex("$tgt/man");
+	&make_wnindex("$tgt/menu");
+}
+
+print "The dwww pages have been re-built.\n";
+
+exit (0);
+
+
+sub debug() { # {{{
 	local $_ = shift;
 	print STDERR "$_\n";
-}
+} # }}}
 
-sub realpath() {
-	local $_ = shift;
-}
+sub GetBTSDocUrl() { # {{{
+        my $btsdoclocal  = "/usr/share/doc/debian/bug-reporting.txt";
+        my $btsdocexturi = "http://www.debian.org/Bugs/Reporting";
+        return (-r $btsdoclocal ) ? &GetURL('file', $btsdoclocal) : $btsdocexturi;
+} # }}}
 
-
-sub GetSectionDescription() {
+sub GetSectionDescription() { # {{{
 	my $section = shift;
 	my $desc="";
 
@@ -159,6 +219,7 @@ sub GetSectionDescription() {
 	elsif ($section eq "3tnm")     { $desc="Tcl shell including the Tnm extensions"; }
 	elsif ($section eq "3vga")     { $desc="Svgalib library"; }
 	elsif ($section eq "3x")       { $desc="X Window System library"; }
+	elsif ($section eq "3xp")      { $desc="X Print Client library"; }
 	elsif ($section eq "4")        { $desc="Device files"; }
 	elsif ($section eq "4b")       { $desc="Device files"; }				# emwin
 	elsif ($section eq "4x")       { $desc="X Window System"; }
@@ -184,7 +245,7 @@ sub GetSectionDescription() {
 	elsif ($section eq "7")        { $desc="Miscellaneous"; }
 	elsif ($section eq "7bind")    { $desc="DNS terms"; }
 	elsif ($section eq "7ctrlproxy")    { $desc="IRC proxy with multiserver support"; }	# ctrlproxy
-	elsif ($section eq "7g")       { $desc="Miscellaneous"; }				# sam 
+	elsif ($section eq "7g")       { $desc="Miscellaneous"; }				# sam
 	elsif ($section eq "7gcc")     { $desc="GNU C compiler library"; }
 	elsif ($section eq "7gii")     { $desc="General Input Interface library"; }
 	elsif ($section eq "7ggi")     { $desc="General Graphics Interface library"; }
@@ -213,29 +274,28 @@ sub GetSectionDescription() {
 	elsif ($section =~ /^[158]cn$/) { $desc="C News server" ; }
 	
 	return $desc;
-}
+} # }}}
 
-sub GetSectionDescriptionInBrakes() {
+sub GetSectionDescriptionInBrakes() { # {{{
 	my $section = shift;
 	my $desc=&GetSectionDescription($section);
 
 	my $desc = "($desc)" unless $desc eq "";
 	return $desc;
-}
+} # }}}
 
-	
 
 # Encodes given $name to be used as a file name or a href name
-sub FileEncode() {
+sub FileEncode() { # {{{
 	my ($type, $name) = @_;
 	$name = &URLEncode($name);
 	$name =~ s/_/%5f/g;
 	$name =~ s/%/_/g;
 
 	return $type . $name;
-}
+} # }}}
 
-sub GetIndex() {
+sub GetIndex() { # {{{
 	my ($type, $vars) = @_;
 	my $ret = '';
 	my @list = ();
@@ -253,14 +313,14 @@ sub GetIndex() {
 	}
 	$ret .= join (' | ', @list) . "\n" unless $#list < 0;
 	return $ret;
-}
+} # }}}
 
 	
 
 #
 # Find all manual page files.
 #
-sub find_man() {
+sub find_man() { # {{{
 	my @manpath = ();
 	my @manpages = ();
 	my @mantmp  = ();
@@ -291,13 +351,13 @@ sub find_man() {
 		print $manlist_fh $_ . "\n";
 	}
 	$manlist_fh -> flush();
-}
+} # }}}
 
 
 #
 # Output a list of sections.
 #
-sub find_sections_and_letters() {
+sub find_sections_and_letters() { # {{{
 	
 	seek ($manlist_fh, 0, 0);
 	while (<$manlist_fh>){
@@ -306,17 +366,17 @@ sub find_sections_and_letters() {
 		$sections->{$section}->{$letter} = 1;
 		$letters->{$letter}->{$section} = 1;
 	}
-}
+} # }}}
 
-# 
+#
 # Build lists of manual pages according to first letter.
 ###
-sub man_by_name() {
+sub man_by_name() { # {{{
 	my $type = 'n';
 
 	foreach my $letter ( keys( %$letters ) ) {
 		open M, ">$tgttmp/man/" . &FileEncode($type, $letter) . ".html";
-		print M &TemplateFile($template_mbn_start, 
+		print M &TemplateFile($template_mbn_start,
 			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
 				      'LETTER' => &HTMLEncode($letter),
 				      'HREFLETTER' => &FileEncode($type, $letter),
@@ -341,9 +401,9 @@ sub man_by_name() {
 			open M, ">>$tgttmp/man/" . &FileEncode($type, $letter) . ".html";
 			$lastletter = $letter;
 		}
-		if ((not exists $lastsections{$letter}) or 
+		if ((not exists $lastsections{$letter}) or
 		    ($lastsections{$letter} ne $section)) {
-			my $capt='<A name="' . &FileEncode('s', $section) . '">' . 
+			my $capt='<A name="' . &FileEncode('s', $section) . '">' .
 				 "- in section " . &HTMLEncode($section) . "</A>";
 			my $desc = &GetSectionDescriptionInBrakes($section);
 			$capt .= ":" if $desc eq '';
@@ -352,7 +412,7 @@ sub man_by_name() {
 			$tables{$letter} = &BeginTable(\*M, $capt, 4, $desc);
 			$lastsections{$letter} = $section;
 		}
-		&AddToTable(\*M, $tables{$letter}, "<A href=\"$manurl$file\">$name</A>");
+		&AddToTable(\*M, $tables{$letter}, "<A href=\"" . &GetURL('man', $file, $TRUE) . "\">" . &HTMLEncode($name) . "</A>");
 	}
 
 	if ($lastletter ne '') {
@@ -362,25 +422,25 @@ sub man_by_name() {
 
 	foreach my $letter ( keys( %$letters ) ) {
 		open M, ">>$tgttmp/man/" . &FileEncode($type, $letter) . ".html";
-		print M &TemplateFile($template_mbn_end, 
+		print M &TemplateFile($template_mbn_end,
 			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
 				      'SECTIONS' => &GetIndex('s', $letters->{$letter})
 				    });
 		close M;
 	}
-}
+} # }}}
 
-# 
+#
 # Build lists of manual pages according to section
 ###
-sub man_by_section() {
+sub man_by_section() { # {{{
 	my $type    = 's';
 	my $section = undef;
 
 	# Start a file for each section
 	foreach $section ( keys( %$sections ) ) {
 		open M, ">$tgttmp/man/" . &FileEncode($type, $section) . ".html";
-		print M &TemplateFile($template_mbs_start, 
+		print M &TemplateFile($template_mbs_start,
 			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
 				      'SECTION' => &HTMLEncode($section),
 				      'SECTIONDESC' => &GetSectionDescriptionInBrakes($section),
@@ -411,7 +471,7 @@ sub man_by_section() {
 			$table       = undef;
 		}
 		if ($lastletter ne $letter) {
-			my $capt='<A name="' . &FileEncode('n', $letter) . '">' . 
+			my $capt='<A name="' . &FileEncode('n', $letter) . '">' .
 				 "- starting with " . &HTMLEncode($letter) . ":</A>";
 
 			if (defined $table) {
@@ -425,11 +485,11 @@ sub man_by_section() {
 		die ('Internal error: $table should be defined! ($file=' . $file .')')
 			 unless (defined $table);
 
-		&AddToTable(\*M, $table, "<A href=\"$manurl$file\">$name</A>");
+		&AddToTable(\*M, $table, "<A href=\"" . &GetURL('man', $file, $TRUE) . "\">" . &HTMLEncode($name) . "</A>");
 	}
 
 	if ($lastsection ne '') {
-		if (defined $table) { 
+		if (defined $table) {
 			&EndTable(\*M, $table);
 		}
 		close M;
@@ -437,7 +497,7 @@ sub man_by_section() {
 
 	foreach $section ( keys( %$sections ) ) {
 		open M, ">>$tgttmp/man/" . &FileEncode($type, $section) . ".html";
-		print M &TemplateFile($template_mbs_end, 
+		print M &TemplateFile($template_mbs_end,
 			 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
 				      'LETTERS' => &GetIndex('n', $sections->{$section})
 				    });
@@ -445,14 +505,14 @@ sub man_by_section() {
 	}
 
 	
-}
+} # }}}
 
 	
-sub man_index() {
+sub man_index() { # {{{
 
 
 	open M, ">>$tgttmp/man/index.html";
-	print M &TemplateFile($template_midx_start, 
+	print M &TemplateFile($template_midx_start,
 		 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
 			    });
 	
@@ -514,90 +574,37 @@ sub man_index() {
 	&EndTable(\*M, $table);
 
 
-	print M &TemplateFile($template_midx_end, 
-		 	    { });
-}
+	print M &TemplateFile($template_midx_end,
+		 	    { 'BTSDOCURL' => &GetBTSDocUrl() 
+                            });
+} # }}}
 
 #
 # Create the front page.
 #
-sub make_front_page() {
+sub make_front_page() { # {{{
 	open M, ">$tgttmp/index.html" or die "Cannot open file $tgttmp/index.html: $!";
-	print M &TemplateFile($template_index_main, 
+	print M &TemplateFile($template_index_main,
 		 	    { 'TITLE' => $conf->{'DWWW_TITLE'},
+                              'BTSDOCURL' => &GetBTSDocUrl()
 			    });
 	close M;
-}
+} # }}}
 
 
 # This is a special routine for the wn webserver
 #
-sub make_wnindex
+sub make_wnindex # {{{
 {
 	my $dir = shift;
-        
+
 	chdir("$dir");
         if ( ! -e "index" ) {
 		open I, ">index";
                 print I "Attribute=serveall\n";
 		close I;
 	}
-        
+
         &system("/usr/bin/wndex >/dev/null");
-}
+} # }}}
 
-#########################################
-# 
-# MAIN PROGRAM
-# 
-#########################################
-
-STDOUT->autoflush(1);
-
-print "Building dwww pages (a-g):\n";
-
-print "  a) list of manual pages... ";
-&find_man();
-print "done\n";
-
-print "  b) list of sections and names... ";
-&find_sections_and_letters();
-print "done\n";
-
-print "  c) manual pages by name... ";
-&man_by_name();
-print "done\n";
-
-print "  d) manual pages by section... ";
-&man_by_section();
-print "done\n";
-
-print "  e) manual pages index... ";
-&man_index();
-print "done\n";
-
-print "  f) front page... ";
-&make_front_page();
-print "done\n";
-
-print "  g) copying files... ";
-system("cp -a $dwww_lib_dir/*.png \"$tgttmp/.\"");
-
-# copying menu directory;
-( -d "$tgt/menu" ) && system("cp -a \"$tgt/menu\" \"$tgttmp/\"");
-
-rmtree("$tgt");
-rename("$tgttmp", "$tgt") or die "Cannot rename $tgttmp to $tgt: $!";
-
-print "done\n";
-# 
-# For wn, special handling is required:
-if ( -x "/usr/bin/wndex" ) {
-	&make_wnindex("$tgt");
-	&make_wnindex("$tgt/man");
-	&make_wnindex("$tgt/menu");
-}
-
-print "The dwww pages have been re-built.\n";
-
-exit (0);

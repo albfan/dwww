@@ -13,21 +13,21 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: dwww 1.9.7\n"
+"Project-Id-Version: dwww\n"
 "Report-Msgid-Bugs-To: robert@debian.org\n"
 "POT-Creation-Date: 2006-05-30 21:26+0200\n"
-"PO-Revision-Date: 2004-02-02 23:15+0900\n"
-"Last-Translator: OHURA Makoto <ohura@debian.org>\n"
-"Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
+"PO-Revision-Date: 2005-06-25 20:05+0200\n"
+"Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
+"Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4
 msgid "Location of web server's document root:"
-msgstr "Web ¥µ¡¼¥Ğ¤Î document root ¤Î°ÌÃÖ"
+msgstr "UmÃ­stÄ›nÃ­ koÅ™ene dokumentÅ¯ webovÃ©ho serveru:"
 
 #. Type: string
 #. Description
@@ -36,14 +36,14 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"Web ¥µ¡¼¥Ğ¤Î document root ¤ò´Ş¤ó¤Ç¤¤¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î°ÌÃÖ¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê"
-"¤Ş¤¹¡£Web É¸½à¤Ç¤Ï /var/www ¤Ç¤¢¤ë¤³¤È¤¬Äó°Æ¤µ¤ì¤Æ¤¤¤Ş¤¹¡£"
+"dwww potÅ™ebuje znÃ¡t cestu k adresÃ¡Å™i, kterÃ½ obsahuje koÅ™en dokumentÅ¯ vaÅ¡eho "
+"webovÃ©ho serveru. Obvykle to bÃ½vÃ¡ /var/www."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:11
 msgid "Location of web server's cgi directory:"
-msgstr "Web ¥µ¡¼¥Ğ¤Î cgi ¥Ç¥£¥ì¥¯¥È¥ê¤Î°ÌÃÖ"
+msgstr "UmÃ­stÄ›nÃ­ adresÃ¡Å™e cgi webovÃ©ho serveru:"
 
 #. Type: string
 #. Description
@@ -53,15 +53,15 @@ msgid ""
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"Web ¥µ¡¼¥Ğ¤Î CGI ¥¹¥¯¥ê¥×¥È¤¬¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î°ÌÃÖ¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Ş¤¹¡£"
-"Web É¸½à¤Ï /usr/lib/cgi-bin ¤Ç¤¢¤ë¤³¤È¤òÄó°Æ¤·¤Æ¤¤¤Ş¤¹¤¬¡¢¤¹¤Ç¤Ë¡¢Web ¥µ¡¼¥Ğ"
-"¤ÏÂ¾¤Î¾ì½ê¤ò»È¤¦¤è¤¦¤ËÀßÄê¤µ¤ì¤Æ¤¤¤ë¤«¤âÃÎ¤ì¤Ş¤»¤ó¡£"
+"dwww potÅ™ebuje znÃ¡t cestu k adresÃ¡Å™i, kterÃ½ obsahuje CGI skripty vaÅ¡eho "
+"webovÃ©ho serveru. Obvykle to bÃ½vÃ¡ /usr/lib/cgi-bin, ale je moÅ¾nÃ©, Å¾e je vÃ¡Å¡ "
+"webovÃ½ server nastaven jinak."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:19
 msgid "Name of CGI user:"
-msgstr "CGI ¤ò¼Â¹Ô¤¹¤ë¥æ¡¼¥¶Ì¾"
+msgstr "JmÃ©no CGI uÅ¾ivatele:"
 
 #. Type: string
 #. Description
@@ -70,26 +70,26 @@ msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"dwww ¤Î CGI ¥¹¥¯¥ê¥×¥È¤òÆ°¤«¤¹¥æ¡¼¥¶¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Ş¤¹¡£¤½¤ì¤Ï¡¢¤½¤Î"
-"¥æ¡¼¥¶¤¬¥­¥ã¥Ã¥·¥å¥Ç¥£¥ì¥¯¥È¥ê¤Î½êÍ­¸¢¤ò»ı¤Ã¤Æ¤¤¤ëÉ¬Í×¤¬¤¢¤ë¤«¤é¤Ç¤¹¡£"
+"dwww potÅ™ebuje vÄ›dÄ›t, pod kterÃ½m uÅ¾ivatelem pobÄ›Å¾Ã­ CGI skript dwww, protoÅ¾e "
+"adresÃ¡Å™ s cache musÃ­ bÃ½t tÃ­mto uÅ¾ivatelem vlastnÄ›n."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "Host name of the web server:"
-msgstr "Web ¥µ¡¼¥Ğ¤Î¥Û¥¹¥ÈÌ¾"
+msgstr "JmÃ©no poÄÃ­taÄe s webovÃ½m serverem:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "dwww needs to know the host name of your web server."
-msgstr "Web ¥µ¡¼¥Ğ¤Î¥Û¥¹¥ÈÌ¾¤¬²¿¤Ç¤¢¤ë¤«ÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Ş¤¹¡£"
+msgstr "dwww potÅ™ebuje znÃ¡t jmÃ©no poÄÃ­taÄe s vaÅ¡Ã­m webovÃ½m serverem."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:32
 msgid "Web server's port:"
-msgstr "Web ¥µ¡¼¥Ğ¤Î¥İ¡¼¥ÈÈÖ¹æ"
+msgstr "Port webovÃ©ho serveru:"
 
 #. Type: string
 #. Description
@@ -98,50 +98,50 @@ msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
 msgstr ""
-"Web ¥µ¡¼¥Ğ¤¬Æ°ºî¤·¤Æ¤¤¤ë¥İ¡¼¥ÈÈÖ¹æ¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Ş¤¹¡£ÉáÄÌ¡¢Web ¥µ¡¼¥Ğ"
-"¤Ï 80 ÈÖ¥İ¡¼¥È¤ÇÆ°ºî¤·¤Æ¤¤¤Ş¤¹¡£"
+"dwww potÅ™ebuje znÃ¡t port, na kterÃ©m bÄ›Å¾Ã­ vÃ¡Å¡ webovÃ½ server. WebovÃ© servery "
+"obvykle bÄ›Å¾Ã­ na portu 80."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory does not exist!"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤¬Â¸ºß¤·¤Ş¤»¤ó¡£"
+msgstr "AdresÃ¡Å™ neexistuje!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory ${dir} does not exist."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê ${dir} ¤¬Â¸ºß¤·¤Ş¤»¤ó¡£"
+msgstr "AdresÃ¡Å™ ${dir} neexistuje."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User not found!"
-msgstr "¥æ¡¼¥¶¤¬Â¸ºß¤·¤Ş¤»¤ó¡£"
+msgstr "UÅ¾ivatel nebyl nalezen!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User ${user} does not exist."
-msgstr "¥æ¡¼¥¶ ${user} ¤¬Â¸ºß¤·¤Ş¤»¤ó¡£"
+msgstr "UÅ¾ivatel ${user} neexistuje."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Port value should be a number!"
-msgstr "¥İ¡¼¥ÈÈÖ¹æ¤Ï¿ôÃÍ¤Ç¤Ê¤±¤ì¤Ğ¤Ê¤ê¤Ş¤»¤ó¡£"
+msgstr "Hodnota portu by mÄ›lo bÃ½t ÄÃ­slo!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Value entered for port: ${port} is invalid."
-msgstr "¥İ¡¼¥ÈÈÖ¹æ¤È¤·¤ÆÆşÎÏ¤µ¤ì¤¿ÃÍ: ${port} ¤ÏÌµ¸ú¤Ç¤¹¡£"
+msgstr "ZadanÃ¡ hodnota portu ${port} nenÃ­ platnÃ¡."
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:54
 msgid "Should post-installation script index your documentation files?"
-msgstr "¥¤¥ó¥¹¥È¡¼¥ë¸å¡¢Ê¸½ñ¥Õ¥¡¥¤¥ë¤Î¥¤¥ó¥Ç¥Ã¥¯¥¹¤òºî¤ê¤Ş¤¹¤«¡£"
+msgstr "MÃ¡ poinstalaÄnÃ­ skript vytvoÅ™it index vaÅ¡ich souborÅ¯ s dokumentacÃ­?"
 
 #. Type: boolean
 #. Description
@@ -150,8 +150,8 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"dwww-index++(8) ¥×¥í¥°¥é¥à¤Ï doc-base ¥Ñ¥Ã¥±¡¼¥¸¤ËÅĞÏ¿¤µ¤ì¤¿Ê¸½ñ¥Õ¥¡¥¤¥ë¤Î¥¤"
-"¥ó¥Ç¥Ã¥¯¥¹¤òºî¤ë¤¿¤á¤Ë½µ¤Ë°ì²ó¼Â¹Ô¤µ¤ì¤Ş¤¹¡£"
+"Program dwww-index++(8) se bude spouÅ¡tÄ›t jednou tÃ½dnÄ›, aby vytvoÅ™il index "
+"vÅ¡ech dokumentaÄnÃ­ch souborÅ¯ registrovanÃ½ch s balÃ­kem doc-base."
 
 #. Type: boolean
 #. Description
@@ -161,6 +161,6 @@ msgid ""
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
-"¤³¤Î¥¤¥ó¥Ç¥Ã¥¯¥¹¤Ï¥¤¥ó¥¹¥È¡¼¥ë¸å¤Î¥¹¥¯¥ê¥×¥È¤Ç¤â(¥Ğ¥Ã¥¯¥°¥é¥¦¥ó¥É¤Ç)À¸À®¤¹¤ë"
-"¤³¤È¤¬¤Ç¤­¤Ş¤¹¡£¤³¤Î²áÄø¤ÏÂ¿¤¯¤Î¥³¥ó¥Ô¥å¡¼¥¿¤Î»ñ¸»¤ò»È¤¤¤Ş¤¹¤·¡¢¿ôÊ¬´Ö¤«¤«¤ê"
-"¤Ş¤¹¤Î¤Ç¡¢¤¹¤ë¤«¤É¤¦¤«ÁªÂò¤¹¤ë¤³¤È¤¬¤Ç¤­¤Ş¤¹¡£"
+"Index se takÃ© mÅ¯Å¾e vytvoÅ™it (na pozadÃ­) poinstalaÄnÃ­m skriptem. Proces "
+"vyÅ¾aduje spoustu poÄÃ­taÄovÃ½ch prostÅ™edkÅ¯ a mÅ¯Å¾e trvat nÄ›kolik minut, takÅ¾e "
+"mÃ¡te na vybranou, zda jej chcete spustit nynÃ­ nebo aÅ¾ pozdÄ›ji."

@@ -6,14 +6,14 @@
 #           HAS THE CGI SUPPORT ENABLED
 #  (if you are using apache2, see /usr/share/doc/dwww/README)
 #
-#
-# $Id: dwww.cgi,v 1.17 2004/08/26 17:40:40 robert Exp $
+# $Id: dwww.cgi,v 1.20 2006-06-04 14:38:13 robert Exp $
 #
 
 $doc2html 	= '/usr/sbin/dwww-convert'; # Document-to-HTML converter
 $search2html 	= '/usr/sbin/dwww-find';    # Search and output results as HTML
 @searchargs   	= ('--package');	    # Default argument for $search2html	
 $ENV{PATH} 	= '/bin:/usr/bin:/usr/sbin';
+delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'}; # Delete unsafe variables
 
 $TRUE  = 1;
 $FALSE = 0;
@@ -31,6 +31,9 @@ if ($in{'search'} ne '') {
     	if ($in{'searchtype'} eq 'm') {
 		@searchargs = ('--menu');
     	} 
+    	if ($in{'searchtype'} eq 'f') {
+		@searchargs = ('--docfile');
+    	} 
 	elsif ($in{'searchtype'} eq 'd') {
 		@searchargs = ('--documentation');
 		if (defined $in{'skip'}) {
@@ -40,9 +43,25 @@ if ($in{'search'} ne '') {
 } 
 else {
     	$search   = $FALSE;
-    	$type     = $in{'type'};	 # This document is formated in $type.
+    	$type     = $in{'type'};     # This document is formated in $type.
+	$type     = 'file' unless defined $type;		
     	$location = $in{'location'}; # It is located at $location.
+	$no_pi    = '--no-path-info';
+	if ($location eq "") {
+		&CheckForBrokenThttpd() if $type eq "dir";
+		$location = $in{'path_info'};
+		$no_pi	  = '';
+	}		
+		
 }
+
+sub CheckForBrokenThttpd() {
+	if ($ENV{'SCRIPT_NAME'} =~ m/\/$/ &&
+	    $ENV{'SERVER_SOFTWARE'} =~ m/thttpd/) {
+	    	&error ($TRUE, "Your webserver is broken... See <A href=\"http://bugs.debian.org/164306>Bug#164306</A>. ");
+	}
+}
+
 
 #
 # Ok, now that we know the type, we need to perform the search or
@@ -50,10 +69,9 @@ else {
 #
 
 if ($search == $TRUE) {
-	&PrintHeader();
 
 	exec { "$search2html" } "$search2html", @searchargs, @searchstring;
-	&error($FALSE, "Couldn't search for @searchstring! ($!)");
+	&error($TRUE, "Couldn't search for @searchstring! ($!)");
 } 
 
 elsif (($type eq "") or ($location eq "")) {
@@ -67,8 +85,10 @@ else {
 
     # Execute $doc2html, telling it that the format is of type $type, and the
     # requested document at $location. 
+	my @args = ($type, $location);
+	unshift (@args, $no_pi) if $no_pi ne '';
  
-	exec { "$doc2html" } "$doc2html", "$type", "$location";
+	exec { $doc2html } $doc2html, @args;
 	&error($TRUE, "Couldn't convert document $location! ($!)");
 }
 
@@ -101,13 +121,27 @@ sub ReadParse {
     #
     	@in = split(/&/,$in);
 
-    	foreach $i (0 .. $#in) {
+	# Decode arguments
+    	foreach $i (0.. $#in) {
         	# Convert plus's to spaces
         	$in[$i] =~ s/\+/ /g;
 
         	# Convert %XX from hex numbers to alphanumeric
         	$in[$i] =~ s/%(..)/pack("c",hex($1))/ge;
+	}
 
+	if (defined ($val = $ENV{'PATH_INFO'}) && $val ne "") {
+		# Add PATH_INFO location to the end of the array, so it cannot
+		# always be overwritten by QUERY_STRING
+		# type may be overwritten
+		# Also note the PATH_INFO should be already decoded, so
+		# we do not do this again!
+		push(@in, "path_info=$val");
+	}
+		
+
+	# Untaint arguments and check for invalid characters 
+    	foreach $i (0 .. $#in) {
 		if ($in[$i] =~ m/^([-:a-zA-Z0-9+.=_\/ \[]*)$/) {
 	   		$in[$i] = $1;  # untaint
 		} 
@@ -118,7 +152,7 @@ sub ReadParse {
 	    		&error ($TRUE, "Invalid characters in input: $in[$i]" );
 		}
 
-        # Split into key and value.
+        	# Split into key and value.
         	$loc = index($in[$i],"=");
         	$key = substr($in[$i],0,$loc);
         	$val = substr($in[$i],$loc+1);

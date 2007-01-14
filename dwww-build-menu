@@ -19,19 +19,24 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: dwww-build-menu,v 1.18 2005/04/09 11:11:44 robert Exp $
+# $Id: dwww-build-menu,v 1.19 2006-05-07 18:30:06 robert Exp $
 #
 
 use strict;
 
 use Debian::Dwww::Utils;
 use Debian::Dwww::DocBase;
+use Debian::Dwww::Common;
 use Debian::Dwww::Initialize;
+use File::Path qw/mkpath rmtree/;
+use File::Temp 'tempdir';
 
 my $dwwwconf 	= &DwwwInitialize("/etc/dwww/dwww.conf");
 
-my $out_dir    		= $dwwwconf->{'DWWW_HTMLDIR'} . "/menu";
-my $out_dir_tmp		= "$out_dir.temp.$$";
+my $out_dir    		= $dwwwconf->{'DWWW_DOCROOTDIR'} . "/dwww/menu";
+my $out_dir_tmp  	= tempdir('dwww-build-menu.XXXXXX', 
+			           DIR =>  $dwwwconf->{'DWWW_TMPDIR'},
+				   CLEANUP => 1) . "/menu.temp.$$";
 my $title    		= $dwwwconf->{'DWWW_TITLE'};
 my $dwww_regdocs_cache 	= $dwwwconf->{'DWWW_REGDOCS_DB'};
 my $dwww_db2pkg_cache 	= $dwwwconf->{'DWWW_DOCBASE2PKG_DB'};
@@ -70,27 +75,6 @@ my @known_formats=(
 	'texinfo',
 	'dwww-url' # internal dwww's format
 	);
-my $dwww_url = "/cgi-bin/dwww";
-my %href  =
-	(
-	'debiandoc-sgml'=>	 "$dwww_url?type=application/sgml&amp;location=",
-	'docbook-xml'	=>	 "$dwww_url?type=text/xml&amp;location=",
-	'dvi'		=>	 "$dwww_url?type=application/x-dvi&amp;location=",
-	'html'		=>	 "$dwww_url?type=html&amp;location=",
-	'info'		=>	 "/cgi-bin/info2www?file=",
-	'latex'		=>	 "$dwww_url?type=application/x-latex&amp;location=",
-	'linuxdoc-sgml'	=>	 "$dwww_url?type=application/sgml&amp;location=",
-	'pdf'		=>	 "$dwww_url?type=application/pdf&amp;location=",
-	'postscript'	=>	 "$dwww_url?type=application/postscript&amp;location=",
-	'ps'		=>	 "$dwww_url?type=application/postscriptps&amp;location=",
-	'rtf'		=>	 "$dwww_url?type=text/rtf&amp;location=",
-	'sgml'		=>	 "$dwww_url?type=application/sgml&amp;location=",
-	'tar'		=>	 "$dwww_url?type=application/tar&amp;location=",
-	'texinfo'	=>	 "$dwww_url?type=application/x-texinfo&amp;location=",
-	'dwww-url'	=>	 "",
-	'text'		=>	 "$dwww_url?type=text/plain&amp;location=",
-	'pkgsearch'	=> 	 "$dwww_url?search="
-	);
 
 
 my %sections      =  ();
@@ -105,8 +89,8 @@ my %dbfile2pkg    = (); # maps doc-base file names to package names (filled by R
 my $opt_verbose   = 0;
 my $opt_debug     = 0;
 
-
-mkdir($out_dir_tmp, 0755) or die "Can't create directory $out_dir_tmp: $!\n";
+umask 022;
+&mkpath($out_dir_tmp) or die "Can't create directory $out_dir_tmp: $!\n";
 
 open ERRFILE , ">$out_dir_tmp/errors.html" or &CleanAndDie("Can't create file errros.html: $!");
 print ERRFILE &TemplateFile($template_error_start, { 'TITLE'       => &HTMLEncode($title) });
@@ -124,8 +108,8 @@ $ErrorProc = \&ErrorHandle;
 link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index),
      "$out_dir_tmp/index.html") or
 	print STDERR "Can't create index.html link: $!\n";
-system("rm -f \"$out_dir\"/*; rmdir \"$out_dir\"") if (-d "$out_dir");
-rename("$out_dir_tmp", "$out_dir") or &CleanAndDie("Can't rename $out_dir_tmp to $out_dir: $!");
+&rmtree($out_dir);
+&RenameDir($out_dir_tmp, $out_dir);
 
 print ERRFILE &TemplateFile($template_error_end, {});
 close ERRFILE;
@@ -136,8 +120,8 @@ exit (0);
 # Local functions
 #
 sub CleanAndDie { # {{{
-	print STDERR "$_\n";
-	system("rm -f \"$out_dir_tmp\"/*; rmdir \"$out_dir_tmp\"") if (-d "$out_dir_tmp");
+	my $msg = shift;
+	die "$msg";
 	exit(1);
 } # }}}
 
@@ -380,16 +364,6 @@ sub SectionsToHTML() { # {{{
 } # }}}
 
 
-sub GetURL{ # {{{
-	my $format_name = shift;
-	my $format_url  = shift;
-
-	$format_url = &URLEncode($format_url) unless ($format_name eq 'dwww-url');
-
-	return "$href{$format_name}" . $format_url ;
-
-
-} # }}}
 
 
 sub DocumentToHTML($) { # {{{
@@ -408,7 +382,7 @@ sub DocumentToHTML($) { # {{{
 	$res .= ">" . &HTMLEncode($doc->{'title'}) . "</a>\n";
 
 	if (defined $pkg) {
-		$res .= "&nbsp; <small><i>(package: <a href=\"" . $href{'pkgsearch'} . &URLEncode($pkg);
+		$res .= "&nbsp; <small><i>(package: <a href=\"" . &GetURL('pkgsearch', $pkg);
 		$res .= "\">" . &HTMLEncode($pkg) . "</a>)";
 		$res .= "</i></small>\n";
 	}

@@ -1,9 +1,11 @@
+# vim:ft=perl:cindent:ts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Initialize.pm,v 1.7 2005/04/07 23:40:12 robert Exp $
+# $Id: Initialize.pm,v 1.11 2006-06-04 14:38:20 robert Exp $
 # 
 package Debian::Dwww::Initialize;
 
 use Exporter();
+use Sys::Hostname;
 use strict;
 
 use vars qw(@ISA @EXPORT);
@@ -12,21 +14,26 @@ use vars qw(@ISA @EXPORT);
 
 sub DwwwInitialize() {
 	my $filename = shift;
-	my $hostname = `hostname`;
-	chomp($hostname);
+	my $hostname = &hostname();
+	$hostname    =~ s/\..*$//;
 	my $dwwwvars = {
 		'DWWW_DOCPATH' => "/usr/share/doc:/usr/doc:/usr/share/info:/usr/info:"
 				 . "/usr/share/man:/usr/man:/usr/X11R6/man:/usr/local/man:"
                                  . "/usr/local/doc:/usr/local/info:/usr/share/common-licenses",
 		'DWWW_ALLOWEDLINKPATH'	=> "/usr/share:/usr/lib:/var/www",
-		'DWWW_HTMLDIR'		=> "/var/lib/dwww/html",
+		'DWWW_TMPDIR'		=> "/var/lib/dwww",
 		'DWWW_USE_CACHE'	=> "yes",
 		'DWWW_KEEPDAYS'		=> 10,
 		'DWWW_QUICKFIND_DB'	=> "/var/cache/dwww/quickfind.dat",
 		'DWWW_REGDOCS_DB'	=> "/var/cache/dwww/regdocs.dat",
 		'DWWW_DOCBASE2PKG_DB'	=> "/var/cache/dwww/docbase2pkg.dat",
 		'DWWW_TITLE'		=> 'dwww: ' . $hostname,
-		'DWWW_CGIUSER'		=> "www-data"
+		'DWWW_DOCROOTDIR' 	=> '/var/www',
+		'DWWW_CGIDIR' 		=> '/usr/lib/cgi-bin',
+		'DWWW_CGIUSER' 		=> 'www-data',
+		'DWWW_SERVERNAME' 	=> 'localhost',
+		'DWWW_SERVERPORT' 	=> 80
+
 	};
 
 	umask (022);
@@ -42,6 +49,11 @@ sub DwwwInitialize() {
 			$dwwwvars->{$1} = $2;
 		}
 	}
+    close DWWWCONF or die "Can't close $filename: $!\n";
+	foreach my $k ( 'DWWW_DOCPATH', 'DWWW_ALLOWEDLINKPATH' ) {
+        my @paths =  split( /:/, $dwwwvars->{$k} ); 
+		$dwwwvars->{$k} = \@paths;
+    }
 	
 	return $dwwwvars;
 }

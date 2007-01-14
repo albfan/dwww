@@ -1,33 +1,25 @@
-#
-#    Translators, if you are not familiar with the PO format, gettext
-#    documentation is worth reading, especially sections dedicated to
-#    this format, e.g. by running:
-#         info -n '(gettext)PO Files'
-#         info -n '(gettext)Header Entry'
-#
-#    Some information specific to po-debconf are available at
-#            /usr/share/doc/po-debconf/README-trans
-#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
-#
-#    Developers do not need to manually edit POT or PO files.
-#
+# Vietnamese Translation for dwww.
+# Copyright ¬© 2005 Free Software Foundation, Inc.
+# Clytie Siddall <clytie@riverland.net.au>, 2005.
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: dwww 1.9.7\n"
+"Project-Id-Version: dwww 1.9.21\n"
 "Report-Msgid-Bugs-To: robert@debian.org\n"
 "POT-Creation-Date: 2006-05-30 21:26+0200\n"
-"PO-Revision-Date: 2004-02-02 23:15+0900\n"
-"Last-Translator: OHURA Makoto <ohura@debian.org>\n"
-"Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
+"PO-Revision-Date: 2005-06-02 15:57+0930\n"
+"Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
+"Language-Team: Vietnamese <gnomevi-list@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4
 msgid "Location of web server's document root:"
-msgstr "Web •µ°º•–§Œ document root §Œ∞Ã√÷"
+msgstr "V√≠ tr·ªã c·ªßa g·ªëc t√†i li·ªáu c·ªßa m√°y ph·ª•c v·ª• M·∫°ng:"
 
 #. Type: string
 #. Description
@@ -36,14 +28,14 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"Web •µ°º•–§Œ document root §Ú¥ﬁ§Û§«§§§Î•«•£•Ï•Ø•»•Í§Œ∞Ã√÷§Ú¿ﬂƒÍ§π§Î…¨Õ◊§¨§¢§Í"
-"§ﬁ§π°£Web …∏Ω‡§«§œ /var/www §«§¢§Î§≥§»§¨ƒÛ∞∆§µ§Ï§∆§§§ﬁ§π°£"
+"Tr√¨nh dwww c·∫ßn bi·∫øt ƒë∆∞·ªùng d·∫´n th∆∞ m·ª•c ch·ª©a g·ªëc t√†i li·ªáu c·ªßa tr√¨nh ph·ª•c v·ª• "
+"M·∫°ng c·ªßa b·∫°n. Ti√™u chu·∫©n M·∫°ng ƒë·ªá ngh·ªã: /var/www"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:11
 msgid "Location of web server's cgi directory:"
-msgstr "Web •µ°º•–§Œ cgi •«•£•Ï•Ø•»•Í§Œ∞Ã√÷"
+msgstr "V√≠ tr·ªã c·ªßa th∆∞ m·ª•c CGI c·ªßa tr√¨nh ph·ª•c v·ª• M·∫°ng:"
 
 #. Type: string
 #. Description
@@ -53,15 +45,15 @@ msgid ""
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"Web •µ°º•–§Œ CGI •π•Ø•Í•◊•»§¨§¢§Î•«•£•Ï•Ø•»•Í§Œ∞Ã√÷§Ú¿ﬂƒÍ§π§Î…¨Õ◊§¨§¢§Í§ﬁ§π°£"
-"Web …∏Ω‡§œ /usr/lib/cgi-bin §«§¢§Î§≥§»§ÚƒÛ∞∆§∑§∆§§§ﬁ§π§¨°¢§π§«§À°¢Web •µ°º•–"
-"§œ¬æ§ŒæÏΩÍ§Úª»§¶§Ë§¶§À¿ﬂƒÍ§µ§Ï§∆§§§Î§´§‚√Œ§Ï§ﬁ§ª§Û°£"
+"Tr√¨nh dwww c·∫ßn bi·∫øt ƒë∆∞·ªùng d·∫´n th∆∞ m·ª•c ch·ª©a c√°c t·∫≠p l·ªánh CGI c·ªßa m√°y ph·ª•c v·ª• "
+"M·∫°ng. Ti√™u chu·∫©n M·∫°ng ƒë·ªá ngh·ªã /usr/lib/cgi-bin, nh∆∞ng m√† c√≥ l·∫Ω b·∫°n ƒë√£ c·∫•u "
+"h√¨nh m·ªôt v√≠ tr·ªã kh√°c tr√™n m√°y ph·ª•c v·ª• M·∫°ng n√†y."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:19
 msgid "Name of CGI user:"
-msgstr "CGI §Úº¬π‘§π§Î•Ê°º•∂Ãæ"
+msgstr "T√™n c·ªßa ng∆∞·ªùi d√πng CGI:"
 
 #. Type: string
 #. Description
@@ -70,26 +62,26 @@ msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"dwww §Œ CGI •π•Ø•Í•◊•»§Ú∆∞§´§π•Ê°º•∂§Ú¿ﬂƒÍ§π§Î…¨Õ◊§¨§¢§Í§ﬁ§π°£§Ω§Ï§œ°¢§Ω§Œ"
-"•Ê°º•∂§¨•≠•„•√•∑•Â•«•£•Ï•Ø•»•Í§ŒΩÍÕ≠∏¢§Úª˝§√§∆§§§Î…¨Õ◊§¨§¢§Î§´§È§«§π°£"
+"Tr√¨nh dwww c·∫ßn bi·∫øt ng∆∞·ªùi d√πng n√†o s·∫Ω ch·∫°y t·∫≠p l·ªánh CGI dwww, v√¨ ng∆∞·ªùi d√πng "
+"·∫•y ph·∫£i s·ªü h·ªØu th∆∞ m·ª•c nh·ªõ t·∫°m."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "Host name of the web server:"
-msgstr "Web •µ°º•–§Œ•€•π•»Ãæ"
+msgstr "T√™n m√°y c·ªßa m√°y ph·ª•c v·ª• M·∫°ng:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "dwww needs to know the host name of your web server."
-msgstr "Web •µ°º•–§Œ•€•π•»Ãæ§¨≤ø§«§¢§Î§´¿ﬂƒÍ§π§Î…¨Õ◊§¨§¢§Í§ﬁ§π°£"
+msgstr "Tr√¨nh dwww c·∫ßn bi·∫øt t√™n m√°y c·ªßa m√°y ph·ª•c v·ª• M·∫°ng c·ªßa b·∫°n."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:32
 msgid "Web server's port:"
-msgstr "Web •µ°º•–§Œ•›°º•»»÷πÊ"
+msgstr "C·ªïng m√°y ph·ª•c v·ª• M·∫°ng:"
 
 #. Type: string
 #. Description
@@ -97,51 +89,51 @@ msgstr "Web •µ°º•–§Œ•›°º•»»÷πÊ"
 msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
-msgstr ""
-"Web •µ°º•–§¨∆∞∫Ó§∑§∆§§§Î•›°º•»»÷πÊ§Ú¿ﬂƒÍ§π§Î…¨Õ◊§¨§¢§Í§ﬁ§π°£…·ƒÃ°¢Web •µ°º•–"
-"§œ 80 »÷•›°º•»§«∆∞∫Ó§∑§∆§§§ﬁ§π°£"
+msgstr "Tr√¨nh dwww c·∫ßn bi·∫øt m√°y ph·ª•c v·ª• b·∫°n d√πng c·ªïng n√†o. Th∆∞·ªùng l√† c·ªïng 80."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory does not exist!"
-msgstr "•«•£•Ï•Ø•»•Í§¨¬∏∫ﬂ§∑§ﬁ§ª§Û°£"
+msgstr "Kh√¥ng c√≥ th∆∞ m·ª•c ·∫•y."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory ${dir} does not exist."
-msgstr "•«•£•Ï•Ø•»•Í ${dir} §¨¬∏∫ﬂ§∑§ﬁ§ª§Û°£"
+msgstr "Kh√¥ng c√≥ th∆∞ m·ª•c ${dir}."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User not found!"
-msgstr "•Ê°º•∂§¨¬∏∫ﬂ§∑§ﬁ§ª§Û°£"
+msgstr "Kh√¥ng t√¨m th·∫•y ng∆∞·ªùi d√πng ·∫•y."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User ${user} does not exist."
-msgstr "•Ê°º•∂ ${user} §¨¬∏∫ﬂ§∑§ﬁ§ª§Û°£"
+msgstr "Kh√¥ng t√¨m th·∫•y ng∆∞·ªùi d√πng ${user}."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Port value should be a number!"
-msgstr "•›°º•»»÷πÊ§œøÙ√Õ§«§ §±§Ï§–§ §Í§ﬁ§ª§Û°£"
+msgstr "Gi√° tr·ªã c·ªóng ph·∫£i l√† s·ªë."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Value entered for port: ${port} is invalid."
-msgstr "•›°º•»»÷πÊ§»§∑§∆∆˛Œœ§µ§Ï§ø√Õ: ${port} §œÃµ∏˙§«§π°£"
+msgstr "ƒê√£ g√µ gi√° tr·ªã kh√¥ng h·ª£p l·ªá cho c·ªïng: ${port}."
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:54
 msgid "Should post-installation script index your documentation files?"
-msgstr "•§•Û•π•»°º•Î∏Â°¢ ∏ΩÒ•’•°•§•Î§Œ•§•Û•«•√•Ø•π§Ú∫Ó§Í§ﬁ§π§´°£"
+msgstr ""
+"T·∫≠p l·ªánh s·∫Ω ch·∫°y sau khi c√†i ƒë·∫∑t th√¨ s·∫Ω ch·ªâ m·ª•c c√°c t·∫≠p tin t√†i li·ªáu c·ªßa b·∫°n "
+"kh√¥ng?"
 
 #. Type: boolean
 #. Description
@@ -150,8 +142,8 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"dwww-index++(8) •◊•Ì•∞•È•‡§œ doc-base •—•√•±°º•∏§À≈–œø§µ§Ï§ø ∏ΩÒ•’•°•§•Î§Œ•§"
-"•Û•«•√•Ø•π§Ú∫Ó§Î§ø§·§ÀΩµ§À∞Ï≤Ûº¬π‘§µ§Ï§ﬁ§π°£"
+"Tr√¨nh dwww-index++(8) s·∫Ω ch·∫°y m·ªôt l·∫ßn trong m·ªói tu·∫ßn, ƒë·ªÉ ch·ªâ m·ª•c c√°c t·∫≠p tin "
+"t√†i li·ªáu c·ªß√£ b·∫°n m√† ƒë∆∞·ª£c ƒëƒÉng k√Ω v·ªõi g√≥i tin doc-base."
 
 #. Type: boolean
 #. Description
@@ -161,6 +153,6 @@ msgid ""
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
-"§≥§Œ•§•Û•«•√•Ø•π§œ•§•Û•π•»°º•Î∏Â§Œ•π•Ø•Í•◊•»§«§‚(•–•√•Ø•∞•È•¶•Û•…§«)¿∏¿Æ§π§Î"
-"§≥§»§¨§«§≠§ﬁ§π°£§≥§Œ≤·ƒ¯§œ¬ø§Ø§Œ•≥•Û•‘•Â°º•ø§ŒªÒ∏ª§Úª»§§§ﬁ§π§∑°¢øÙ ¨¥÷§´§´§Í"
-"§ﬁ§π§Œ§«°¢§π§Î§´§…§¶§´¡™¬Ú§π§Î§≥§»§¨§«§≠§ﬁ§π°£"
+"T·∫≠p l·ªánh s·∫Ω ch·∫°y sau khi c√†i ƒë·∫∑t c≈©ng c√≥ th·ªÉ t·∫°o ra m·ª•c l·ª•c n√†y (n·∫±m n·ªÅn). "
+"Ti·∫øn tr√¨nh ·∫•y c·∫ßn thi·∫øt nhi·ªÅu ti·ªÅm nƒÉng m√°y, v√† c√≥ l·∫Ω s·∫Ω m·∫•t v√†i ph√∫t, th√¨ "
+"l√∫c n√†y b·∫°n c√≥ th·ªÉ ch·ªçn n·∫øu mu·ªën l√†m nh∆∞ th·∫ø."

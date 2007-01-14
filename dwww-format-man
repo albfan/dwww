@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/perl
+# vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
 #
 # Script to format all manual pages in one or more directories into the
 # dwww cache (/var/cache/dwww).
@@ -8,24 +9,40 @@
 # Example: $0 `manpath -q | tr : ' '`
 #
 # Lars Wirzenius
-# "@(#)dwww:$Id: dwww-format-man,v 1.7 2002/04/07 17:51:53 robert Exp $"
+# "@(#)dwww:$Id: dwww-format-man,v 1.8 2006-05-07 18:30:06 robert Exp $"
 #
+use strict;
 
-. /usr/share/dwww/functions.sh && dwww_initialize || exit 1
+use Debian::Dwww::Initialize;
+use File::Find qw/find/;
 
-if [ -z "$1" ] ; then 
-	echo "Usage: $0 directory ..." 1>&2
-	exit 1
-fi
+my $dwwwvars = &DwwwInitialize("/etc/dwww/dwww.conf");
+my $dwww_cgi_user = $dwwwvars->{'DWWW_CGIUSER'};
 
-exec su "$DWWW_CGIUSER" -s /bin/sh -c "
-PATH=$PATH" '
-for i in ' "$@" '
-do
-	find "$i" -type f |
-	while read f
-	do
-		dwww-convert man "$f" > /dev/null
-	done
-done
-'
+my $opt_verbose = ($#ARGV >= 0) && ($ARGV[0] eq "-v" or $ARGV[0] eq "--verbose");
+shift @ARGV if $opt_verbose;
+
+if (! defined $ARGV[0]) {
+    print STDERR "usage: $0 [-v|--verbose] directory ...\n";
+    exit(1);
+}
+
+
+my ($login,$pass,$uid,$gid) = getpwnam($dwww_cgi_user)
+                              or die "Failed to get UID of user `$dwww_cgi_user': $!\n";
+
+$>=$uid; $! == 0 or die "Cannot seteuid to $dwww_cgi_user($uid): $!\n"; 
+$<=$uid; $! == 0 or die "Cannot setuid to $dwww_cgi_user($uid): $!\n";
+
+&find( { wanted => \&CacheFile,
+         follow_fast => 1 },       
+         @ARGV );
+
+
+sub CacheFile() {
+        my $file = $File::Find::name;
+        return unless -f $file;
+
+        print "$file\n" if $opt_verbose;
+        system("dwww-convert man \"$file\" > /dev/null");
+}        

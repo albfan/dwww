@@ -13,7 +13,7 @@
 <br>
 <hr>
 
-<form method="POST" action="/cgi-bin/dwww">
+<form method="get" action="/cgi-bin/dwww">
     <input name="search" size="30">
     <input type="submit" name="programsubmit" value="Search">
 <br>

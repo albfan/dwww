@@ -1,6 +1,6 @@
 # vim:ft=perl:cindent
 #
-# $Id: DocBase.pm,v 1.5 2003/05/16 17:22:33 robert Exp $
+# $Id: DocBase.pm,v 1.5 2003-05-16 17:22:33 robert Exp $
 #
 package Debian::Dwww::DocBase;
 

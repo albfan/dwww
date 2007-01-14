@@ -1,9 +1,11 @@
-.\" $Id: dwww-convert.8,v 1.8 2003/03/06 22:47:04 robert Exp $
-.TH DWWW\-CONVERT 8 "March 6th, 2003" "dwww 1.9.0" "Debian"
+.\" $Id: dwww-convert.8,v 1.9 2006-06-04 14:38:18 robert Exp $
+.TH DWWW\-CONVERT 8 "June 4th, 2006" "dwww 1.10.0" "Debian"
 .SH NAME
 dwww\-convert \- convert files to HTML for dwww
 .SH SYNOPSIS
-.BI "dwww\-convert " type
+.B dwww\-convert
+.RB [ \-\-no\-path\-info ]
+.I type
 .I location
 .SH "DESCRIPTION"
 .B dwww\-convert
@@ -62,6 +64,13 @@ or
 .BR bzip2 (1).
 It is uncompressed automatically and invisibly.
 Compression is indicated by a filename that ends in `.gz' or `.bz2'.
+.SH OPTIONS
+.TP
+.B \-\-no\-path\-info
+Internal option used by the dwww's CGI script to let 
+.B dwww-convert 
+know, that the arguments following the option do not come from
+the PATH_INFO variable, but from the QUERY_STRING.
 .SH FILES
 .TP
 .I /etc/dwww/dwww.conf

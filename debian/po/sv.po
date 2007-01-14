@@ -13,21 +13,23 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: dwww 1.9.7\n"
+"Project-Id-Version: dwww 1.9.25\n"
 "Report-Msgid-Bugs-To: robert@debian.org\n"
 "POT-Creation-Date: 2006-05-30 21:26+0200\n"
-"PO-Revision-Date: 2004-02-02 23:15+0900\n"
-"Last-Translator: OHURA Makoto <ohura@debian.org>\n"
-"Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
+"PO-Revision-Date: 2005-11-17 03:08+0100\n"
+"Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: sv\n"
+"X-Poedit-Country: sv\n"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4
 msgid "Location of web server's document root:"
-msgstr "Web ¥µ¡¼¥Ð¤Î document root ¤Î°ÌÃÖ"
+msgstr "Plats för webbserverns dokumentrot:"
 
 #. Type: string
 #. Description
@@ -36,14 +38,14 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"Web ¥µ¡¼¥Ð¤Î document root ¤ò´Þ¤ó¤Ç¤¤¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î°ÌÃÖ¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê"
-"¤Þ¤¹¡£Web É¸½à¤Ç¤Ï /var/www ¤Ç¤¢¤ë¤³¤È¤¬Äó°Æ¤µ¤ì¤Æ¤¤¤Þ¤¹¡£"
+"dwww behöver veta sökvägen till den katalog som innehåller din webbservers "
+"dokumentrot. Webbstandarden föreslår /var/www."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:11
 msgid "Location of web server's cgi directory:"
-msgstr "Web ¥µ¡¼¥Ð¤Î cgi ¥Ç¥£¥ì¥¯¥È¥ê¤Î°ÌÃÖ"
+msgstr "Plats för webbserverns cgi-katalog:"
 
 #. Type: string
 #. Description
@@ -53,15 +55,15 @@ msgid ""
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"Web ¥µ¡¼¥Ð¤Î CGI ¥¹¥¯¥ê¥×¥È¤¬¤¢¤ë¥Ç¥£¥ì¥¯¥È¥ê¤Î°ÌÃÖ¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£"
-"Web É¸½à¤Ï /usr/lib/cgi-bin ¤Ç¤¢¤ë¤³¤È¤òÄó°Æ¤·¤Æ¤¤¤Þ¤¹¤¬¡¢¤¹¤Ç¤Ë¡¢Web ¥µ¡¼¥Ð"
-"¤ÏÂ¾¤Î¾ì½ê¤ò»È¤¦¤è¤¦¤ËÀßÄê¤µ¤ì¤Æ¤¤¤ë¤«¤âÃÎ¤ì¤Þ¤»¤ó¡£"
+"dwww behöver veta sökvägen till katalogen som innehåller din webbservers CGI-"
+"skript. Webbstandarden föreslår /usr/lib/cgi-bin men din webbserver kan "
+"redan vara konfigurerad för en annan plats."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:19
 msgid "Name of CGI user:"
-msgstr "CGI ¤ò¼Â¹Ô¤¹¤ë¥æ¡¼¥¶Ì¾"
+msgstr "Namnet på CGI-användaren:"
 
 #. Type: string
 #. Description
@@ -70,26 +72,26 @@ msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"dwww ¤Î CGI ¥¹¥¯¥ê¥×¥È¤òÆ°¤«¤¹¥æ¡¼¥¶¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£¤½¤ì¤Ï¡¢¤½¤Î"
-"¥æ¡¼¥¶¤¬¥­¥ã¥Ã¥·¥å¥Ç¥£¥ì¥¯¥È¥ê¤Î½êÍ­¸¢¤ò»ý¤Ã¤Æ¤¤¤ëÉ¬Í×¤¬¤¢¤ë¤«¤é¤Ç¤¹¡£"
+"dwww behöver veta vilken användare som kommer att köra dwww:s CGI-skript "
+"eftersom cache-katalogen måste ägas av den användaren."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "Host name of the web server:"
-msgstr "Web ¥µ¡¼¥Ð¤Î¥Û¥¹¥ÈÌ¾"
+msgstr "Värdnamnet för webbservern:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "dwww needs to know the host name of your web server."
-msgstr "Web ¥µ¡¼¥Ð¤Î¥Û¥¹¥ÈÌ¾¤¬²¿¤Ç¤¢¤ë¤«ÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£"
+msgstr "dwww behöver veta värdnamnet för din webbserver."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:32
 msgid "Web server's port:"
-msgstr "Web ¥µ¡¼¥Ð¤Î¥Ý¡¼¥ÈÈÖ¹æ"
+msgstr "Webbserverns port:"
 
 #. Type: string
 #. Description
@@ -98,50 +100,51 @@ msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
 msgstr ""
-"Web ¥µ¡¼¥Ð¤¬Æ°ºî¤·¤Æ¤¤¤ë¥Ý¡¼¥ÈÈÖ¹æ¤òÀßÄê¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Þ¤¹¡£ÉáÄÌ¡¢Web ¥µ¡¼¥Ð"
-"¤Ï 80 ÈÖ¥Ý¡¼¥È¤ÇÆ°ºî¤·¤Æ¤¤¤Þ¤¹¡£"
+"dwww behöver veta vilken port din webbserver körs på. Normalt sett körs "
+"webbservrar på port 80."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory does not exist!"
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê¤¬Â¸ºß¤·¤Þ¤»¤ó¡£"
+msgstr "Katalogen existerar inte!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory ${dir} does not exist."
-msgstr "¥Ç¥£¥ì¥¯¥È¥ê ${dir} ¤¬Â¸ºß¤·¤Þ¤»¤ó¡£"
+msgstr "Katalogen ${dir} existerar inte!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User not found!"
-msgstr "¥æ¡¼¥¶¤¬Â¸ºß¤·¤Þ¤»¤ó¡£"
+msgstr "Användaren hittades inte!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User ${user} does not exist."
-msgstr "¥æ¡¼¥¶ ${user} ¤¬Â¸ºß¤·¤Þ¤»¤ó¡£"
+msgstr "Användaren ${user} existerar inte."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Port value should be a number!"
-msgstr "¥Ý¡¼¥ÈÈÖ¹æ¤Ï¿ôÃÍ¤Ç¤Ê¤±¤ì¤Ð¤Ê¤ê¤Þ¤»¤ó¡£"
+msgstr "Portvärdet bör vara ett nummer!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Value entered for port: ${port} is invalid."
-msgstr "¥Ý¡¼¥ÈÈÖ¹æ¤È¤·¤ÆÆþÎÏ¤µ¤ì¤¿ÃÍ: ${port} ¤ÏÌµ¸ú¤Ç¤¹¡£"
+msgstr "Värdet som angavs för porten: ${port} är ogiltig."
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:54
 msgid "Should post-installation script index your documentation files?"
-msgstr "¥¤¥ó¥¹¥È¡¼¥ë¸å¡¢Ê¸½ñ¥Õ¥¡¥¤¥ë¤Î¥¤¥ó¥Ç¥Ã¥¯¥¹¤òºî¤ê¤Þ¤¹¤«¡£"
+msgstr ""
+"Ska skriptet som körs efter installationen indexera dina dokumentationsfiler?"
 
 #. Type: boolean
 #. Description
@@ -150,8 +153,8 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"dwww-index++(8) ¥×¥í¥°¥é¥à¤Ï doc-base ¥Ñ¥Ã¥±¡¼¥¸¤ËÅÐÏ¿¤µ¤ì¤¿Ê¸½ñ¥Õ¥¡¥¤¥ë¤Î¥¤"
-"¥ó¥Ç¥Ã¥¯¥¹¤òºî¤ë¤¿¤á¤Ë½µ¤Ë°ì²ó¼Â¹Ô¤µ¤ì¤Þ¤¹¡£"
+"Programmet dwww-index++(8) kommer att köras en gång i veckan för att "
+"indexera dina dokumenationsfiler som är registrerade med paketet doc-base."
 
 #. Type: boolean
 #. Description
@@ -161,6 +164,6 @@ msgid ""
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
-"¤³¤Î¥¤¥ó¥Ç¥Ã¥¯¥¹¤Ï¥¤¥ó¥¹¥È¡¼¥ë¸å¤Î¥¹¥¯¥ê¥×¥È¤Ç¤â(¥Ð¥Ã¥¯¥°¥é¥¦¥ó¥É¤Ç)À¸À®¤¹¤ë"
-"¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£¤³¤Î²áÄø¤ÏÂ¿¤¯¤Î¥³¥ó¥Ô¥å¡¼¥¿¤Î»ñ¸»¤ò»È¤¤¤Þ¤¹¤·¡¢¿ôÊ¬´Ö¤«¤«¤ê"
-"¤Þ¤¹¤Î¤Ç¡¢¤¹¤ë¤«¤É¤¦¤«ÁªÂò¤¹¤ë¤³¤È¤¬¤Ç¤­¤Þ¤¹¡£"
+"Indexet kan också genereras (i bakgrunden) av skriptet som körs efter "
+"installationen. Denna process behöver ganska mycket av datorns resurser och "
+"kan ta flera minuter så du kan välja nu om du vill göra detta."

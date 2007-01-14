@@ -1,33 +1,22 @@
-#
-#    Translators, if you are not familiar with the PO format, gettext
-#    documentation is worth reading, especially sections dedicated to
-#    this format, e.g. by running:
-#         info -n '(gettext)PO Files'
-#         info -n '(gettext)Header Entry'
-#
-#    Some information specific to po-debconf are available at
-#            /usr/share/doc/po-debconf/README-trans
-#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
-#
-#    Developers do not need to manually edit POT or PO files.
+# Sim達o Pedro Cardoso, pthell@gmail.com, first translation on 01/11/2005
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: dwww 1.9.7\n"
+"Project-Id-Version: dwww 1.9.26\n"
 "Report-Msgid-Bugs-To: robert@debian.org\n"
 "POT-Creation-Date: 2006-05-30 21:26+0200\n"
-"PO-Revision-Date: 2004-02-02 23:15+0900\n"
-"Last-Translator: OHURA Makoto <ohura@debian.org>\n"
-"Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
+"PO-Revision-Date: 2005-11-01 19:32+0000\n"
+"Last-Translator: Sim達o Pedro Cardoso <pthell@gmail.com>\n"
+"Language-Team: Portuguese <traduz@debianpt.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4
 msgid "Location of web server's document root:"
-msgstr "Web サーバの document root の位置"
+msgstr "Caminho da DocumentRoot do servidor web:"
 
 #. Type: string
 #. Description
@@ -36,14 +25,14 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"Web サーバの document root を含んでいるディレクトリの位置を設定する必要があり"
-"ます。Web 標準では /var/www であることが提案されています。"
+"o dwww precisa saber a direct坦rio que cont辿m a DocumentRootdo servidor web. "
+"A normaliza巽達o web sugere /var/www."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:11
 msgid "Location of web server's cgi directory:"
-msgstr "Web サーバの cgi ディレクトリの位置"
+msgstr "Caminho do direct坦rio de cgis do servidor web:"
 
 #. Type: string
 #. Description
@@ -53,15 +42,15 @@ msgid ""
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"Web サーバの CGI スクリプトがあるディレクトリの位置を設定する必要があります。"
-"Web 標準は /usr/lib/cgi-bin であることを提案していますが、すでに、Web サーバ"
-"は他の場所を使うように設定されているかも知れません。"
+"o dwww precisca de saber o direct坦rio que cont辿m os scripts CGI do seu "
+"servidor web. A normaliza巽達o web sugere /usr/lib/cgi-bin, mas o seu servidor "
+"web pode estar j叩 configurado para um local diferente."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:19
 msgid "Name of CGI user:"
-msgstr "CGI を実行するユーザ名"
+msgstr "Nome do utilizador CGI:"
 
 #. Type: string
 #. Description
@@ -70,26 +59,26 @@ msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"dwww の CGI スクリプトを動かすユーザを設定する必要があります。それは、その"
-"ユーザがキャッシュディレクトリの所有権を持っている必要があるからです。"
+"o dwww precisa saber qual o utilizador que ir叩 correr o script CGI dwww, j叩 "
+"que o mesmo utilizador ter叩 de ser dono do direct坦rio de cache."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "Host name of the web server:"
-msgstr "Web サーバのホスト名"
+msgstr "Nome de m叩quina do servidor web:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:26
 msgid "dwww needs to know the host name of your web server."
-msgstr "Web サーバのホスト名が何であるか設定する必要があります。"
+msgstr "o dwww precisa saber o nome de maquina do seu servidor web."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:32
 msgid "Web server's port:"
-msgstr "Web サーバのポート番号"
+msgstr "Porta do servidor web:"
 
 #. Type: string
 #. Description
@@ -98,50 +87,52 @@ msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
 msgstr ""
-"Web サーバが動作しているポート番号を設定する必要があります。普通、Web サーバ"
-"は 80 番ポートで動作しています。"
+"o dwww precisa saber qual a porta em que o seu servidor web est叩 a correr. "
+"Nomalmente os servidores web correm na porta 80."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory does not exist!"
-msgstr "ディレクトリが存在しません。"
+msgstr "O direct坦rio n達o existe!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:38
 msgid "Directory ${dir} does not exist."
-msgstr "ディレクトリ ${dir} が存在しません。"
+msgstr "O direct坦rio ${dir} n達o existe."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User not found!"
-msgstr "ユーザが存在しません。"
+msgstr "O utilizador n達o foi encontrado!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:43
 msgid "User ${user} does not exist."
-msgstr "ユーザ ${user} が存在しません。"
+msgstr "O utilizador ${user} n達o existe."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Port value should be a number!"
-msgstr "ポート番号は数値でなければなりません。"
+msgstr "O valor da porta dever叩 ser um n炭mero!"
 
 #. Type: note
 #. Description
 #: ../dwww.templates:48
 msgid "Value entered for port: ${port} is invalid."
-msgstr "ポート番号として入力された値: ${port} は無効です。"
+msgstr "O valor introduzido para a porta: ${port} 辿 inv叩lido."
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:54
 msgid "Should post-installation script index your documentation files?"
-msgstr "インストール後、文書ファイルのインデックスを作りますか。"
+msgstr ""
+"Dever叩 o script de p坦s-instala巽達o criar um 鱈ndice para os seus ficheiros de "
+"documenta巽達o?"
 
 #. Type: boolean
 #. Description
@@ -150,8 +141,8 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"dwww-index++(8) プログラムは doc-base パッケージに登録された文書ファイルのイ"
-"ンデックスを作るために週に一回実行されます。"
+"o programa dwww-index++(8) ir叩 correr uma vez por semana para criar um "
+"鱈ndice dos seud ficheiros de documenta巽達o registados com pacote doc-base."
 
 #. Type: boolean
 #. Description
@@ -161,6 +152,6 @@ msgid ""
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
-"このインデックスはインストール後のスクリプトでも(バックグラウンドで)生成する"
-"ことができます。この過程は多くのコンピュータの資源を使いますし、数分間かかり"
-"ますので、するかどうか選択することができます。"
+"O 鱈ndice pode tamb辿m ser gerado (em background) pelo script de p坦s-"
+"instala巽達o. Este processo precisa de alguns recursos de computador, e pode "
+"demorar v叩riosminutos, por isso pode escolher agora se gostaria o de fazer."

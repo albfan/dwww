@@ -2,16 +2,15 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.7 2005/03/13 10:08:20 robert Exp $
+# $Id: dwww.postinst,v 1.11 2007-01-01 11:14:30 robert Exp $
 #
 
 use Debconf::Client::ConfModule qw(:all);
 
 $stddocdir = '/var/www';
 $stdcgidir = '/usr/lib/cgi-bin';
-$dwwwdocdir = '/var/lib/dwww/html';
 $cfgfile   = '/etc/dwww/dwww.conf';
-
+$|=1;
 version('2.0');
 
 
@@ -48,13 +47,21 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 		system("rm", "-rf", "/var/cache/dwww/db");
 	}
 	mkdir "/var/cache/dwww/db", 0755 or die "Cannot create directory /var/cache/dwww/db: $!\n";
-	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] or die "User $dwwwcfg{'cgiuser'} does not exist\n";
+	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] ;
+	defined $uid or die "User $dwwwcfg{'cgiuser'} does not exist\n";
+	$uid or die "You DON'T want to run the dwww CGI script as root!\n";
 	chown $uid, 0, "/var/cache/dwww/db";
 
 	if ( -r "/etc/dwww/apache.conf") {
 		foreach my $apache ("apache","apache-perl", "apache-ssl", "apache2") {
 			my $confd="/etc/$apache/conf.d";
-			symlink ("../../dwww/apache.conf", "$confd/dwww") if (-d "$confd" && ! -e "$confd/dwww");
+			 if (-d $confd)  {
+				symlink ("../../dwww/apache.conf", "$confd/dwww") 
+					unless -e "$confd/dwww"; 
+				# restart the web server
+				system ("invoke-rc.d $apache restart 1>&2") 
+					if (-x "/usr/sbin/invoke-rc.d" && -x "/etc/init.d/$apache");
+			 }
 		}
 	}
 
@@ -98,30 +105,23 @@ exit 0;
 
 sub SetupDwwwLinks
 {
-		my ($olddocdir, $newdocdir, $oldcgidir, $newcgidir) = @_;
+	my ($olddocdir, $newdocdir, $oldcgidir, $newcgidir) = @_;
 
-			if ($olddocdir ne "")
-			{
-					unlink "$olddocdir/dwww";
-			}
+	if (($olddocdir ne "") and ($olddocdir ne $newdocdir))
+	{
+		system("rm", "-rf", "$olddocdir/dwww");
+	}
 
-			if ( -d $newdocdir )
-			{
-					unlink "$newdocdir/dwww";
-					symlink ("$dwwwdocdir", "$newdocdir/dwww")
-						or die "Cannot symlink $newdocdir/dwww to $dwwwdocdir: $!";
-			}
+	if (($oldcgidir ne $stdcgidir) and ($oldcgidir ne ""))
+	{
+		unlink "$oldcgidir/dwww";
+	}
 
-			if (($oldcgidir ne $stdcgidir) and ($oldcgidir ne ""))
-			{
-					unlink "$oldcgidir/dwww";
-			}
-
-			if (($newcgidir ne $stdcgidir) and ( -d $newcgidir ))
-			{
-					unlink "$newcgidir/dwww";
-					system("cp","-p","$stdcgidir/dwww", "$newcgidir/dwww");
-			}
+	if (($newcgidir ne $stdcgidir) and ( -d $newcgidir ))
+	{
+		unlink "$newcgidir/dwww";
+		system("cp","-p","$stdcgidir/dwww", "$newcgidir/dwww");
+	}
 }
 
 

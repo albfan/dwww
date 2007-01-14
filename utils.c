@@ -1,6 +1,6 @@
 /* vim:ts=4
  * utils.c
- * "@(#)dwww:$Id: utils.c,v 1.3 2002/11/24 23:17:22 robert Exp $"
+ * "@(#)dwww:$Id: utils.c,v 1.3 2002-11-24 23:17:22 robert Exp $"
  */
 
 #include <unistd.h>

@@ -1,6 +1,6 @@
 /* vim:ts=4
  * dwww-txt2html.c
- * "@(#)dwww:$Id: dwww-txt2html.c,v 1.19 2004/07/29 21:44:48 robert Exp $"
+ * "@(#)dwww:$Id: dwww-txt2html.c,v 1.20 2006-05-07 18:30:06 robert Exp $"
  *
  * A very simple converter from formatted manual pages to HTML. Handles
   * backspace characters. Converts `<', `>', and `&' properly. Does _NOT_ add
@@ -69,9 +69,10 @@ static int check_www_uri(char * buf, char * url, int uri_no, int loc, int * begi
 static int check_man_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end);
 static int check_bug_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end);
 static int check_mail_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end);
+static int check_cve_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end);
 
 		
-enum { U_HTTP, U_FTP, U_HTTP2, U_FTP2, U_MAILTO, U_MAN, U_DIR, U_BUG};
+enum { U_HTTP, U_FTP, U_HTTP2, U_FTP2, U_MAILTO, U_MAN, U_DIR, U_BUG, U_CVE, U_CAN};
 static const struct { 
 		int type;
 		char * pattern;
@@ -99,7 +100,7 @@ static const struct {
 		},
 		{	U_DIR,
 			"/usr/",
-			"/cgi-bin/dwww?type=file&amp;location=",
+			"/cgi-bin/dwww/",
 			0,
 		   	check_dir_uri
 		},
@@ -120,6 +121,18 @@ static const struct {
 			"mailto:",
 			0,
 		   	check_mail_uri
+		},
+		{	U_CVE, /* CVE-dddd-dddd*/
+			"cve-",
+			"http://cve.mitre.org/cgi-bin/cvename.cgi?name=",
+			0,
+		   	check_cve_uri
+		},
+		{	U_CAN, /* CAN-dddd-dddd */
+			"can-",
+			"http://cve.mitre.org/cgi-bin/cvename.cgi?name=",
+			0,
+		   	check_cve_uri
 		}		
 };
 
@@ -316,7 +329,7 @@ static char * urlenc(char c)
 {
 		static char buf[10];
 
-		if (isalnum(c))
+		if ((isalnum(c)) || c == '/' || c == '.')
 		{
 				buf[0] = c;
 				buf[1] = 0;
@@ -390,6 +403,7 @@ static int find_uris(int * buf, int last)
 			if (minp[i] <= prev_minp)
 			{
 				tmp = (i == min) ? lowbuf + prev_minp + 1 : lowbuf + current_pos;	
+				//printf("\nXXXX: %s\n", tmp);
 				if ((tmp = strstr(tmp, uris[i].pattern)))
 					minp[i] = tmp - lowbuf;
 				else 
@@ -716,5 +730,44 @@ static int check_mail_uri(char * buf, char * url, int uri_no, int loc, int * beg
 		
 		return 1;
 		
+}
+
+static int check_cve_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end)
+{
+		
+		int i, j;
+		char * tmp;
+		
+		url[0] = '\0';
+		
+		if (!strncmp(buf + loc, "CVE-", sizeof("CVE-") - 1) ||
+			!strncmp(buf + loc, "CAN-", sizeof("CAN-") - 1))
+		{
+			if (loc > 0 && isalnum(buf[loc-1]))
+					return 0;
+		    *begin = loc;
+			loc += sizeof("CVE-") - 1;
+		} else 
+				return 0;
+
+		/* check if buf[loc] =~ /\d{4}-\d{4}/ */
+		for (j = 0; j < 2; j++) {
+			for (i = 0; i < 4; i++, loc++) {
+					if (!(isdigit(buf[loc])))
+							return 0;
+			}
+			if ((j == 0 && buf[loc++] != '-')
+			   || (j == 1 && isalnum(buf[loc]) ) )
+				return 0;
+		}
+		
+		*end = loc - 1;
+
+		for (i = *begin, tmp = url; i < BUF_SIZE && i <= *end;)
+			*tmp++ = buf[i++];
+		*tmp = 0;
+		
+
+		return 1;
 }
 

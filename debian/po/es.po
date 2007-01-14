@@ -1,164 +1,186 @@
+# dwww po-debconf translation to spanish
+# Copyright (C) 2006 Software in the Public Interest, SPI Inc.
+# This file is distributed under the same license as the dwww package.
+# 
+# Changes:
+# - Initial translation
+#     Rudy Godoy <rudy@kernel-panik.org> , 2006	
+#     Steve Lord Flaubert <stonescenter@gmail.com> , 2006
 #
-#    Translators, if you are not familiar with the PO format, gettext
-#    documentation is worth reading, especially sections dedicated to
-#    this format, e.g. by running:
-#         info -n '(gettext)PO Files'
-#         info -n '(gettext)Header Entry'
+# Traductores, si no conoce el formato PO, merece la pena leer la 
+# documentación de gettext, especialmente las secciones dedicadas a este
+# formato, por ejemplo ejecutando:
+# 	info -n '(gettext)PO Files'
+# 	info -n '(gettext)Header Entry'
 #
-#    Some information specific to po-debconf are available at
-#            /usr/share/doc/po-debconf/README-trans
-#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
-#
-#    Developers do not need to manually edit POT or PO files.
-#
+# Equipo de traducción al español, por favor lean antes de traducir
+# los siguientes documentos:
+#  - El proyecto de traducción de Debian al español
+#    http://www.debian.org/intl/spanish/
+#    especialmente las notas y normas de traducción en
+#    http://www.debian.org/intl/spanish/notas
+# - La guía de traducción de po's de debconf:
+#   /usr/share/doc/po-debconf/README-trans
+#  o http://www.debian.org/intl/l10n/po-debconf/README-trans
+# 
+# Si tiene dudas o consultas sobre esta traducción consulte con el último
+# traductor (campo Last-Translator) y ponga en copia a la lista de
+# traducción de Debian al español (<debian-l10n-spanish@lists.debian.org>)
+# , fuzzy	
+# 
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: dwww 1.10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-08-23 21:07+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2006-09-09 11:58-0600\n"
+"PO-Revision-Date: 2006-12-26 04:57+0100\n"
+"Last-Translator: Steve Lord Flaubert <stonescenter@gmail.com>\n"
+"Language-Team: Spanish <debian-l10n-spanish@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-15\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:4
-msgid "Location of web server's document root."
-msgstr "Ubicaci�n del documento ra�z del servidor web."
+#: ../dwww.templates:1001
+msgid "Location of web server's document root:"
+msgstr "Ubicación de la raíz de documentos del servidor web:"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:4
+#: ../dwww.templates:1001
 msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"dwww necesita que se le indique d�nde se encuentra el direcotrio que "
-"contiene el documento ra�z del servidor web. El est�ndar web sugiere /var/"
-"www."
+"Debe indicar a dwww la ubicación del directorio que contiene la raíz de "
+"documentos del servidor web. El estándar web sugiere «/var/www»."
 
 #. Type: string
 #. Description
-#: ../dwww.templates:11
-msgid "Location of web server's cgi directory."
-msgstr "Ubicaci�n del directorio cgi del servidor web."
+#: ../dwww.templates:2001
+msgid "Location of web server's cgi directory:"
+msgstr "Ubicación del directorio cgi del servidor web:"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:11
+#: ../dwww.templates:2001
 msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"dwww necesita conocer cu�l es el directorio que contiene los scripts cgi del "
-"servidor web. El est�ndar web sugiere /usr/lib/cgi-bin, pero puede que haya "
-"configurado el servidor web para que sea otro distinto."
+"Debe indicar el directorio que contiene los programas cgi del "
+"servidor web. El estándar web sugiere «/usr/lib/cgi-bin», pero puede que haya "
+"configurado el servidor web para utilizar una ubicación distinta."
+""
 
 #. Type: string
 #. Description
-#: ../dwww.templates:19
-msgid "Name of CGI user."
-msgstr "Nombre del usuario que ejecuta el CGI."
+#: ../dwww.templates:3001
+msgid "Name of CGI user:"
+msgstr "Nombre del usuario que ejecuta el CGI:"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:19
+#: ../dwww.templates:3001
 msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"dwww tiene que saber qu� usuario va a ejecutar el script CGI dwww, porque "
-"ese usuario tiene que ser el propietario del directorio de cach�."
+"Debe indicar el usuario que va a ejecutar el programa CGI «dwww», pues "
+"éste debe ser el propietario del directorio de caché."
 
 #. Type: string
 #. Description
-#: ../dwww.templates:26
-msgid "Host name of the web server."
-msgstr "Nombre del sistema que aloja el servidor web."
+#: ../dwww.templates:4001
+msgid "Host name of the web server:"
+msgstr "Nombre del sistema que aloja el servidor web:"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:26
+#: ../dwww.templates:4001
 msgid "dwww needs to know the host name of your web server."
-msgstr ""
-"dwww necesita saber el nombre de la m�quina en la que se encuentra el "
+msgstr "Debe indicar el nombre de la máquina en la que se encuentra el "
 "servidor web."
 
 #. Type: string
 #. Description
-#: ../dwww.templates:32
-msgid "Web server's port."
-msgstr "Puerto del servidor web."
+#: ../dwww.templates:5001
+msgid "Web server's port:"
+msgstr "Puerto del servidor web:"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:32
+#: ../dwww.templates:5001
 msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
 msgstr ""
-"dwww necesita conocer en qu� puerto est� escuchando el servidor web. "
-"Normalmente, los servidores web utilizan el puerto 80."
+"dwww necesita conocer en qué puerto está escuchando el servidor web. "
+"Usualmente, los servidores web utilizan el puerto 80."
 
 #. Type: note
 #. Description
-#: ../dwww.templates:38
+#: ../dwww.templates:6001
 msgid "Directory does not exist!"
-msgstr "�No existe el directorio!"
+msgstr "¡No existe el directorio!"
 
 #. Type: note
 #. Description
-#: ../dwww.templates:38
+#: ../dwww.templates:6001
 msgid "Directory ${dir} does not exist."
 msgstr "El directorio ${dir} no existe."
 
 #. Type: note
 #. Description
-#: ../dwww.templates:43
+#: ../dwww.templates:7001
 msgid "User not found!"
-msgstr "�Usuario no encontrado!"
+msgstr "¡Usuario no encontrado!"
 
 #. Type: note
 #. Description
-#: ../dwww.templates:43
+#: ../dwww.templates:7001
 msgid "User ${user} does not exist."
 msgstr "El usuario ${user} no existe."
 
 #. Type: note
 #. Description
-#: ../dwww.templates:48
+#: ../dwww.templates:8001
 msgid "Port value should be a number!"
-msgstr "�El puerto debe ser un n�mero!"
+msgstr "¡El puerto debe ser un número!"
 
 #. Type: note
 #. Description
-#: ../dwww.templates:48
+#: ../dwww.templates:8001
 msgid "Value entered for port: ${port} is invalid."
-msgstr "El valor proporcionado: ${port} no es v�lido."
+msgstr "El valor proporcionado: ${port} no es válido."
 
 #. Type: boolean
 #. Description
-#: ../dwww.templates:54
+#: ../dwww.templates:9001
 msgid "Should post-installation script index your documentation files?"
-msgstr ""
+msgstr "¿Desea indexar sus archivos de documentación después de la instalación?"
 
 #. Type: boolean
 #. Description
-#: ../dwww.templates:54
+#: ../dwww.templates:9001
 msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
+"El programa dwww-index++(8) se ejecutará una vez a la semana para indexar sus ficheros "
+"de documentación registrados con el paquete doc-base."
 
 #. Type: boolean
 #. Description
-#: ../dwww.templates:54
+#: ../dwww.templates:9001
 msgid ""
 "The index can also be generated (in the background) by the post-installation "
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
+"El índice también puede generarse (en segundo plano) con el programa de postinstalación "
+"Este proceso requiere muchos recursos del sistema y lleva varios minutos, "
+"por lo tanto usted puede escoger ahora si desea hacerlo."
+

@@ -1,14 +1,14 @@
 Template: dwww/docrootdir
 Type: string
 Default: /var/www
-_Description: Location of web server's document root.
+_Description: Location of web server's document root:
  dwww needs to know the path of the directory which contains your web server's
  document root. The web standard suggests /var/www.
 
 Template: dwww/cgidir
 Type: string
 Default: /usr/lib/cgi-bin
-_Description: Location of web server's cgi directory.
+_Description: Location of web server's cgi directory:
  dwww needs to know the path of the directory which contains your web server's
  CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your web server
  may already be configured for a different location.
@@ -16,20 +16,20 @@ _Description: Location of web server's cgi directory.
 Template: dwww/cgiuser
 Type: string
 Default: www-data
-_Description: Name of CGI user.
+_Description: Name of CGI user:
  dwww needs to know what user will be running the dwww CGI script, as the cache
  directory must be owned by that user.
 
 Template: dwww/servername
 Type: string
 Default: localhost
-_Description: Host name of the web server.
+_Description: Host name of the web server:
  dwww needs to know the host name of your web server.
 
 Template: dwww/serverport
 Type: string
 Default: 80
-_Description: Web server's port.
+_Description: Web server's port:
  dwww needs to know what port your web server is running on.  Normally web
  servers run on port 80.
 

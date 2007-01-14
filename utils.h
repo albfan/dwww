@@ -1,6 +1,6 @@
 /* vim:ts=4
  * utils.h
- * "@(#)dwww:$Id: utils.h,v 1.3 2003/01/11 08:20:07 robert Exp $"
+ * "@(#)dwww:$Id: utils.h,v 1.3 2003-01-11 08:20:07 robert Exp $"
  */
 
 #ifndef _DWWWUTILS_H_
