@@ -1,6 +1,6 @@
 #!/usr/bin/install-menu
 # I need menu-1!
-# $Id: dwww.menu-method,v 1.11 2006-05-07 18:30:09 robert Exp $
+# $Id: dwww.menu-method,v 1.12 2007-03-30 20:23:44 robert Exp $
 #
 # Dwww compatibility menu-method to create
 # in /var/lib/dwww/menu-method directory docbase-like
@@ -52,10 +52,10 @@ submenutitle=   "";
 rootsection=    "";
 outputlanguage= "C";
 
-prerun=         "find " prefix() " -type f -exec rm -f {} \\;";
+prerun=         "test -d " prefix() " && find " prefix() " -type f -exec rm -f {} \\;";
 postrun=        "/usr/sbin/dwww-build-menu";
 genmenu=        ifelse($command, replacewith(cppesc($title), "$", "-"),  "/");
-removemenu=     "find " prefix() " -type f -exec rm -f {} \\;";
+removemenu=     "test -d " prefix() " && find " prefix() " -type f -exec rm -f {} \\;";
 
 rootprefix=     "/var/lib/dwww/menu-method/";
 onlyrunasroot=  true;

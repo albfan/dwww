@@ -4,9 +4,9 @@
 #              IF YOU SEE THIS TEXT
 #         PLEASE MAKE SURE YOUR WEB SERVER
 #           HAS THE CGI SUPPORT ENABLED
-#  (if you are using apache2, see /usr/share/doc/dwww/README)
+#  (if you are using apache2, please run `a2enmod cgi')
 #
-# $Id: dwww.cgi,v 1.20 2006-06-04 14:38:13 robert Exp $
+# $Id: dwww.cgi,v 1.21 2007-04-01 18:58:22 robert Exp $
 #
 
 $doc2html 	= '/usr/sbin/dwww-convert'; # Document-to-HTML converter

@@ -1,3 +1,18 @@
+dwww (1.10.5) unstable; urgency=low
+
+  * dwww.cgi (comment at the top): Replace reference to README.Debian
+    with an instruction how to enable CGI in apache2 (closes: #417095).
+
+ -- Robert Luberda <robert@debian.org>  Sun, 01 Apr 2007 20:58:35 +0200
+
+dwww (1.10.4) unstable; urgency=medium
+
+  * dwww.menu-method: check for existance of the /var/lib/dwww/menu-method
+    directory (used for backward compatibilty reasons) before trying to remove
+    files from that location.
+
+ -- Robert Luberda <robert@debian.org>  Fri, 30 Mar 2007 22:23:16 +0200
+
 dwww (1.10.3) unstable; urgency=low
 
   * Initial Russian translation of debconf templates (closes: #406243).
