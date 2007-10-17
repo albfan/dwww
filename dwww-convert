@@ -13,7 +13,7 @@
 #
 # Part of the Debian dwww package.  Written by Lars Wirzenius.
 # Modified by Robert Luberda.
-# "@(#)dwww:$Id: dwww-convert,v 1.45 2006-05-30 19:22:51 robert Exp $"
+# "@(#)dwww:$Id: dwww-convert,v 1.47 2007-10-15 18:27:10 robert Exp $"
 
 use strict;
 
@@ -241,7 +241,8 @@ sub BuiltinMan2Html() { # {{{
     my $dir = $filename;
     $dir =~ s/\/[^\/]*$//;
     chdir ("$dir/..") or die "Can't chdir!\n";
-    my $IN_FH = &OpenPipe("man -Tascii8 -P/bin/cat -l \"$filename\" 2>/dev/null | dwww-txt2html --man", "r");
+    $ENV{'MAN_KEEP_FORMATTING'} = 1;
+    my $IN_FH = &OpenPipe("man  -P/bin/cat -l \"$filename\" 2>/dev/null | dwww-txt2html --man", "r");
     chdir ("/");
     while (<$IN_FH>) {
         print $OUT_FH $_;
@@ -421,7 +422,7 @@ if ( $type eq "info"  && ! -x "/usr/lib/cgi-bin/info2www" ) {
 # identify the compression algorithm used for non-directories
 # then, calculate the name of the uncompressed file (in extension)
 if ( ! -d $file ) {
-    $base_name =~ s/\.(gz|bz2)$//;
+    $base_name =~ s/\.(gz|bz2|en)$//;
 
     # identify the file type from the file extension
     # or using the "file" command.
@@ -436,7 +437,7 @@ if ( ! -d $file ) {
 
         if ($extension eq "" || $extension eq "txt" || $extension eq "text") {
             $type = "text/plain";
-        } elsif ($extension eq "htm" || $extension eq "html") {
+        } elsif ($extension eq "htm" || $extension eq "html" || $extension eq "shtml") {
             $type = "text/html";
         } elsif ($extension eq "css") {
             $type = "text/css";
@@ -475,7 +476,9 @@ if ($type eq "man" || $type eq "runman") {
 }
 
 my $mime_charset=undef;
-if ($mime_type =~ /^text\//) {
+# Do not set mime type for html docs. Either they have a header or we can
+# mostly trust the server and browsers to guess correctly.
+if ($mime_type =~ /^text\// and  $mime_type !~ /^text\/html/) {
     $mime_charset="ISO-8859-1";
     if ($file =~ /(^\/usr\/share\/doc\/[^\/]+\/)([^\/]+)$/o) {
         if (($2 eq "changelog.Debian.gz") || ($2 eq "copyright") ||

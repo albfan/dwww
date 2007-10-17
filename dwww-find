@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
 #
 # Find all docs related to one program or find matching entries in Debian Doc. Menu
-# "$Id: dwww-find,v 1.50 2007-01-01 21:53:26 robert Exp $"
+# "$Id: dwww-find,v 1.51 2007-10-15 18:27:10 robert Exp $"
 #
 
 use strict;
@@ -37,6 +37,7 @@ if ( -x "/usr/bin/dlocate" && -s "/var/lib/dlocate/dlocatedb"
 } else {
         $dpkg="dpkg";
 }
+my $aptcache="/usr/bin/apt-cache";
 
 #########################################################################
 #
@@ -195,15 +196,15 @@ sub FindPkg { # {{{
         my @ret = ();
 
         if ( not defined $type and -r "$dwww_quickfind_db" ) {
-                open (FINDPKG, "dwww-quickfind \"$searchfor\" \"$dwww_quickfind_db\"|");
+                open (FINDPKG, "-|", ("dwww-quickfind", $searchfor, $dwww_quickfind_db));
                 while (<FINDPKG>) {
                     chomp();
                     push(@ret, $_);
                 }
         } else {
                 my %pkgs = ();
-                my @searchargs = ("$dpkg", "-S", "\"$searchfor\"");
-                open (FINDPKG, "@searchargs |")
+                my @searchargs = ($dpkg, "-S", $searchfor);
+                open (FINDPKG, "-|", @searchargs)
                         or die "can't open $dpkg -S: $!\n";
                 while (<FINDPKG>) {
                     chomp();
@@ -249,7 +250,8 @@ sub GetPkgFileList { # {{{
         my $pkg = shift;
         my @ret = ();
         
-        open (FILELIST, "$dpkg -L \"$pkg\"|");
+
+        open (FILELIST, "-|", ($dpkg, "-L", $pkg));
         while (<FILELIST>) {
                 chomp();    
                 push(@ret, $_);
@@ -423,10 +425,10 @@ sub Apropos { # {{{
         my @apropos     = ();
         my $res         = 0;
         my $table       = undef;
-        my @searchargs  = ("man", "-k", "\"$searchfor\"");
+        my @searchargs  = ("apropos", $searchfor);
         
-        open (APROPOS, "@searchargs |")
-                or die "can't open man -k: $!\n";
+        open (APROPOS, "-|", @searchargs)
+                or die "can't open apropos: $!\n";
         while (<APROPOS>) {
                 chomp();
                 push (@apropos, $_);
@@ -435,7 +437,7 @@ sub Apropos { # {{{
 
         foreach $_ (sort @apropos) {
                 chomp();
-## Example "man -k" output that we are trying to parse:
+## Example "apropos" output that we are trying to parse:
 ## a2p (1)              - Awk to Perl translator
 ## #include <qslider.h> (3qt) [qslider] - Vertical or horizontal slider
 ##
@@ -467,31 +469,44 @@ sub Apropos { # {{{
 
 sub PkgDescription () { # {{{
         my $pkg         = shift;
-        my $descr       = '';
-        my $synopsis    = undef;
-        my $fdescr      = 0;     
+        my $descr       = '';    # long description
+        my $synopsis    = undef; # short description
+        my $hpage       = undef; # homepage
+        my $fdescr      = 0;   
         my $res         = 0;
         my $table       = undef;
-        
-        return 0 unless ( -x "/usr/bin/apt-cache" );
 
-        open PKGDESC, ("apt-cache show -o 'APT::Cache::AllVersions=0' \"$pkg\" 2>/dev/null |");
+        return 0 unless (-x $aptcache);
+        open PKGDESC, "-|", ($aptcache, "show", "-o", "APT::Cache::AllVersions=0", $pkg);
         while (<PKGDESC>) {
                 if (!$fdescr && s/^Description:\s+//) {
                         chomp();
                         $synopsis = $_;
                         $fdescr = 1;
-                } elsif ($fdescr) {
-                    last unless /^ /;                            
+                } elsif ($fdescr && ! /^ /) {
+                    $fdescr = 0;
+                } elsif ($fdescr) {     
                     $descr .= $_;
-                }
+                }                    
+                if (!$fdescr && s/^Homepage:\s+//) {
+                        chomp();
+                        $hpage = $_;
+                        last if $fdescr;
+                }                        
+
+
         }
         close PKGDESC;
 
         return 0 unless defined $synopsis;
-        print '<strong>Description:</strong> ' . &HTMLEncode("$synopsis");
+        print '<strong>Description:</strong> ' . &HTMLEncode($synopsis);
         print "\n<br>";
         print &HTMLEncodeAbstract($descr);
+        if (defined $hpage) {
+                $hpage = &HTMLEncode($hpage);
+                print "\n<br><em>Homepage:</em> ";
+                print '<a href="' . $hpage  . '">' . $hpage . '</a>';
+        }
         return 1;
 } # }}}
 
@@ -665,14 +680,14 @@ sub SearchRegisteredDocumentation { # {{{
         push(@searchargs, "--index-file=$dwww_swish_index");
         push(@searchargs, "--skip-results=$startwith") if defined ($startwith);
         push(@searchargs, ("-m", "$maxperpage")) if defined ($maxperpage);
-        push(@searchargs, "\"$searchfor\"");
+        push(@searchargs, $searchfor);
 
         # Swish++ WWW module
         use lib '/usr/lib/swish++';
         my $use_www = eval "require WWW";
 
         
-        open (SEARCH, "@searchargs |")
+        open (SEARCH, "-|", @searchargs)
                 or die "can't open search++: $!\n";
 
         print "<h2>Registered documents related to <em>" . &HTMLEncode($searchfor) . "</em></h2>\n";

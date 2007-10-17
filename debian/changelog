@@ -1,3 +1,29 @@
+dwww (1.10.8) unstable; urgency=low
+
+  * Switch dependency to apache2|httpd-cgi, since apache has been removed from
+    sid.
+
+ -- Robert Luberda <robert@debian.org>  Wed, 17 Oct 2007 15:51:16 +0200
+
+dwww (1.10.7) unstable; urgency=low
+
+  * dwww-convert: set the MAN_KEEP_FORMATTING environment variable before
+    calling man, remove `-Tascii8' option from man added in dwww 1.9.28.
+  * debian/control: bump man-db dependency to >> 2.5.0.
+  * dww-find:
+    + support the Homepage control field;
+    + try to avoid shell while executing external commands.
+
+ -- Robert Luberda <robert@debian.org>  Mon, 15 Oct 2007 20:26:57 +0200
+
+dwww (1.10.6) unstable; urgency=low
+
+  * Don't override encoding of html documents (closes: #403180).
+  * Fix lintian's ` debian-rules-ignores-make-clean-error' warning.
+  * Set mime type of shtml files to text/html.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 25 Sep 2007 23:51:33 +0200
+
 dwww (1.10.5) unstable; urgency=low
 
   * dwww.cgi (comment at the top): Replace reference to README.Debian

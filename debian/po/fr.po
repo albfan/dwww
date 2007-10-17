@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dwww 1.9.0\n"
 "Report-Msgid-Bugs-To: robert@debian.org\n"
-"POT-Creation-Date: 2006-05-30 21:26+0200\n"
+"POT-Creation-Date: 2007-04-03 01:36+0200\n"
 "PO-Revision-Date: 2003-03-21 21:51+0100\n"
 "Last-Translator: Denis Barbier <barbier@linuxfr.org>\n"
 "Language-Team: French <debian-l10n-french@lists.debian.org>\n"
@@ -25,13 +25,13 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dwww.templates:4
+#: ../dwww.templates:1001
 msgid "Location of web server's document root:"
 msgstr "Où se trouve le document racine du serveur web ?"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:4
+#: ../dwww.templates:1001
 msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
@@ -41,13 +41,13 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dwww.templates:11
+#: ../dwww.templates:2001
 msgid "Location of web server's cgi directory:"
 msgstr "Où se trouve le répertoire cgi du serveur web ?"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:11
+#: ../dwww.templates:2001
 msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
@@ -60,13 +60,13 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dwww.templates:19
+#: ../dwww.templates:3001
 msgid "Name of CGI user:"
 msgstr "Nom de l'utilisateur CGI:"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:19
+#: ../dwww.templates:3001
 msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
@@ -76,25 +76,25 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dwww.templates:26
+#: ../dwww.templates:4001
 msgid "Host name of the web server:"
 msgstr "Quel est le nom d'hôte de votre serveur ?"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:26
+#: ../dwww.templates:4001
 msgid "dwww needs to know the host name of your web server."
 msgstr "dwww doit connaître le nom d'hôte de votre serveur."
 
 #. Type: string
 #. Description
-#: ../dwww.templates:32
+#: ../dwww.templates:5001
 msgid "Web server's port:"
 msgstr "Quel est le port de votre serveur ?"
 
 #. Type: string
 #. Description
-#: ../dwww.templates:32
+#: ../dwww.templates:5001
 msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
@@ -104,49 +104,49 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../dwww.templates:38
+#: ../dwww.templates:6001
 msgid "Directory does not exist!"
 msgstr "Répertoire introuvable !"
 
 #. Type: note
 #. Description
-#: ../dwww.templates:38
+#: ../dwww.templates:6001
 msgid "Directory ${dir} does not exist."
 msgstr "Le répertoire ${dir} n'existe pas."
 
 #. Type: note
 #. Description
-#: ../dwww.templates:43
+#: ../dwww.templates:7001
 msgid "User not found!"
 msgstr "Utilisateur introuvable !"
 
 #. Type: note
 #. Description
-#: ../dwww.templates:43
+#: ../dwww.templates:7001
 msgid "User ${user} does not exist."
 msgstr "L'utilisateur ${user} n'existe pas."
 
 #. Type: note
 #. Description
-#: ../dwww.templates:48
+#: ../dwww.templates:8001
 msgid "Port value should be a number!"
 msgstr "Le numéro de port doit être un nombre !"
 
 #. Type: note
 #. Description
-#: ../dwww.templates:48
+#: ../dwww.templates:8001
 msgid "Value entered for port: ${port} is invalid."
 msgstr "La valeur donnée pour le port ${port} n'est pas un nombre."
 
 #. Type: boolean
 #. Description
-#: ../dwww.templates:54
+#: ../dwww.templates:9001
 msgid "Should post-installation script index your documentation files?"
 msgstr "Indexer vos fichiers de documentation après l'installation ?"
 
 #. Type: boolean
 #. Description
-#: ../dwww.templates:54
+#: ../dwww.templates:9001
 msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
@@ -156,7 +156,7 @@ msgstr ""
 
 #. Type: boolean
 #. Description
-#: ../dwww.templates:54
+#: ../dwww.templates:9001
 msgid ""
 "The index can also be generated (in the background) by the post-installation "
 "script. This process needs quite a lot of computer resources, and can take "
