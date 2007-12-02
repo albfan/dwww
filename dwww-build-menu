@@ -19,7 +19,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: dwww-build-menu,v 1.19 2006-05-07 18:30:06 robert Exp $
+# $Id: dwww-build-menu,v 1.20 2007-12-02 13:33:28 robert Exp $
 #
 
 use strict;
@@ -96,7 +96,7 @@ open ERRFILE , ">$out_dir_tmp/errors.html" or &CleanAndDie("Can't create file er
 print ERRFILE &TemplateFile($template_error_start, { 'TITLE'       => &HTMLEncode($title) });
 $ErrorProc = \&ErrorHandle;
 
-&ParseDocDir("/usr/share/doc-base");
+&ParseDocDir("/var/lib/doc-base/documents");
 &ParseDocDir("/var/lib/dwww/menu-method");
 
 &FindMapSections;
@@ -239,9 +239,6 @@ sub AddNewEntry() { # {{{
 	$doc_entry->{'section'} = $sec;
         $doc_entry->{'frm_count'} = $known;
 
-	if ($file =~ m/usr\/share\/doc-base\/(.*)/) {
-		$doc_entry->{'db_fname'} = $1;
-	}
 	push(@{$doc_list{$sec}}, $doc_entry);
 
 } # }}}
@@ -371,8 +368,10 @@ sub DocumentToHTML($) { # {{{
 	my $res = '';
 	my $pkg = undef;
 
-	if (exists $doc->{'db_fname'}) {
-		$pkg = $dbfile2pkg{ $doc->{'db_fname'} };
+	if (exists $doc->{'document'}) {
+		# TODO: document could be generated from more than one control file
+		#       we really should support this
+		$pkg = $dbfile2pkg{ $doc->{'document'} };
 	}
 
 	$res .= "<dt>";
@@ -444,8 +443,8 @@ sub BuildMenus { # {{{
 			print SINGLE_INDEX "<!-- end entry -->\n";
 			print ALL_INDEX $res;
 
-			if (defined $dwww_regdocs_cache and exists $doc->{'db_fname'}) {
-				print CACHE join( "\01", ( $doc->{'db_fname'},
+			if (defined $dwww_regdocs_cache and exists $doc->{'document'}) {
+				print CACHE join( "\01", ( $doc->{'document'},
 							   $section_names{$sec},
 							   $fname . '#' . &HTMLEncode($doc->{'document'}),
 							   &GetURL($doc->{'frm_name_0'}, $doc->{'frm_file_0'}),

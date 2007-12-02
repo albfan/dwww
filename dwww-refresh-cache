@@ -5,7 +5,7 @@
 #
 # Part of the dwww package.  Written by Robert Luberda.
 #
-# "@(#)dwww:$Id: dwww-refresh-cache,v 1.4 2005-10-05 21:25:04 robert Exp $"
+# "@(#)dwww:$Id: dwww-refresh-cache,v 1.6 2007-12-02 13:58:38 robert Exp $"
 
 set -e
 
@@ -52,7 +52,15 @@ fi
 if [ -n "$DWWW_DOCBASE2PKG_DB" ] ; then
         echo -n "creating doc-base files to packages mapping file..."
         grep '/usr/share/doc-base/' "$pkglist" | perl -ne '
-                print $_ if s/^(\S*):\s*\/usr\/share\/doc-base\/(.*)$/$2\01$1/;
+                chomp();
+                my ($pkg, $file) = split(/\s*:\s*/, $_, 2);
+                open (F, "<", $file) or next;
+                $_ = <F>;
+                chomp();
+                close (F);
+                s/^Document\s*:\s*(\S+).*/$1/;
+                next unless -f "/var/lib/doc-base/documents/$_";
+                print "$_\01$pkg\n";
         ' > "$DWWW_DOCBASE2PKG_DB.tmp.$$"
         mv -f "$DWWW_DOCBASE2PKG_DB.tmp.$$" "$DWWW_DOCBASE2PKG_DB"
         chmod 644 "$DWWW_DOCBASE2PKG_DB"

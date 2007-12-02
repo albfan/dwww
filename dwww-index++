@@ -19,7 +19,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #  
 #
-# $Id: dwww-index++,v 1.13 2005-07-16 19:09:21 robert Exp $
+# $Id: dwww-index++,v 1.14 2007-12-02 13:33:29 robert Exp $
 #
 
 use strict;
@@ -93,7 +93,7 @@ push (@index_command, '-');
 $ErrorProc = \&ErrorHandle;
 print STDERR "Parsing doc-base files\n" if $opt_v;
 
-&FilesFromDocBaseDir("/usr/share/doc-base");
+&FilesFromDocBaseDir("/var/lib/doc-base/documents");
 &FilesFromDocBaseDir("/var/lib/dwww/menu-method");
 
 print STDERR "Sorting list of files\n" if $opt_v;

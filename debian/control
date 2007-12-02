@@ -8,7 +8,7 @@ Standards-Version: 3.7.2
 Package: dwww
 Architecture: any
 Section: doc
-Depends: apache2 | httpd-cgi, man-db (>> 2.5.0), file, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}, menu (>= 2.1.24), doc-base (>= 0.7.17), debianutils (>= 2.5), libmime-types-perl (>= 1.15), mime-support, libfile-ncopy-perl
+Depends: apache2 | httpd-cgi, man-db (>> 2.5.0), file, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}, menu (>= 2.1.24), doc-base (>= 0.8.7), debianutils (>= 2.5), libmime-types-perl (>= 1.15), mime-support, libfile-ncopy-perl
 Recommends: info2www, dlocate (>= 0.5-0.1), apt
 Suggests: links | www-browser, doc-debian, swish++, dpkg-www
 Description: Read all on-line documentation with a WWW browser

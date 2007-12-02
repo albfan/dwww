@@ -1,3 +1,10 @@
+dwww (1.10.9) unstable; urgency=low
+
+  * Read doc-base files from /var/lib/doc-base/documents.
+  * Bump dependency on doc-base.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 02 Dec 2007 14:33:15 +0100
+
 dwww (1.10.8) unstable; urgency=low
 
   * Switch dependency to apache2|httpd-cgi, since apache has been removed from
