@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# vim:ft=perl:cindent:ts=4:sw=4:et:fdm=marker:cms=\ #\ %s
+# vim:ft=perl:cindent:ts=4:sts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
 # dwww-convert -- convert docs to HTML if necessary
 #
@@ -8,12 +8,12 @@
 # or PNG images) are best handled by or via the user's webbrowser.
 #
 # Simple usage: $0 <type> <location>
-# 	<type> is document type: text, man, html, ps, and so on
-#	<location> is full pathname to original document
+#   <type> is document type: text, man, html, ps, and so on
+#   <location> is full pathname to original document
 #
 # Part of the Debian dwww package.  Written by Lars Wirzenius.
 # Modified by Robert Luberda.
-# "@(#)dwww:$Id: dwww-convert,v 1.47 2007-10-15 18:27:10 robert Exp $"
+# "@(#)dwww:$Id: dwww-convert,v 1.51 2008-02-24 10:49:24 robert Exp $"
 
 use strict;
 
@@ -153,7 +153,7 @@ sub IsTopLevelDir() { # {{{
 } # }}}
     
 sub BuiltinDir2Html() { # {{{
-	my $dir         = shift;
+    my $dir         = shift;
     my $cacheProg   = shift;
     my $f           = undef;
     my @filelist = ();
@@ -242,7 +242,7 @@ sub BuiltinMan2Html() { # {{{
     $dir =~ s/\/[^\/]*$//;
     chdir ("$dir/..") or die "Can't chdir!\n";
     $ENV{'MAN_KEEP_FORMATTING'} = 1;
-    my $IN_FH = &OpenPipe("man  -P/bin/cat -l \"$filename\" 2>/dev/null | dwww-txt2html --man", "r");
+    my $IN_FH = &OpenPipe("man  -P/bin/cat  -l \"$filename\" 2>/dev/null | dwww-txt2html --man", "r");
     chdir ("/");
     while (<$IN_FH>) {
         print $OUT_FH $_;
@@ -282,7 +282,7 @@ sub BuiltinInfo2Html() { # {{{
     my $cacheProg   = shift;
 
     my $cachePipe   = defined $cacheProg ? " | $cacheProg" : "";
-	system("/usr/lib/cgi-bin/info2www \"$filename\"" . $cachePipe);
+    system("/usr/lib/cgi-bin/info2www \"$filename\"" . $cachePipe);
 } # }}}
 
 
@@ -293,7 +293,7 @@ sub GuessFileName() { # {{{
     foreach my $lang ( ("", ".en") ) {
         foreach my $comp ( ("", ".gz", ".bz2") ) {
             if ($is_html) {
-    			foreach my $suff (".html", ".htm" ) {
+                foreach my $suff (".html", ".htm" ) {
                     my $f = "${basefile}${suff}${lang}${comp}";
                     return $f if (-f $f and -r $f);
                 }
@@ -314,11 +314,11 @@ sub PrintHeaders() { # {{{
     my $mime_type   = shift;
     my $mime_charset= shift;
 
-	print "Content-type: $mime_type" . (defined $mime_charset ? "; charset=$mime_charset\n" : "\n");
+    print "Content-type: $mime_type" . (defined $mime_charset ? "; charset=$mime_charset\n" : "\n");
     my @stat = stat( $filename );
     my $mtime = $stat[9];
     print "Last modified: " . gmtime($mtime) . "\n";
-	print "Content-Disposition: inline; filename=\"$base_name\"\n";
+    print "Content-Disposition: inline; filename=\"$base_name\"\n";
     print "\n";
 } # }}}
 
@@ -327,14 +327,25 @@ sub PrintHeaders() { # {{{
 #
 # Main program
 #
+my $uses_path_info = 1;
 
-my $uses_path_info =  defined $ARGV[0] && ($ARGV[0] ne '--no-path-info');
-shift @ARGV unless $uses_path_info;
+while ($ARGV[0] =~ m/^--(.*)$/) {
+        shift @ARGV;
+        if ($1 eq "no-path-info") { $uses_path_info = 0 }
+        elsif (not $1) { last; }
+        else {
+                print STDERR "Error: unknown option `$ARGV[0]'\n";
+                print STDERR "Usage: $0 [--no-path-info] <type> <location>\n";
+                exit(1);
+        }
+}
+
+
 
 if ( $#ARGV < 1 || $ARGV[0] eq "" || $ARGV[1] eq "" ) {
     print STDERR "Error: invalid arguments\n";
-	print STDERR "Usage: $0 <type> <location>\n";
-	exit 1;
+    print STDERR "Usage: $0 [--no-path-info] <type> <location>\n";
+    exit 1;
 }
 
 my $type = $ARGV[0];
@@ -363,11 +374,11 @@ if ( ! -e $file ) {
 
     } elsif ( $type eq "html" || $type eq "text/html" ) {
 
-    	# A link may have referred to a .html file
-    	# when only a .html.gz file exists.  So check
-    	# to see if alternate file exists, and use
-    	# that one if it does
-	    my $tmp=$file;
+        # A link may have referred to a .html file
+        # when only a .html.gz file exists.  So check
+        # to see if alternate file exists, and use
+        # that one if it does
+        my $tmp=$file;
         $tmp =~ s/(.*)\.htm.*$//;   # remove suffix
         if (defined ( $tmp = &GuessFileName($tmp, 1) ) ) {
             $file = $tmp;
@@ -431,9 +442,9 @@ if ( ! -d $file ) {
         # first find the file extension
         my $extension = ($base_name =~ /\.([^\/\.]+)$/) ? $1 : "";
 
-	    # then guess the file type depending on the extension
-    	# if the extension is of size 0 or more than 4
-    	# text is assumed.
+        # then guess the file type depending on the extension
+        # if the extension is of size 0 or more than 4
+        # text is assumed.
 
         if ($extension eq "" || $extension eq "txt" || $extension eq "text") {
             $type = "text/plain";
@@ -442,7 +453,7 @@ if ( ! -d $file ) {
         } elsif ($extension eq "css") {
             $type = "text/css";
         } elsif ($extension =~ /^[1-9][a-z]*/ && $file =~ /\/man\//) {
-			# if file is located in */man/* directory, assume it's a man page
+        # if file is located in */man/* directory, assume it's a man page
             $type = "man";
         } elsif ($extension =~ /^info.*/ && $file =~ /\/info\//) {
             $type = "info";
@@ -462,28 +473,28 @@ if ( ! -d $file ) {
 
 my $convertFunction = undef;
 my $mime_type = "text/html";
+my $mime_charset=undef;
 # Ok, now we can convert the file
 if ($type eq "man" || $type eq "runman") {
-	$convertFunction  =   \&BuiltinMan2Html;
+    $convertFunction  =   \&BuiltinMan2Html;
 } elsif ($type eq "dir") {
-	$convertFunction  =   \&BuiltinDir2Html;
+    $convertFunction  =   \&BuiltinDir2Html;
 } elsif ($type eq "info") {
-	$convertFunction  =   \&BuiltinInfo2Html;
+    $convertFunction  =   \&BuiltinInfo2Html;
 } elsif ($type eq "text/plain") {
-	$convertFunction  =   \&BuiltinText2Html;
+    $convertFunction  =   \&BuiltinText2Html;
 } elsif ($type ne  "html") {
-	$mime_type  =   $type;
+    $mime_type  =   $type;
 }
 
-my $mime_charset=undef;
 # Do not set mime type for html docs. Either they have a header or we can
 # mostly trust the server and browsers to guess correctly.
-if ($mime_type =~ /^text\// and  $mime_type !~ /^text\/html/) {
+if ($mime_type =~ /^text\// and  $type !~ /^(?:text\/)?html$/) {
     $mime_charset="ISO-8859-1";
     if ($file =~ /(^\/usr\/share\/doc\/[^\/]+\/)([^\/]+)$/o) {
         if (($2 eq "changelog.Debian.gz") || ($2 eq "copyright") ||
             ($2 eq "changelog.gz" && ! -e "$1/changelog.Debian.gz")) {
-		        $mime_charset="UTF-8";
+                $mime_charset="UTF-8";
         }
     } 
 }
@@ -491,14 +502,14 @@ if ($mime_type =~ /^text\// and  $mime_type !~ /^text\/html/) {
 &PrintHeaders($file, $base_name, $mime_type, $mime_charset);
 
 if ( not defined $convertFunction )  {
-	&DecompressFile($file);
-	exit 0;
+    &DecompressFile($file);
+    exit 0;
 }
 
 my $cacheProg = undef;
 if ($dwww_use_cache) {
-		# Store the file in the cache unless it is already stored
-		if (system ("dwww-cache --lookup \"$type\" \"$file\"") == 0) {
+        # Store the file in the cache unless it is already stored
+        if (system ("dwww-cache --lookup \"$type\" \"$file\"") == 0) {
             exit 0;
         } else {
             $cacheProg = "dwww-cache --store \"$type\" \"$file\"";

@@ -1,8 +1,12 @@
 This is dwww, packaged for Debian by Lars Wirzenius <liw@iki.fi>.
 Original author is also Lars Wirzenius.
 
-The package is now maintained by Robert Luberda <robert@debian.org>
+The package is now maintained by Robert Luberda <robert@debian.org>.
 Former maintainer was Jim Pick <jim@jimpick.com>.
+
+Copyright: (C) 1996 Lars Wirzenius <liw@iki.fi>
+           (C) 1996-1998 Jim Pick <jim@jimpick.com>
+           (C) 2001-2008 Robert Luberda <robert@debian.org>
 
 dwww is free software.  You may copy it according to the
 GNU General Public License, version 2. A copy of the license

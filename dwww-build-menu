@@ -19,7 +19,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: dwww-build-menu,v 1.20 2007-12-02 13:33:28 robert Exp $
+# $Id: dwww-build-menu 480 2008-04-20 10:38:40Z robert $
 #
 
 use strict;
@@ -46,13 +46,14 @@ $dwww_db2pkg_cache	= undef if "$dwww_db2pkg_cache" eq "" and not ( -r "$dwww_db2
 
 undef %{$dwwwconf};
 
-my $templates_dir 		= "/usr/share/dwww";
-my $template_single_start 	= "$templates_dir/menu.single.start";
-my $template_single_end 	= "$templates_dir/menu.end";
-my $template_all_start 		= "$templates_dir/menu.all.start";
-my $template_all_end 		= "$templates_dir/menu.end";
-my $template_error_start 	= "$templates_dir/menu.errors.start";
-my $template_error_end 		= "$templates_dir/menu.errors.end";
+my $templates_dir		= "/usr/share/dwww";
+my $template_single_start	= "$templates_dir/menu.single.start";
+my $template_single_end		= "$templates_dir/menu.end";
+my $template_all_start		= "$templates_dir/menu.all.start";
+my $template_all_end		= "$templates_dir/menu.end";
+my $template_error_start	= "$templates_dir/menu.errors.start";
+my $template_error_end		= "$templates_dir/menu.errors.end";
+my $template_nosections		= "$templates_dir/menu.nosections";
 
 my $single_index = 'one';
 my $all_index    = 'all';
@@ -97,7 +98,6 @@ print ERRFILE &TemplateFile($template_error_start, { 'TITLE'       => &HTMLEncod
 $ErrorProc = \&ErrorHandle;
 
 &ParseDocDir("/var/lib/doc-base/documents");
-&ParseDocDir("/var/lib/dwww/menu-method");
 
 &FindMapSections;
 
@@ -105,9 +105,9 @@ $ErrorProc = \&ErrorHandle;
 &ReadDocb2PkgCache;
 &BuildMenus;
 
-link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index),
-     "$out_dir_tmp/index.html") or
-	print STDERR "Can't create index.html link: $!\n";
+&CreateIndex;
+
+
 &rmtree($out_dir);
 &RenameDir($out_dir_tmp, $out_dir);
 
@@ -472,4 +472,19 @@ sub BuildMenus { # {{{
 		return 0;
 	}
 
+} # }}}
+
+sub CreateIndex() { # {{{
+	if (%sections) {
+		link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index),
+     		"$out_dir_tmp/index.html")
+			or print STDERR "Can't create index.html link: $!\n";
+	} else {
+		open INDEX, ">$out_dir_tmp/all.html" or &CleanAndDie("Can't create all.html file: $!");
+		print INDEX &TemplateFile($template_nosections,
+					{ 'TITLE'       => &HTMLEncode($title) } );
+		close INDEX;
+		link("$out_dir_tmp/all.html", "$out_dir_tmp/index.html")
+			or print STDERR "Can't create index.html link: $!\n";
+	}
 } # }}}

@@ -1,3 +1,54 @@
+dwww (1.10.13) unstable; urgency=medium
+
+  * dwww-build-menu: Don't fail if no documents are registered with doc-base.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 20 Apr 2008 12:35:29 +0200
+
+dwww (1.10.12) unstable; urgency=medium
+
+  * dwww-build-menu, dwww-index++: don't parse /var/lib/dwww/menu-methods
+    compatibility dir. This means that support for old method of registering
+    docs with dwww is efectivelly dropped (however update-menus still is
+    used until doc-base switches to call dwww-update-menu directly).
+  * dwww-build-menu(8): updated for the above change.
+  * dwww.preinst: run background building of dwww pages in a new session to
+    avoid apt bug#463030.
+  * dwww-cache.c: print real help message.
+  * dwww-refresh-case: also clean temporary dirs left by dwww-build and
+    dwww-build-menu.
+
+ -- Robert Luberda <robert@debian.org>  Thu, 10 Apr 2008 21:25:39 +0200
+
+dwww (1.10.11) unstable; urgency=low
+
+  * dwww-convert, dwww-find, dwww-quickfind:
+    + pass "--" before arguments to external commands call,
+    + add support for "--" options' separator.
+  * Build with debhelper v6.
+  * debian/copyright: add copyright notice (lintian).
+  * lib/menu*start: set charset to UTF-8.
+  * debian/control: bump dependency on doc-base.
+  * dwww-convert: fix setting encoding of copyright and changelogs files,
+    which got broken in 1.10.6.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 24 Feb 2008 11:49:32 +0100
+
+dwww (1.10.10) unstable; urgency=low
+
+  * dwww-index++:
+    + apply patch with improvements from Ian Zimmerman (closes: #454757),
+    + rewrite and refactor the code,
+    + add support  for incremental indexing (closes: #454612). By default
+      generate full index each month and incremental index each week.
+  * dwww-refresh-cache: made it work when /var/cache/dwww is a symlink.
+  * cron.weekly: use ionice(1) to set the lowest io scheduling class.
+  * Add support for https protocol (closes: #456371).
+  * Remove empty /u/s/lintian/overrides directory (lintian).
+  * Standards-Version: 3.7.3 (no changes).
+  * Update documentation.
+
+ -- Robert Luberda <robert@debian.org>  Sat, 15 Dec 2007 18:12:58 +0100
+
 dwww (1.10.9) unstable; urgency=low
 
   * Read doc-base files from /var/lib/doc-base/documents.
@@ -40,8 +91,8 @@ dwww (1.10.5) unstable; urgency=low
 
 dwww (1.10.4) unstable; urgency=medium
 
-  * dwww.menu-method: check for existance of the /var/lib/dwww/menu-method
-    directory (used for backward compatibilty reasons) before trying to remove
+  * dwww.menu-method: check for existence of the /var/lib/dwww/menu-method
+    directory (used for backward compatibility reasons) before trying to remove
     files from that location.
 
  -- Robert Luberda <robert@debian.org>  Fri, 30 Mar 2007 22:23:16 +0200
@@ -186,7 +237,7 @@ dwww (1.9.90) experimental; urgency=low
     + use MIME:Types module for handling mime types.
     + move access checking code to Dwww::Utils.
     + drop html2html and css2css conversions code, no longer needed.
-    + temporary drop handling of USE_FILEDIR, will be readded soon.
+    + temporary drop handling of DWWW_USEFILEDIR, will be readded soon.
   * Dwww/Initialize.pl: split DWWW_DOCPATH & ALLOWEDLINKPATH into array
     for better access in other modules.
   * Dwww/Utils.pl:

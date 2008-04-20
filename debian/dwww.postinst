@@ -2,7 +2,7 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.11 2007-01-01 11:14:30 robert Exp $
+# $Id: dwww.postinst 474 2008-04-10 21:43:29Z robert $
 #
 
 use Debconf::Client::ConfModule qw(:all);
@@ -68,7 +68,7 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 	if ( -x "/etc/cron.daily/dwww" )
 	{
 		print STDERR "\nBuilding dwww pages in the background...\n";
-		system("/etc/cron.daily/dwww &");
+		system("setsid /etc/cron.daily/dwww &");
 	}
 
 	if ($do_index and -x "/usr/sbin/dwww-index++")	

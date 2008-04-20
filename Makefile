@@ -1,6 +1,6 @@
 #
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile,v 1.30 2006-05-30 18:56:29 robert Exp $"
+# "@(#)dwww:$Id: Makefile,v 1.31 2008-01-31 19:55:43 robert Exp $"
 #
 
 VERSION	= $(shell dpkg-parsechangelog | sed -ne 's/^Version: *//p')
@@ -20,10 +20,6 @@ ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
   CFLAGS += -O0
 else
   CFLAGS += -O2
-endif
-
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-  LDFLAGS += -s
 endif
 
 

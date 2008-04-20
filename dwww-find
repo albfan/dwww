@@ -1,8 +1,8 @@
 #!/usr/bin/perl
-# vim:ft=perl:cindent:ts=8:et:fdm=marker:cms=\ #\ %s
+# vim:ft=perl:cindent:ts=4:sts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
 # Find all docs related to one program or find matching entries in Debian Doc. Menu
-# "$Id: dwww-find,v 1.51 2007-10-15 18:27:10 robert Exp $"
+# "$Id: dwww-find,v 1.52 2008-01-31 19:55:43 robert Exp $"
 #
 
 use strict;
@@ -52,16 +52,17 @@ if (! defined $ARGV[0]) {
 my $mode="p";
 my $skip=0;
 while ($ARGV[0] =~ m/^--(.*)$/) {
+        shift @ARGV;
         if ($1 eq "package") { $mode = "p"; }
         elsif ($1 eq "menu") { $mode = "m"; }
         elsif ($1 eq "documentation") { $mode = "d"; }
         elsif ($1 eq "docfile") { $mode = "f"; }
         elsif ($1 =~ m/^skip=(\d+)$/) { $skip=$1 ; }
+        elsif (not $1) { last; }
         else {
                 print STDERR "usage: $0 [--package|--menu|--documentation|--docfile] searcharg\n";
                 exit(1);
         }
-        shift @ARGV;
 }
 
 
@@ -196,7 +197,7 @@ sub FindPkg { # {{{
         my @ret = ();
 
         if ( not defined $type and -r "$dwww_quickfind_db" ) {
-                open (FINDPKG, "-|", ("dwww-quickfind", $searchfor, $dwww_quickfind_db));
+                open (FINDPKG, "-|", ("dwww-quickfind", "--", $searchfor, $dwww_quickfind_db));
                 while (<FINDPKG>) {
                     chomp();
                     push(@ret, $_);
@@ -241,7 +242,7 @@ sub SearchPackage { # {{{
                         &AddSeparator($f_cnt);
                         $f_cnt += &ShowPkgInfo( $pkg );
                 }
-                $f_cnt += &Apropos ("$arg");
+                $f_cnt += &Apropos ($arg);
         }
         return $f_cnt;
 } # }}}
@@ -425,7 +426,7 @@ sub Apropos { # {{{
         my @apropos     = ();
         my $res         = 0;
         my $table       = undef;
-        my @searchargs  = ("apropos", $searchfor);
+        my @searchargs  = ("apropos", "--", $searchfor);
         
         open (APROPOS, "-|", @searchargs)
                 or die "can't open apropos: $!\n";
@@ -477,7 +478,7 @@ sub PkgDescription () { # {{{
         my $table       = undef;
 
         return 0 unless (-x $aptcache);
-        open PKGDESC, "-|", ($aptcache, "show", "-o", "APT::Cache::AllVersions=0", $pkg);
+        open PKGDESC, "-|", ($aptcache, "show", "-o", "APT::Cache::AllVersions=0", "--", $pkg);
         while (<PKGDESC>) {
                 if (!$fdescr && s/^Description:\s+//) {
                         chomp();
@@ -680,6 +681,7 @@ sub SearchRegisteredDocumentation { # {{{
         push(@searchargs, "--index-file=$dwww_swish_index");
         push(@searchargs, "--skip-results=$startwith") if defined ($startwith);
         push(@searchargs, ("-m", "$maxperpage")) if defined ($maxperpage);
+        push(@searchargs, "--");
         push(@searchargs, $searchfor);
 
         # Swish++ WWW module
