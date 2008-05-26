@@ -2,12 +2,11 @@
 # vim:ft=perl:cindent:ts=8
 # 
 # postinst for dwww
-# $Id: dwww.postinst,v 1.11 2007-01-01 11:14:30 robert Exp $
+# $Id: dwww.postinst 490 2008-05-13 20:17:13Z robert $
 #
 
 use Debconf::Client::ConfModule qw(:all);
 
-$stddocdir = '/var/www';
 $stdcgidir = '/usr/lib/cgi-bin';
 $cfgfile   = '/etc/dwww/dwww.conf';
 $|=1;
@@ -68,7 +67,7 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 	if ( -x "/etc/cron.daily/dwww" )
 	{
 		print STDERR "\nBuilding dwww pages in the background...\n";
-		system("/etc/cron.daily/dwww &");
+		system("setsid /etc/cron.daily/dwww &");
 	}
 
 	if ($do_index and -x "/usr/sbin/dwww-index++")	
@@ -86,9 +85,11 @@ else
 
 my $dh_commands="set -- @ARGV\\n" . << 'EOF';
 set -e
-if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl "1.5.0"; then
+if [ "$1" = "configure" ] && dpkg --compare-versions "$2" lt-nl "1.10.14"; then
     rm -f /etc/cron.daily/dwww.saved_by_dwww_preinst \
-          /etc/menu-methods/dwww.saved_by_dwww_preinst
+          /etc/menu-methods/dwww.saved_by_dwww_preinst \
+	  /etc/menu-methods/dwww 
+   rm -rf /var/lib/dwww/menu-method
 fi
 #DEBHELPER#
 EOF

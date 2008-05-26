@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: dwww.cron.weekly,v 1.2 2006-05-30 18:56:45 robert Exp $
+# $Id: dwww.cron.weekly,v 1.3 2007-12-16 09:56:31 robert Exp $
 #
 # This script creates an index of Debian documentation registered
 # with doc-base. See dwww-index++(8) man page for details.
@@ -10,8 +10,13 @@ test -x /usr/bin/index++ || exit 0
 # check if dwww is still installed
 test -x /usr/sbin/dwww-index++ || exit 0
 
+
+
 set -e
 
-dwww-index++ > /dev/null
+# See ionice(1)
+[ -x /usr/bin/ionice ] &&  IONICE="/usr/bin/ionice -c3" || IONICE=
+
+$IONICE dwww-index++ > /dev/null
 
 exit 0

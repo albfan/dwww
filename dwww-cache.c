@@ -3,7 +3,7 @@
  * File:	dwww-cache.c
  * Purpose:	Manage the dwww cache of converted documents.
  * Author:	Lars Wirzenius
- * Version:	"(#)dwww:$Id: dwww-cache.c,v 1.14 2005-03-08 20:15:10 robert Exp $"
+ * Version:	"(#)dwww:$Id: dwww-cache.c 477 2008-04-11 19:18:32Z robert $"
  * Description:	See the manual page for how to use this program.
  *
  *		Basically, what we do is read in a file from stdin,
@@ -163,7 +163,12 @@ static int list(char *, char *);
 static int list_all(char *, char *);
 static int clean(char *, char *);
 
-static int help(char *type, char *location) { (void) puts("help"); return 0; }
+static int help(char *type, char *location) { 
+	fprintf(stdout, "Usage: %s [--lookup|--store|--list] type location\n"
+					"       %s --list-all|--clean|--help\n",
+					get_progname(), get_progname() );
+	exit(0);
+}	
 
 static int open_db_reading(void);
 static int open_db_writing(void);

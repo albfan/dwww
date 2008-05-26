@@ -19,7 +19,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 #
-# $Id: dwww-build-menu,v 1.19 2006-05-07 18:30:06 robert Exp $
+# $Id: dwww-build-menu 482 2008-04-20 11:13:06Z robert $
 #
 
 use strict;
@@ -46,13 +46,14 @@ $dwww_db2pkg_cache	= undef if "$dwww_db2pkg_cache" eq "" and not ( -r "$dwww_db2
 
 undef %{$dwwwconf};
 
-my $templates_dir 		= "/usr/share/dwww";
-my $template_single_start 	= "$templates_dir/menu.single.start";
-my $template_single_end 	= "$templates_dir/menu.end";
-my $template_all_start 		= "$templates_dir/menu.all.start";
-my $template_all_end 		= "$templates_dir/menu.end";
-my $template_error_start 	= "$templates_dir/menu.errors.start";
-my $template_error_end 		= "$templates_dir/menu.errors.end";
+my $templates_dir		= "/usr/share/dwww";
+my $template_single_start	= "$templates_dir/menu.single.start";
+my $template_single_end		= "$templates_dir/menu.end";
+my $template_all_start		= "$templates_dir/menu.all.start";
+my $template_all_end		= "$templates_dir/menu.end";
+my $template_error_start	= "$templates_dir/menu.errors.start";
+my $template_error_end		= "$templates_dir/menu.errors.end";
+my $template_nosections		= "$templates_dir/menu.nosections";
 
 my $single_index = 'one';
 my $all_index    = 'all';
@@ -96,8 +97,7 @@ open ERRFILE , ">$out_dir_tmp/errors.html" or &CleanAndDie("Can't create file er
 print ERRFILE &TemplateFile($template_error_start, { 'TITLE'       => &HTMLEncode($title) });
 $ErrorProc = \&ErrorHandle;
 
-&ParseDocDir("/usr/share/doc-base");
-&ParseDocDir("/var/lib/dwww/menu-method");
+&ParseDocDir("/var/lib/doc-base/documents");
 
 &FindMapSections;
 
@@ -105,9 +105,9 @@ $ErrorProc = \&ErrorHandle;
 &ReadDocb2PkgCache;
 &BuildMenus;
 
-link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index),
-     "$out_dir_tmp/index.html") or
-	print STDERR "Can't create index.html link: $!\n";
+&CreateIndex;
+
+
 &rmtree($out_dir);
 &RenameDir($out_dir_tmp, $out_dir);
 
@@ -239,9 +239,6 @@ sub AddNewEntry() { # {{{
 	$doc_entry->{'section'} = $sec;
         $doc_entry->{'frm_count'} = $known;
 
-	if ($file =~ m/usr\/share\/doc-base\/(.*)/) {
-		$doc_entry->{'db_fname'} = $1;
-	}
 	push(@{$doc_list{$sec}}, $doc_entry);
 
 } # }}}
@@ -371,8 +368,10 @@ sub DocumentToHTML($) { # {{{
 	my $res = '';
 	my $pkg = undef;
 
-	if (exists $doc->{'db_fname'}) {
-		$pkg = $dbfile2pkg{ $doc->{'db_fname'} };
+	if (exists $doc->{'document'}) {
+		# TODO: document could be generated from more than one control file
+		#       we really should support this
+		$pkg = $dbfile2pkg{ $doc->{'document'} };
 	}
 
 	$res .= "<dt>";
@@ -444,8 +443,8 @@ sub BuildMenus { # {{{
 			print SINGLE_INDEX "<!-- end entry -->\n";
 			print ALL_INDEX $res;
 
-			if (defined $dwww_regdocs_cache and exists $doc->{'db_fname'}) {
-				print CACHE join( "\01", ( $doc->{'db_fname'},
+			if (defined $dwww_regdocs_cache and exists $doc->{'document'}) {
+				print CACHE join( "\01", ( $doc->{'document'},
 							   $section_names{$sec},
 							   $fname . '#' . &HTMLEncode($doc->{'document'}),
 							   &GetURL($doc->{'frm_name_0'}, $doc->{'frm_file_0'}),
@@ -473,4 +472,19 @@ sub BuildMenus { # {{{
 		return 0;
 	}
 
+} # }}}
+
+sub CreateIndex() { # {{{
+	if (%sections) {
+		link("$out_dir_tmp/" . &SectionToFileName((sort keys %sections)[0], $single_index),
+     		"$out_dir_tmp/index.html")
+			or print STDERR "Can't create index.html link: $!\n";
+	} else {
+		open INDEX, ">$out_dir_tmp/all.html" or &CleanAndDie("Can't create all.html file: $!");
+		print INDEX &TemplateFile($template_nosections,
+					{ 'TITLE'       => &HTMLEncode($title) } );
+		close INDEX;
+		link("$out_dir_tmp/all.html", "$out_dir_tmp/index.html")
+			or print STDERR "Can't create index.html link: $!\n";
+	}
 } # }}}

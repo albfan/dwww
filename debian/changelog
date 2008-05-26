@@ -1,3 +1,129 @@
+dwww (1.10.15) unstable; urgency=low
+
+  * Upload to unstable.
+  * Add Galician translation of debconf templates (closes: #482671).
+  * Exclude /var/www/dwww from binary package (lintian).
+
+ -- Robert Luberda <robert@debian.org>  Mon, 26 May 2008 20:23:07 +0200
+
+dwww (1.10.14) experimental; urgency=low
+
+  * Remove menu-method file and completely drop support for registering docs
+    with menu files.
+  * dwww-txt2html.c: 
+    + better support for UTF8-encoded documents;
+    + add --utf8 option;
+    + refactor code;
+    + handle basic CSI sequences.
+  * dwww-txt2html(8): updated.
+  * dwww-refresh-cache: remove dwww-build-menu* temporary dirs. 
+  * dwww-quickfind, dwww-refresh-cache, dwww-find: add support for displaying
+    other packages built from the same source (closes: #49353, as all other
+    things mentioned is have been already fixed).
+  * dwww-convert: use `man -E' to show man pages in UTF-8.
+  * control: remove dependency on menu, bump dependency on man-db.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 13 May 2008 22:09:32 +0200
+
+dwww (1.10.13) unstable; urgency=medium
+
+  * dwww-build-menu: Don't fail if no documents are registered with doc-base.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 20 Apr 2008 12:35:29 +0200
+
+dwww (1.10.12) unstable; urgency=medium
+
+  * dwww-build-menu, dwww-index++: don't parse /var/lib/dwww/menu-methods
+    compatibility dir. This means that support for old method of registering
+    docs with dwww is effectively dropped (however update-menus still is
+    used until doc-base switches to call dwww-update-menu directly).
+  * dwww-build-menu(8): updated for the above change.
+  * dwww.preinst: run background building of dwww pages in a new session to
+    avoid apt bug#463030.
+  * dwww-cache.c: print real help message.
+  * dwww-refresh-case: also clean temporary dirs left by dwww-build and
+    dwww-build-menu.
+
+ -- Robert Luberda <robert@debian.org>  Thu, 10 Apr 2008 21:25:39 +0200
+
+dwww (1.10.11) unstable; urgency=low
+
+  * dwww-convert, dwww-find, dwww-quickfind:
+    + pass "--" before arguments to external commands call,
+    + add support for "--" options' separator.
+  * Build with debhelper v6.
+  * debian/copyright: add copyright notice (lintian).
+  * lib/menu*start: set charset to UTF-8.
+  * debian/control: bump dependency on doc-base.
+  * dwww-convert: fix setting encoding of copyright and changelogs files,
+    which got broken in 1.10.6.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 24 Feb 2008 11:49:32 +0100
+
+dwww (1.10.10) unstable; urgency=low
+
+  * dwww-index++:
+    + apply patch with improvements from Ian Zimmerman (closes: #454757),
+    + rewrite and refactor the code,
+    + add support  for incremental indexing (closes: #454612). By default
+      generate full index each month and incremental index each week.
+  * dwww-refresh-cache: made it work when /var/cache/dwww is a symlink.
+  * cron.weekly: use ionice(1) to set the lowest io scheduling class.
+  * Add support for https protocol (closes: #456371).
+  * Remove empty /u/s/lintian/overrides directory (lintian).
+  * Standards-Version: 3.7.3 (no changes).
+  * Update documentation.
+
+ -- Robert Luberda <robert@debian.org>  Sat, 15 Dec 2007 18:12:58 +0100
+
+dwww (1.10.9) unstable; urgency=low
+
+  * Read doc-base files from /var/lib/doc-base/documents.
+  * Bump dependency on doc-base.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 02 Dec 2007 14:33:15 +0100
+
+dwww (1.10.8) unstable; urgency=low
+
+  * Switch dependency to apache2|httpd-cgi, since apache has been removed from
+    sid.
+
+ -- Robert Luberda <robert@debian.org>  Wed, 17 Oct 2007 15:51:16 +0200
+
+dwww (1.10.7) unstable; urgency=low
+
+  * dwww-convert: set the MAN_KEEP_FORMATTING environment variable before
+    calling man, remove `-Tascii8' option from man added in dwww 1.9.28.
+  * debian/control: bump man-db dependency to >> 2.5.0.
+  * dww-find:
+    + support the Homepage control field;
+    + try to avoid shell while executing external commands.
+
+ -- Robert Luberda <robert@debian.org>  Mon, 15 Oct 2007 20:26:57 +0200
+
+dwww (1.10.6) unstable; urgency=low
+
+  * Don't override encoding of html documents (closes: #403180).
+  * Fix lintian's ` debian-rules-ignores-make-clean-error' warning.
+  * Set mime type of shtml files to text/html.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 25 Sep 2007 23:51:33 +0200
+
+dwww (1.10.5) unstable; urgency=low
+
+  * dwww.cgi (comment at the top): Replace reference to README.Debian
+    with an instruction how to enable CGI in apache2 (closes: #417095).
+
+ -- Robert Luberda <robert@debian.org>  Sun, 01 Apr 2007 20:58:35 +0200
+
+dwww (1.10.4) unstable; urgency=medium
+
+  * dwww.menu-method: check for existence of the /var/lib/dwww/menu-method
+    directory (used for backward compatibility reasons) before trying to remove
+    files from that location.
+
+ -- Robert Luberda <robert@debian.org>  Fri, 30 Mar 2007 22:23:16 +0200
+
 dwww (1.10.3) unstable; urgency=low
 
   * Initial Russian translation of debconf templates (closes: #406243).
@@ -138,7 +264,7 @@ dwww (1.9.90) experimental; urgency=low
     + use MIME:Types module for handling mime types.
     + move access checking code to Dwww::Utils.
     + drop html2html and css2css conversions code, no longer needed.
-    + temporary drop handling of USE_FILEDIR, will be readded soon.
+    + temporary drop handling of DWWW_USEFILEDIR, will be readded soon.
   * Dwww/Initialize.pl: split DWWW_DOCPATH & ALLOWEDLINKPATH into array
     for better access in other modules.
   * Dwww/Utils.pl:

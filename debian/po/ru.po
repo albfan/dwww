@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.10.2\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-01-09 04:30+0100\n"
+"Report-Msgid-Bugs-To: robert@debian.org\n"
+"POT-Creation-Date: 2007-04-03 01:36+0200\n"
 "PO-Revision-Date: 2007-01-09 22:06+0300\n"
 "Last-Translator: Yuri Kozlov <kozlov.y@gmail.com>\n"
 "Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
@@ -15,7 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
-"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Type: string
 #. Description
@@ -30,8 +31,8 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"Для dwww нужно указать путь к каталогу, который содержит корневой "
-"документ вашего веб-сервера. В стандартах веб предполагается /var/www."
+"Для dwww нужно указать путь к каталогу, который содержит корневой документ "
+"вашего веб-сервера. В стандартах веб предполагается /var/www."
 
 #. Type: string
 #. Description
@@ -47,9 +48,9 @@ msgid ""
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"Для dwww нужно указать путь к каталогу, который содержит сценарии "
-"CGI вашего веб-сервера. В стандартах веб предполагается /usr/lib/cgi-bin, "
-"но для вашего веб-сервера может быть уже настроен другой каталог."
+"Для dwww нужно указать путь к каталогу, который содержит сценарии CGI вашего "
+"веб-сервера. В стандартах веб предполагается /usr/lib/cgi-bin, но для вашего "
+"веб-сервера может быть уже настроен другой каталог."
 
 #. Type: string
 #. Description
@@ -64,9 +65,8 @@ msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"Для dwww нужно указать с правами какого пользователя будут "
-"работать CGI сценарии, так как каталог кэширования должен принадлежать "
-"этому пользователю."
+"Для dwww нужно указать с правами какого пользователя будут работать CGI "
+"сценарии, так как каталог кэширования должен принадлежать этому пользователю."
 
 #. Type: string
 #. Description
@@ -93,8 +93,8 @@ msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
 msgstr ""
-"Для dwww нужно указать номер порта, на котором работает веб-сервер. "
-"Обычно, веб-серверы работают на 80 порту."
+"Для dwww нужно указать номер порта, на котором работает веб-сервер. Обычно, "
+"веб-серверы работают на 80 порту."
 
 #. Type: note
 #. Description
@@ -137,8 +137,8 @@ msgstr "Введённое значение порта: ${port} недопуст
 #: ../dwww.templates:9001
 msgid "Should post-installation script index your documentation files?"
 msgstr ""
-"Должен ли пост-установочный сценарий проиндексировать "
-"ваши файлы документации?"
+"Должен ли пост-установочный сценарий проиндексировать ваши файлы "
+"документации?"
 
 #. Type: boolean
 #. Description
@@ -147,9 +147,8 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"Программа dwww-index++(8) будет запускаться один раз в неделю "
-"для индексации файлов документации, зарегистрированных с помощью "
-"пакета doc-base."
+"Программа dwww-index++(8) будет запускаться один раз в неделю для индексации "
+"файлов документации, зарегистрированных с помощью пакета doc-base."
 
 #. Type: boolean
 #. Description
@@ -159,8 +158,7 @@ msgid ""
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
-"Также, индекс может быть сгенерирован (в фоновом режиме) "
-"пост-установочным сценарием. Этот процесс потребляет много "
-"компьютерных ресурсов и может занять несколько минут, поэтому "
-"вам решать, хотите ли вы это сделать прямо сейчас."
-
+"Также, индекс может быть сгенерирован (в фоновом режиме) пост-установочным "
+"сценарием. Этот процесс потребляет много компьютерных ресурсов и может "
+"занять несколько минут, поэтому вам решать, хотите ли вы это сделать прямо "
+"сейчас."

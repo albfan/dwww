@@ -1,29 +1,21 @@
 #
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile,v 1.30 2006-05-30 18:56:29 robert Exp $"
+# "@(#)dwww:$Id: Makefile 494 2008-05-26 18:41:18Z robert $"
 #
 
 VERSION	= $(shell dpkg-parsechangelog | sed -ne 's/^Version: *//p')
 
 CC	= gcc
-CFLAGS	= -Wall -Wstrict-prototypes -Wmissing-prototypes -DVERSION='"$(VERSION)"' 
+CFLAGS	= -Wall -Wstrict-prototypes -Wmissing-prototypes -g -DVERSION='"$(VERSION)"' 
 LDFLAGS	=
 LIBS	= -lpub
 PERL	= /usr/bin/perl
 
 
-ifeq (,$(findstring nodebug,$(DEB_BUILD_OPTIONS)))
-  CFLAGS += -g
-endif
-
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
   CFLAGS += -O0
 else
   CFLAGS += -O2
-endif
-
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-  LDFLAGS += -s
 endif
 
 
@@ -135,7 +127,6 @@ install: installdirs
 #	ln -s $(libdir)/dwww.cgi $(cgidir)/dwww
 #	ln -s /usr/lib/dwww/dwww.cgi $(webcgidir)/dwww
 	install -p -m 0755 $(cgi) $(webcgidir)/dwww
-	install -d -m 0755 $(webdocrootdir)/dwww
 	install -p -m 0755 $(bin) $(bindir)
 	install -p -m 0755 $(sbin) $(sbindir)
 	install -p -m 0644 $(perlmodules) $(perlmoddir)

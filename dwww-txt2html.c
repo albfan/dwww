@@ -1,6 +1,6 @@
 /* vim:ts=4
  * dwww-txt2html.c
- * "@(#)dwww:$Id: dwww-txt2html.c,v 1.20 2006-05-07 18:30:06 robert Exp $"
+ * "@(#)dwww:$Id: dwww-txt2html.c 484 2008-04-20 14:17:15Z robert $"
  *
  * A very simple converter from formatted manual pages to HTML. Handles
   * backspace characters. Converts `<', `>', and `&' properly. Does _NOT_ add
@@ -35,6 +35,7 @@
 
 #define UNDERLINE	(0x01 << CHAR_BIT)
 #define BOLD		(0x02 << CHAR_BIT)
+#define UTF8		(0x04 << CHAR_BIT)
 
 #define FLAGMASK	((~0) << CHAR_BIT)
 #define CHARMASK	(~FLAGMASK)
@@ -44,6 +45,9 @@
 
 
 #define BUF_SIZE 512
+#define MAX_UTF8_CHAR_SIZE 8
+#define MAX_CSI_SEQ_SIZE   8
+#define ESC 			   0x1b
 
 #define ispagename(c)	((c) == '_' || (c) == '-' || (c) == ':' || (c) == '+' \
 			  || (c) == '.' || isalnum(c))
@@ -56,13 +60,29 @@
 			  || (c) == '+' || (c) == '@')
 #define stoppoint(c)  ((c) == '.' || (c) == ',' || (c) == '?' || (c) == ')')
 
-static int manual_page;	/* are we doing a manual page? */
+#define isutf8startchar(c)    ( ((c) & 0xc0) == 0xc0 ) /* 11xxxxxx */
+
+#define isutf8continuechar(c) ( ((c) & 0xc0) == 0x80 ) /* 10xxxxxx */
+
+static int opt_manual_page = 0;	/* are we doing a manual page? */
+static int opt_utf8        = 0;
+
+
+typedef struct info_buf {
+	int buf[BUF_SIZE];
+	int currentbuflength;
+	int currentbufpos;
+} info_buf;
+
+
+
+	
 
 /* Functions */
-static int flush(int *, int *, int *);
-static int add(int *, int *, int *, int);
-static int txt2html(FILE *, char *, void *); 
-static int find_uris(int *, int);
+static int flush(info_buf* data);
+//static int add(info_buf* data, const int* const chars, const int charslength);
+static int txt2html(FILE *, char *, void *);
+static int find_uris(const info_buf* const data);
 
 static int check_dir_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end);
 static int check_www_uri(char * buf, char * url, int uri_no, int loc, int * begin, int * end);
@@ -73,15 +93,15 @@ static int check_cve_uri(char * buf, char * url, int uri_no, int loc, int * begi
 
 		
 enum { U_HTTP, U_FTP, U_HTTP2, U_FTP2, U_MAILTO, U_MAN, U_DIR, U_BUG, U_CVE, U_CAN};
-static const struct { 
+static const struct {
 		int type;
 		char * pattern;
 		char * prefix;
 		int flags;
 		int (* srchf)(char *, char *, int, int, int *, int *);
 } uris[] = {
-		{	U_HTTP, 
-			"http",  /* http://XXXXX https://XXXXXX */ 
+		{	U_HTTP,
+			"http",  /* http://XXXXX https://XXXXXX */
 			"",
 			0,
 		   	check_www_uri
@@ -145,30 +165,26 @@ static struct {
 		char url[BUF_SIZE];
 } anchors[128];
 
-static int flush(int *buf, int *i, int *n) {
+static int flush(info_buf* data) {
 	int j, m, nmen;
 	int c, prev, this;
+	char *s = NULL;
 	
-	nmen = find_uris(buf, *n);
+	nmen = find_uris(data);
+
 
 	prev = 0;
 	m = 0;
-	for (j = 0; j < *n; ++j) {
-		c = buf[j] & CHARMASK;
-		if (c == '\n' || j + 1 == *n)
+	for (j = 0; j < data->currentbufpos; ++j) {
+		c = data->buf[j] & CHARMASK;
+		if (c == '\n' || j + 1 == data->currentbufpos)
 			this = 0;
 		else
-			this = buf[j] & FLAGMASK;
+			this = data->buf[j] & (UNDERLINE | BOLD);
 		if (this != prev) {
-			if ((this & UNDERLINE) != 0 && (this & BOLD) != 0) {
-				if (prev == UNDERLINE)
-					this = BOLD;
-				else
-					this = UNDERLINE;
-			}
-			if (prev == UNDERLINE)
+			if ( (prev & UNDERLINE) && !(this & UNDERLINE) )
 				(void) printf("</em>");
-			else if (prev == BOLD)
+			if ( (prev & BOLD) && !(this & BOLD) )
 				(void) printf("</strong>");
 		}
 		if (m < nmen && j == anchors[m].end + 1) {
@@ -180,12 +196,13 @@ static int flush(int *buf, int *i, int *n) {
 		}
 		if (this != prev)
 		{	
-			if (this == UNDERLINE)
+			if ( !(prev & UNDERLINE) && (this & UNDERLINE) )
 				(void) printf("<em>");
-			else if (this == BOLD)
+			if ( !(prev & BOLD) && (this & BOLD) )
 				(void) printf("<strong>");
 		}
 		prev = this;
+		s=NULL;
 		switch (c) {
 		case '<':
 			(void) printf("&lt;"); break;
@@ -194,18 +211,30 @@ static int flush(int *buf, int *i, int *n) {
 		case '&':	
 			(void) printf("&amp;"); break;
 		case 173:	
-			(void) printf("&shy;"); break;
+			s="&shy;";
+			break;
 		case 180:	
-			(void) printf("&acute;"); break;
-		case 183:	
-			(void) printf("&middot;"); break;
+			s="&acute;";
+			break;
+		case 183:
+			s="&middot;";
+			break;
 		case 215:	
-			(void) printf("&times;"); break;
+			s="&times;";
+			break;
 		case '\n':
 			(void) printf("\n"); break;
 		default:
 			(void) printf("%c", c); break;
 		}
+
+		if (s) {
+			if (opt_utf8 &&  (data->buf[j] & UTF8)) {
+				(void) printf("%c", c);
+			} else {
+				(void) printf("%s", s);
+			}
+		}		
 	}
 	
 	if (m < nmen && j == anchors[m].end + 1) {
@@ -213,76 +242,210 @@ static int flush(int *buf, int *i, int *n) {
 		++m;
 	}
 
-	*i = *n = 0;
+	data->currentbufpos = data->currentbuflength = 0;
 	if (ferror(stdout))
 		return -1;
 	return 0;
 }
 
-static int add(int *buf, int *i, int *n, int c) {
-	if (*i == *n && *n >= BUF_SIZE - 1)
-		if (flush(buf, i, n) == -1)
-			return -1;
-	assert(*i < *n || *n < BUF_SIZE);
-	if (*i < *n) {
-		if (c == '_')
-			buf[*i] |= UNDERLINE;
-		else if (buf[*i] == '_') {
-			buf[*i] |= UNDERLINE;
-			buf[*i] = (buf[*i] & FLAGMASK) | (c & CHARMASK);
-		} else if (c == buf[*i])
-			buf[*i] |= BOLD;
-		else
-			buf[*i] = c & CHARMASK;
-	} else {
-		buf[*i] = c & CHARMASK;
-		++*n;
+
+static int add(info_buf *data, const int* const chars, const int charslength, const int add_flags) {
+	int flags[MAX_UTF8_CHAR_SIZE];
+	int is_underlined;
+	int i, j;
+	int bold_count = 0;
+	
+
+	/* Handle backspace */
+	if (charslength == 1 && chars[0] == '\b') {
+			if (!(data->currentbufpos)) {
+				return 0;
+			}
+			do {
+				data->buf[data->currentbufpos] &= ~(BOLD|UNDERLINE);
+				--(data->currentbufpos);
+			} while (data->currentbufpos && (data->buf[(data->currentbufpos)] & UTF8) != 0);
+
+			return 0;
 	}
-	++*i;
+	else {
+		if (data->currentbufpos == data->currentbuflength && data->currentbuflength + charslength >= BUF_SIZE)
+			if (flush(data) == -1)
+				return -1;
+	}		
+	assert(data->currentbufpos < data->currentbuflength || data->currentbuflength < BUF_SIZE);
+
+
+	/* _^H_ means bold `_' not underscored `_' */
+	if ((data->currentbufpos < data->currentbuflength) && chars[0] == '_'
+		&& ((data->buf[data->currentbufpos] & CHARMASK) != '_')) {
+		is_underlined = 2;
+	} 
+	else
+		is_underlined = (data->currentbufpos < data->currentbuflength) && chars[0] != '_'
+						&& ((data->buf[data->currentbufpos] & CHARMASK) == '_'
+					 	   || (data->buf[data->currentbufpos] & UNDERLINE) != 0);
+
+	/* determine flags */
+	for (i = 0, j = data->currentbufpos; i < charslength; ++i, ++j) {
+		flags[i] = add_flags;
+		if (is_underlined) 
+			flags[i] |= UNDERLINE;
+		if (i > 0)
+			flags[i] |= UTF8;
+		if (data->currentbufpos < data->currentbuflength
+			&& j <= data->currentbuflength
+			&& (data->buf[j] & CHARMASK) == chars[i]) {			
+			++bold_count;
+		}
+	}		
+
+	/* set flags */
+	for (i = 0; i < charslength; ++i) {
+		if (bold_count == charslength)
+			flags[i] |= BOLD;
+
+		if (is_underlined > 1) {
+			data->buf[(data->currentbufpos)]   &= CHARMASK;
+			data->buf[(data->currentbufpos)++] |= flags[i];
+		} else {	
+			data->buf[(data->currentbufpos)++] = chars[i] | flags[i];
+		}			
+	}		
+
+
+	if (data->currentbufpos > data->currentbuflength)
+		data->currentbuflength = data->currentbufpos;
+
+	return 0;
+}
+
+static int add_csi_seq(info_buf *data, const int* const csiseq, const int csiseqlen, int * flags) {
+	int i = 0;
+	
+	if ( (csiseqlen ==  4 || csiseqlen == 5) &&
+		 csiseq[0] == ESC && 
+		 csiseq[1] == '[' && 
+		 csiseq[csiseqlen-1] == 'm' && 
+		 isdigit(csiseq[2]) && 
+		 (csiseqlen == 4 || isdigit(csiseq[3]))
+	  )	  
+	{		
+		i = csiseq[2] - '0';
+		if (csiseqlen == 5) 
+			i = 10 * i + csiseq[3] - '0';
+
+		switch (i) {
+			case 0:	
+					*flags = 0; 
+					break;
+			case 1: 
+					*flags = (*flags & ~BOLD) | BOLD; 
+					break;
+			case 2: 
+			case 4: 
+			case 38:
+					*flags = (*flags & ~UNDERLINE) | UNDERLINE;
+					break;
+			case 21:
+			case 22:
+					*flags = *flags & ~BOLD;
+					break;
+			case 24:
+			case 39:
+					*flags = *flags & ~UNDERLINE;
+					break;
+		}
+		return 1;		
+	}
+	
+	for (i = 0; i < csiseqlen; ++i)
+		
+			add(data, csiseq + i, 1, *flags);
 	return 0;
 }
 
 static int txt2html(FILE *f, char *filename, void *dummy) {
-	int buf[BUF_SIZE];
-	int c, i, j, n, late_flush;
-	int prev_i;
-	char prev;
+	info_buf data = { { '\0' } , 0, 0 };
+	int utf8chars[MAX_UTF8_CHAR_SIZE];
+	int utf8charslen = 0;
+	int csiseq[MAX_CSI_SEQ_SIZE];
+	int csiseqlen = 0;
+	int chars[2]	 = { '\0', '\0' };
+	int flags = 0;
 
-	(void) printf("<pre%s>", manual_page? " class=\"man\"" : "" );
+	int c,  j;
+	int late_flush = 0;
+	int prev_pos = -1;
+	char prev = 0;
 
-	prev   = 0;
-	prev_i = -1;
-	buf[0] = 0;
-	i = n = late_flush = 0;
+	(void) printf("<pre%s>", opt_manual_page? " class=\"man\"" : "" );
+
 	
-	while ((c = getc(f)) != EOF) {
+	while ((c = chars[0] = getc(f)) != EOF) {
+		if (csiseqlen && (csiseqlen == sizeof(csiseq) || (c != '[' && c != 'm' && !isdigit(c)))) {
+			add_csi_seq(&data, csiseq, csiseqlen, &flags);
+			csiseqlen = 0;
+		}
+
+		if (csiseqlen || c == ESC) {
+			csiseq[csiseqlen++] = c;
+			if (c == 'm') {
+				add_csi_seq(&data, csiseq, csiseqlen, &flags);
+				csiseqlen = 0;
+			}
+			continue;			
+		}			
+
+		if (opt_utf8)
+		{
+    		if (utf8charslen  && isutf8continuechar(c)) {
+    			if (utf8charslen == sizeof(utf8chars)) {
+    				perror("To many chars in string...");
+    			}
+    			utf8chars[utf8charslen++] = c;
+    			continue;
+    		}
+    		else if (utf8charslen) {
+    			utf8chars[utf8charslen] = '\0';
+    			if (add(&data, utf8chars, utf8charslen, flags) == -1) {
+    				return -1;
+    			}
+    			utf8charslen = 0;
+    		}			
+
+    		if (isutf8startchar(c)) {
+    			utf8chars[utf8charslen++] = c;
+    			continue;
+    		}
+		}		
+
+
+
 		switch (c) {
 		case '\n':
-			if (manual_page && !i && !prev_i)
+			if (opt_manual_page && !data.currentbufpos && !prev_pos)
 					break;
-			prev_i = i;
-			if (add(buf, &i, &n, '\n') == -1)
+			prev_pos = data.currentbufpos;
+			if (add(&data, chars, 1, flags) == -1)
 				return -1;
-			late_flush = manual_page && (prev == '-');
-			if (!late_flush && flush(buf, &i, &n) == -1)
+			late_flush = opt_manual_page && (prev == '-');
+			if (!late_flush && flush(&data) == -1)
 				return -1;
-			break;
-		case '\b':
-			if (i > 0)
-				--i;
 			break;
 		case '\t':
-			for (j = 8-(i%8); j > 0; --j)
-				if (add(buf, &i, &n, ' ') == -1)
+			chars[0] = ' ';
+			for (j = 8-(data.currentbufpos % 8); j > 0; --j)
+				if (add(&data, chars, 1, flags) == -1)
 					return -1;
 			break;
 		case ' ':	
-			if (add(buf, &i, &n, ' ') == -1)
+			if (add(&data, chars, 1, flags) == -1)
 				return -1;
 			if (late_flush && prev != ' ' && prev != '\n' && prev != '\t')
 			{
 					late_flush = 0;
-					if (flush(buf, &i, &n) == -1)
+					if (flush(&data) == -1)
 						return -1;
 			}
 			break;
@@ -290,7 +453,7 @@ static int txt2html(FILE *f, char *filename, void *dummy) {
 			c = '-';
 			/* !!! NO BREAK !!! */	
 		default:
-			if (add(buf, &i, &n, c) == -1)
+			if (add(&data, chars, 1, flags) == -1)
 				return -1;
 			break;
 		}
@@ -298,7 +461,7 @@ static int txt2html(FILE *f, char *filename, void *dummy) {
 	}
 
 	/* flush buffer in case of no ending "\n" in file */
-	if (i > 0 && flush(buf, &i, &n) == -1)
+	if (data.currentbufpos > 0 && flush(&data) == -1)
 		return -1;
 
 	(void) printf("</pre>\n");
@@ -309,16 +472,30 @@ static int txt2html(FILE *f, char *filename, void *dummy) {
 }
 
 int main(int argc, char **argv) {
-	if (argc == 1 || strcmp(argv[1], "--man") != 0)
-		manual_page = 0;
-	else {
-		manual_page = 1;
-		--argc;
-		++argv;
-	}
 
 	dwww_initialize("dwww-txt2html");
-	if (main_filter(argc-1, argv+1, txt2html, NULL) == -1)
+	
+	for (++(argv); --argc; ++(argv))
+	{
+		if (! strcmp(*argv, "--man"))
+			opt_manual_page = 1;
+		else if (! strcmp(*argv, "--utf8"))
+			opt_utf8 = 1;
+		else if (! strcmp(*argv, "--"))
+		{
+			++(argv);
+			--argc;
+			break;
+		}
+		else
+			break;
+	}
+
+	if (argc > 1) {
+		fprintf(stderr, "Usage:\n %s [--man] [--utf8] [--] [file]\n",  get_progname());
+		exit(EXIT_FAILURE);
+	}		
+	if (main_filter(argc, argv, txt2html, NULL) == -1)
 		return EXIT_FAILURE;
 	return 0;
 }
@@ -340,7 +517,7 @@ static char * urlenc(char c)
 }
 
 
-static int find_uris(int * buf, int last)
+static int find_uris(const info_buf * const data)
 {
 	signed int  minp[20];
 	char tmpbuf[BUF_SIZE];
@@ -355,13 +532,13 @@ static int find_uris(int * buf, int last)
 	int  prev_minp;
 
 	
-	skip_pos = manual_page ? -1 : MAXINT;
+	skip_pos = opt_manual_page ? -1 : MAXINT;
 	skip_cnt = 0;
-	for (i=0, j=0; i<last; i++)
+	for (i=0, j=0; i<data->currentbufpos; i++)
 	{
 			char c;
 			
-			c = buf[i] & CHARMASK; 
+			c = data->buf[i] & CHARMASK;
 			if (skip_pos < 0)
 			{
 				if (c == '\n' && j > 0 && tmpbuf[j-1] == '-')
@@ -370,7 +547,7 @@ static int find_uris(int * buf, int last)
 					skip_cnt = 2; /* "-\n" */
 					continue;
 				}
-			} 
+			}
 			else if ( c == ' ' && j == skip_pos)
 			{
 				skip_cnt++;
@@ -396,7 +573,7 @@ static int find_uris(int * buf, int last)
 	furis       = 0;
 	prev_minp   = MAXINT;
 		
-	while (current_pos < last) 
+	while (current_pos < data->currentbufpos)
 	{
 
 		for(i=0; i<nuris; i++)
@@ -406,7 +583,7 @@ static int find_uris(int * buf, int last)
 				//printf("\nXXXX: %s\n", tmp);
 				if ((tmp = strstr(tmp, uris[i].pattern)))
 					minp[i] = tmp - lowbuf;
-				else 
+				else
 					minp[i] = MAXINT;
 			}	
 	
@@ -426,7 +603,7 @@ static int find_uris(int * buf, int last)
 	
 		if (uris[min].srchf(tmp + current_pos, anchors[furis].url, min, minp[min] - current_pos, &begin, &end))
 		{
-				do 
+				do
 				{
 					int a,b;
 					
@@ -495,7 +672,7 @@ static int check_dir_uri(char * buf, char * url, int uri_no, int loc, int * begi
 		
 		for (i=0; i < ndirs; i++)
 		{
-				if (!strncmp(dirs[i].dir, buf + loc, dirs[i].size)) 
+				if (!strncmp(dirs[i].dir, buf + loc, dirs[i].size))
 				{
 						*begin = loc;
 						strcpy(url, dirs[i].dir);
@@ -538,7 +715,7 @@ static int check_www_uri(char * buf, char * url, int uri_no, int loc, int * begi
 						prefix = "http://";
 						break;
 				case U_FTP:   /* "ftp" */
-						if (*tmp == '.') 
+						if (*tmp == '.')
 						{
 								tmp++;
 								ftp_colon = 1;
@@ -603,7 +780,7 @@ static int check_man_uri(char * buf, char * url, int uri_no, int loc, int * begi
 		*begin = loc;
 		*end   = loc;
 		tmp = buf + loc;
-		if ((*tmp) != '(' || loc == 0) 
+		if ((*tmp) != '(' || loc == 0)
 				return 0;
 		tmp++;
 		if (!isdigit(*tmp) || *tmp == '0')
@@ -653,7 +830,7 @@ static int check_bug_uri(char * buf, char * url, int uri_no, int loc, int * begi
 				loc += sizeof("bug#") -1;
 		else if (buf[loc] == '#')
 				loc++;
-		else 
+		else
 				return 0;
 		
 		while (isspace(buf[loc]))
@@ -679,7 +856,7 @@ static int check_mail_uri(char * buf, char * url, int uri_no, int loc, int * beg
 		char * tmp;
 		char * prevdot = NULL, * lastdot = NULL;
 
-		if (buf[loc] != '@' || loc == 0) 
+		if (buf[loc] != '@' || loc == 0)
 				return 0;
 
 		tmp = buf + loc - 1;
@@ -696,7 +873,7 @@ static int check_mail_uri(char * buf, char * url, int uri_no, int loc, int * beg
 				return 0;
 		while (ismailname(*tmp))
 		{
-				if (*tmp == '.') { 
+				if (*tmp == '.') {
 						if (lastdot == tmp - 1)
 								return 0;
 						prevdot = lastdot;
@@ -747,7 +924,7 @@ static int check_cve_uri(char * buf, char * url, int uri_no, int loc, int * begi
 					return 0;
 		    *begin = loc;
 			loc += sizeof("CVE-") - 1;
-		} else 
+		} else
 				return 0;
 
 		/* check if buf[loc] =~ /\d{4}-\d{4}/ */

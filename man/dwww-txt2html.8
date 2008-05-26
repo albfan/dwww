@@ -1,33 +1,41 @@
-.\" "$Id: dwww-txt2html.8,v 1.6 2003-03-06 22:47:04 robert Exp $"
-.TH DWWW\-TXT2HTML 8 "March 6th, 2003"  "dwww 1.9.0" "Debian"
+.\" "$Id: dwww-txt2html.8 470 2008-04-08 22:19:02Z robert $"
+.TH DWWW\-TXT2HTML 8 "April 9th, 2008"  "dwww 1.10.12" "Debian"
 .SH NAME
 dwww\-txt2html \- simple txt to HTML converter for dwww
 .SH SYNOPSIS
 .B "dwww\-txt2html"
-.br
-.B "dwww\-txt2html \-\-man"
+.RB [ \-\-man ]
+.RB [ \-\-utf8 ]
+.RI [ file ]
 .SH "DESCRIPTION"
 .B dwww\-txt2html
 is part of the dwww package,
 which provides access to on-line documentation on a Debian system via WWW.
 .PP
 .B dwww\-txt2html
-is a very simple text to HTML filter.
+is a very simple text to HTML filter, which reads text to convert from a
+.I file
+argument if was given or 
+.I stdin
+otherwise.
 Converts `<', `>', and `&' properly. Adds <pre> and </pre> tags,
 but it does not add <html> or <body> tags.  Handles backspace characters.
 .br
 Converts local man pages and documentation files references to anchors and
-adds links for http and ftp sites. Also it handles mail adresses and
-Debian `closes: #bug_no' statetments (e.g. closes: #100000).
-.PP
-Option
-.I \-\-man
-is currently ignored, it exists for a compatibility with previous versions.
+adds links for both http and ftp sites, mail adresses or
+Debian `closes: #bug_no' statements (e.g. closes: #100000).
 .PP
 .B dwww\-txt2html
 is usually run by the
 .BR dwww\-convert (8)
 command.
+.SH "OPTIONS"
+.TP
+.B \-\-man
+Input is an uncompressed manual page.
+.TP
+.B \-\-utf8
+Input is encoded in UTF-8.
 .SH "SEE ALSO"
 .BR dwww (8),
 .BR dwww\-convert (8),

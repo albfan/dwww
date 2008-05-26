@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # preinst for dwww
-# "@(#)dwww:$Id: dwww.preinst,v 1.6 2006-05-07 18:30:09 robert Exp $"
+# "@(#)dwww:$Id: dwww.preinst 494 2008-05-26 18:41:18Z robert $"
 #
 
 set -e
 
-if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl "1.9.91"; then
-	# remove /var/lib/dwww/html if exists
+if [ "$1" = "upgrade" ] && dpkg --compare-versions "$2" lt-nl "1.10.15~"; then
 	rm -rf /var/lib/dwww/html
+	rm -rf /var/www/dwww
 fi
 
 

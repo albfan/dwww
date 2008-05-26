@@ -1,25 +1,24 @@
-# Vietnamese Translation for dwww.
-# Copyright © 2005 Free Software Foundation, Inc.
-# Clytie Siddall <clytie@riverland.net.au>, 2005.
-# 
+# Galician translation of dwww's debconf templates
+# This file is distributed under the same license as the dwww package.
+# Jacobo Tarrio <jtarrio@debian.org>, 2008.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: dwww 1.9.21\n"
+"Project-Id-Version: dwww\n"
 "Report-Msgid-Bugs-To: robert@debian.org\n"
 "POT-Creation-Date: 2007-04-03 01:36+0200\n"
-"PO-Revision-Date: 2005-06-02 15:57+0930\n"
-"Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
-"Language-Team: Vietnamese <gnomevi-list@lists.sourceforge.net>\n"
+"PO-Revision-Date: 2008-05-24 12:16+0100\n"
+"Last-Translator: Jacobo Tarrio <jtarrio@debian.org>\n"
+"Language-Team: Galician <proxecto@trasno.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0\n"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:1001
 msgid "Location of web server's document root:"
-msgstr "Ví trị của gốc tài liệu của máy phục vụ Mạng:"
+msgstr "Ubicación da raíz de documentos do servidor web:"
 
 #. Type: string
 #. Description
@@ -28,14 +27,14 @@ msgid ""
 "dwww needs to know the path of the directory which contains your web "
 "server's document root. The web standard suggests /var/www."
 msgstr ""
-"Trình dwww cần biết đường dẫn thư mục chứa gốc tài liệu của trình phục vụ "
-"Mạng của bạn. Tiêu chuẩn Mạng đệ nghị: /var/www"
+"dwww precisa de coñecer a ruta do directorio que contén a raíz de documentos "
+"do servidor web. O estándar web suxire /var/www."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:2001
 msgid "Location of web server's cgi directory:"
-msgstr "Ví trị của thư mục CGI của trình phục vụ Mạng:"
+msgstr "Ubicación do directorio cgi do servidor web:"
 
 #. Type: string
 #. Description
@@ -45,15 +44,15 @@ msgid ""
 "server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
 "web server may already be configured for a different location."
 msgstr ""
-"Trình dwww cần biết đường dẫn thư mục chứa các tập lệnh CGI của máy phục vụ "
-"Mạng. Tiêu chuẩn Mạng đệ nghị /usr/lib/cgi-bin, nhưng mà có lẽ bạn đã cấu "
-"hình một ví trị khác trên máy phục vụ Mạng này."
+"dwww precisa de coñecer a ruta do directorio que contén os scripts CGI do "
+"servidor web. O estándar web suxire /usr/lib/cgi-bin, pero o servidor web "
+"pode estar xa configurado para outra ubicación."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:3001
 msgid "Name of CGI user:"
-msgstr "Tên của người dùng CGI:"
+msgstr "Nome do usuario do CGI:"
 
 #. Type: string
 #. Description
@@ -62,26 +61,26 @@ msgid ""
 "dwww needs to know what user will be running the dwww CGI script, as the "
 "cache directory must be owned by that user."
 msgstr ""
-"Trình dwww cần biết người dùng nào sẽ chạy tập lệnh CGI dwww, vì người dùng "
-"ấy phải sở hữu thư mục nhớ tạm."
+"dwww precisa de saber que usuario ha executar o script CGI de dwww, xa que o "
+"directorio de caché ha ser propiedade dese usuario."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4001
 msgid "Host name of the web server:"
-msgstr "Tên máy của máy phục vụ Mạng:"
+msgstr "Nome do servidor web:"
 
 #. Type: string
 #. Description
 #: ../dwww.templates:4001
 msgid "dwww needs to know the host name of your web server."
-msgstr "Trình dwww cần biết tên máy của máy phục vụ Mạng của bạn."
+msgstr "dwww precisa de coñecer o nome do servidor web."
 
 #. Type: string
 #. Description
 #: ../dwww.templates:5001
 msgid "Web server's port:"
-msgstr "Cổng máy phục vụ Mạng:"
+msgstr "Porto do servidor web:"
 
 #. Type: string
 #. Description
@@ -89,51 +88,53 @@ msgstr "Cổng máy phục vụ Mạng:"
 msgid ""
 "dwww needs to know what port your web server is running on.  Normally web "
 "servers run on port 80."
-msgstr "Trình dwww cần biết máy phục vụ bạn dùng cổng nào. Thường là cổng 80."
+msgstr ""
+"dwww precisa de saber en que porto funciona o servidor web. Normalmente, os "
+"servidores web funcionan no porto 80."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:6001
 msgid "Directory does not exist!"
-msgstr "Không có thư mục ấy."
+msgstr "O directorio non existe."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:6001
 msgid "Directory ${dir} does not exist."
-msgstr "Không có thư mục ${dir}."
+msgstr "O directorio \"${dir}\" non existe."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:7001
 msgid "User not found!"
-msgstr "Không tìm thấy người dùng ấy."
+msgstr "Non se atopou o usuario."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:7001
 msgid "User ${user} does not exist."
-msgstr "Không tìm thấy người dùng ${user}."
+msgstr "O usuario ${user} non existe."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:8001
 msgid "Port value should be a number!"
-msgstr "Giá trị cỗng phải là số."
+msgstr "O valor do porto debe ser un número."
 
 #. Type: note
 #. Description
 #: ../dwww.templates:8001
 msgid "Value entered for port: ${port} is invalid."
-msgstr "Đã gõ giá trị không hợp lệ cho cổng: ${port}."
+msgstr "O valor introducido para o porto, ${port}, non é válido."
 
 #. Type: boolean
 #. Description
 #: ../dwww.templates:9001
 msgid "Should post-installation script index your documentation files?"
 msgstr ""
-"Tập lệnh sẽ chạy sau khi cài đặt thì sẽ chỉ mục các tập tin tài liệu của bạn "
-"không?"
+"¿Quere que os scripts de post-instalación indexen os ficheiros de "
+"documentación?"
 
 #. Type: boolean
 #. Description
@@ -142,8 +143,8 @@ msgid ""
 "dwww-index++(8) program will be run once a week to index your documentation "
 "files registered with doc-base package."
 msgstr ""
-"Trình dwww-index++(8) sẽ chạy một lần trong mỗi tuần, để chỉ mục các tập tin "
-"tài liệu củã bạn mà được đăng ký với gói tin doc-base."
+"Hase executar o programa dwww-index++(8) unha vez por semana para indexar os "
+"ficheiros de documentación rexistrados co paquete doc-base.."
 
 #. Type: boolean
 #. Description
@@ -153,6 +154,6 @@ msgid ""
 "script. This process needs quite a lot of computer resources, and can take "
 "several minutes so you can choose now if you would like to do this."
 msgstr ""
-"Tập lệnh sẽ chạy sau khi cài đặt cũng có thể tạo ra mục lục này (nằm nền). "
-"Tiến trình ấy cần thiết nhiều tiềm năng máy, và có lẽ sẽ mất vài phút, thì "
-"lúc này bạn có thể chọn nếu muốn làm như thế."
+"Tamén se pode xerar o índice (en segundo plano) co script de post-"
+"instalación. Este proceso precisa de bastantes recursos do ordenador, e pode "
+"levar varios minutos, así que agora pode indicar se quere facelo."

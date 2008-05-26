@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# "@(#)dwww:$Id: dwww,v 1.12 2003-07-27 16:17:32 robert Exp $"
+# "@(#)dwww:$Id: dwww,v 1.13 2007-12-09 11:09:02 robert Exp $"
 #
 # based on dpkg-www
 
@@ -47,10 +47,12 @@ then
 	DWWW_SERVERNAME="$DWWW_SERVERNAME:$DWWW_SERVERPORT"
 fi
 
+[ "$DWWW_USEHTTPS" = "yes" ] && prot="https" || prot="http"
+
 if [ -z "$1" ]
 then
-	exec "$www_browser" "http://$DWWW_SERVERNAME/dwww/"
+	exec "$www_browser" "$prot://$DWWW_SERVERNAME/dwww/"
 else
 	uri="`urlencode $1`"
-	exec "$www_browser" "http://$DWWW_SERVERNAME/cgi-bin/dwww?search=$uri"
+	exec "$www_browser" "$prot://$DWWW_SERVERNAME/cgi-bin/dwww?search=$uri"
 fi
