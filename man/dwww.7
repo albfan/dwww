@@ -1,0 +1,394 @@
+.\" "$Id: dwww.7 532 2009-02-15 15:16:37Z robert $"
+.\"
+.TH DWWW 7 "February 15th, 2009" "dwww 1.11.1" "Debian"
+.SH NAME
+dwww \- access documentation via WWW
+.SH SYNOPSIS
+http://localhost/dwww/index.html
+.SH DESCRIPTION
+A typical Linux system has documentation in many formats (manual pages,
+Info files, READMEs, and so on).
+dwww makes it possible to access all of these via the same interface,
+a WWW browser.
+This makes it easier to use the documentation.
+.PP
+dwww consists of several programs:
+.TP
+.B cgi\-bin/dwww
+Run by the WWW server when user requests document via dwww.
+Parses the request and runs
+.BR dwww\-convert (8)
+or
+.BR dwww\-find (8)
+with suitable arguments.
+Installed in the server's cgi\-bin directory.
+.\"
+.TP
+.BR dwww\-convert (8)
+Converts any document to HTML.
+.TP
+.BR dwww\-format\-man (8)
+Auxiliary program to convert man pages or text files to HTML.
+.\"
+.TP
+.BR dwww\-find (8)
+Searches for documentation.
+.\"
+.TP
+.BR dwww\-quickfind (8)
+Used by
+.BR dwww\-find (8)
+to quickly find which package a program belongs to.
+.\"
+.TP
+.BR dwww\-cache (8)
+Manages the cache of converted documents.
+.\"
+.TP
+.BR dwww\-refresh\-cache (8)
+Cleans outdated documents from the cache.
+.\"
+.TP
+.BR dwww\-build (8)
+Builds static lists of manual pages.
+Needs to be re-run whenever documents are installed or removed.
+(In default configuration is called by the dwww daily cron job).
+.\"
+.TP
+.BR dwww\-build\-menu (8)
+Builds the Debian Documentation Menu pages.
+Needs to be re-run whenever documents are installed or removed.
+(In default configuration is called by the
+.BR install\-docs (8)
+or by the dwww daily  cron job).
+.\"
+.TP
+.BR dwww\-index++ (8)
+Uses
+.BR index++ (1)
+to build index of the documentation registered with doc-base.
+In default configuration is called be the dwww weekly cron job.
+.\"
+.PP
+For speed reasons, the converted documents are stored in
+.IR /var/cache/dwww .
+The cache is cleaned by
+.BR dwww\-refresh\-cache (8)
+of old documents to keep it from growing too large.
+.\"
+.PP
+.SH CONFIGURATION
+dwww is configured via the
+.I /etc/dwww/dwww.conf
+file.
+That file is a Bourne shell
+.RI ( /bin/sh )
+script that defines some or all the following variables
+(defaults are used if the file doesn't exist,
+or doesn't define the variable).
+.\"
+.SS Basic configuration variables
+These variables can be also configured by debconf script. You can change
+them using the following command:
+.RS 4
+.I dpkg\-reconfigure dwww
+.RE
+.IP DWWW_SERVERNAME
+Name of the www server.
+Default is
+.BR localhost .
+.\"
+.IP DWWW_SERVERPORT
+Port on which the www server listen to.
+Default is
+.BR 80 .
+.\"
+.IP DWWW_USEHTTPS
+If enabled, 
+.BR dwww (1)
+will connect to DWWW_SERVERNAME:DWWW_SERVERPORT
+through the HTTPS protocol.
+Default is
+.BR no .
+.\"
+.IP DWWW_DOCROOTDIR
+The document root for web server.
+Default is
+.BR /var/www .
+.\"
+.IP DWWW_CGIDIR
+The directory which contains the CGI scripts for your web server.
+Default is
+.BR /usr/lib/cgi\-bin .
+.\"
+.IP DWWW_CGIUSER
+Name of the user that the web server uses to execute CGI scripts.
+Default is
+.BR www\-data .
+.\"
+.SS Browser variables
+.IP DWWW_BROWSER
+Web\-browser used by
+.BR dwww (1)
+to load dwww main page.
+.IP DWWW_X11_BROWSER
+Web\-browser used by
+.BR dwww (1)
+to load dwww main page when in X11.
+.\"
+.SS Path variables
+.IP DWWW_DOCPATH
+Colon\-delimited list of directories from which
+.BR dwww\-convert (8)
+supplies files.  For security reasons, it will refuse to convert files
+outside the directories named by this variable.
+Default is
+.I /usr/share/doc : /usr/doc : /usr/share/info : /usr/info :
+.I /usr/share/man : /usr/man : /usr/X11R6/man : /usr/local/man :
+.IR "/usr/local/doc : /usr/local/info : /usr/share/common\-licenses" .
+.\"
+.IP DWWW_ALLOWEDLINKPATH
+Colon-delimited list of directories which can be targets of symlinks from
+files from directories inside DWWW_DOCPATH.
+Default value is
+.IR /usr/share:/usr/lib:/var/www .
+.br
+For example, \fI/usr/share/doc/package/foo.html\fR may be symlinked to a file
+\fI/usr/share/package/foo.html\fR, and this file can be displayed by
+.BR dwww .
+.\" .SS Converters
+.\" .IP DWWW_MAN2HTML
+.\" Command to convert a manual page to HTML.
+.\" Default is
+.\" .BR builtin_man2html ,
+.\" which uses
+.\" .BR dwww\-txt2html (8)
+.\" to convert man pages.
+.\" .br
+.\" If you have
+.\" .BR man2html (1)
+.\" installed and would prefer to use it, please add the following code
+.\" to dwww's configuration file:
+.\" .RS
+.\" .nf
+.\"
+.\" if [ \-x /usr/lib/cgi\-bin/man/man2html ] ; then
+.\"     man2html_cmd () {
+.\"         /usr/lib/cgi\-bin/man/man2html "$1"
+.\"     }
+.\"     DWWW_MAN2HTML=man2html_cmd
+.\"
+.\" elif [ \-x /usr/lib/cgi\-bin/man2html ] ; then
+.\"     man2html_cmd () {
+.\"         /usr/lib/cgi\-bin/man2html "$1"
+.\"     }
+.\"     DWWW_MAN2HTML=man2html_cmd
+.\" fi
+.\"
+.\" .fi
+.\" .RE
+.\" .\"
+.\" .IP DWWW_TEXT2HTML
+.\" Command to convert a plain text file to HTML.
+.\" Default is
+.\" .BR builtin_text2html .
+.\" .\"
+.\" .IP DWWW_DIR2HTML
+.\" Command to show contents of a directory as HTML.
+.\" Default is
+.\" .BR builtin_dir2html .
+.\" .PP
+.\" The converters get the filename as their argument,
+.\" and should output the converted document to stdout.
+.SS Cache files locations
+.IP "DWWW_QUICKFIND_DB"
+Location of the installed packages and programs cache file, generated by
+.BR dwww\-refresh\-cache (8)
+with the help of
+.BR dwww\-quickfind (8).
+Default is
+.IR /var/cache/dwww/quickfind.dat .
+.\"
+.IP "DWWW_DOCBASE2PKG_DB"
+Location of the cache file, which maps installed doc\-base files to packages names,
+used by the
+.BR dwww\-build\-menu (8).
+Default is
+.IR /var/cache/dwww/docbase2pkg.dat .
+.\"
+.IP "DWWW_REGDOCS_DB"
+Location of doc\-base registered documents contents cache. The cache is generated by
+.BR dwww\-build\-menu (8)
+and read by
+.BR dwww\-find (8)
+Default is
+.IR /var/cache/dwww/regdocs.dat .
+.\"
+.SS Documentation indexing variables
+.IP DWWW_INDEX_DOCUMENTATION
+If this variable is set to
+.B "yes"
+(default), and the swish++ package is installed, then
+.BR dwww\-index++ (8)
+will generate index of registered documentation.
+.\"
+.IP DWWW_INDEX_FULL_TIME_INTERVAL
+Specifies how often (in days) 
+.BR dwww\-index++ (8)
+will generate full index of documentation. 
+The default value is 
+.BR 28 .
+.\"
+.IP DWWW_INDEX_INCREMENTAL_TIME_INTERVAL
+Specifies how often (in days) 
+.BR dwww\-index++ (8)
+will run incremental indexing of new documentation files.
+The default value is 
+.BR 7 .
+.\"
+.IP DWWW_MERGE_MAN2HTML_INDEX
+If this variable is set to
+.BR "yes" ,
+then while generating index of registered documents,
+.BR dwww\-index++ (8)
+will use man pages index generated by man2html package,
+if it's available.
+
+.SS Other variables
+.\"
+.IP DWWW_KEEPDAYS
+How many days should
+.BR dwww\-refresh\-cache (8)
+keep documents that have not been accessed?
+Default is
+.B 10
+days.
+.\"
+.IP DWWW_TMPDIR
+Directory used by
+.BR dwww\-build (8)
+and
+.BR dwww\-build\-menu (8)
+to temporally store the web pages it generates.
+Default is
+.IR /var/lib/dwww .
+For security reason any public writable directory like
+.I /tmp
+should not be used.
+.IP DWWW_USEFILEURL
+If this variable is set, dwww will use file:/ style URLs to
+access html files \- bypassing the CGI script.  This is faster
+on slow machines.  Of course, you will not be able to read
+the html documentation on a non\-local machine.  Default is
+to not enable this feature.
+.\"
+.IP DWWW_TITLE
+Title to appear on dwww generated files.
+Default is
+.BR "dwww: $(hostname)"
+.\"
+.IP DWWW_USE_CACHE
+If this variable is set to
+.B "yes"
+(default), dwww will cache accessed documents in
+/var/cache/dwww/db. See
+.BR dwww\-cache (8).
+.\"
+.SS Deprecated variables
+Since version 1.10, dwww no longer uses the following variables:
+DWWW_HTMLDIR,
+DWWW_MAN2HTML,
+DWWW_TEXT2HTML,
+DWWW_DIR2HTML.
+.SH CUSTOMISING DWWW PAGES LAYOUT
+dwww uses a CSS file for managing the layout of the pages it generates. The file is built from
+two other files, namely 
+.IR /usr/share/dwww/dwww.css ,
+which is a global one, provided by the package, and
+.IR /etc/dwww/dwww\-user.css ,
+a local one, that can be provided by the user to override settings from the former file.
+The latter file does not exist by default, but when it exists,
+.BR dwww\-build(8) 
+will append its contents at the end of generated file.  Since web browsers tend to use 
+the last one setting defined for a given CSS element, this
+has the expected effect of customisation.
+.SS Example
+To use some image as a background for dwww pages, please put something like this
+in
+.IR /etc/dwww/dwww\-user.css :
+
+.RS 4
+.nf
+body { background: url(\(aqhttp://host/path/to/background.png\(aq) 
+       repeat; }
+table,pre,code,tt { opacity: 0.7; }
+.fi
+.RE
+
+Please make sure to run
+.BR dwww\-build (8)
+afterwards.
+.SH FILES
+.TP
+.I /etc/dwww/dwww.conf
+Configuration file for dwww.
+It's not necessary for this file to exist,
+there are sensible defaults for everything.
+.TP
+.I /etc/dwww/apache.conf
+Default configuration file for various apache\-based web servers.
+The dwww package post-installation script creates symlinks from
+.I /etc/apache*/conf.d/dwww
+to this file.
+.TP
+.I /etc/dwww/dwww-user.css
+If such a file exists, its contents will be appended to the dwww.css file.
+This allows local administrators to customise dwww pages layout.
+.TP
+.I /etc/cron.daily/dwww
+Dwww daily cron job, which rebuilds cache directory and dwww HTML pages.
+.TP
+.I /etc/cron.weekly/dwww
+Dwww weekly cron job. Uses
+.BR dwww\-index++ (8)
+to rebuild registered documentation index.
+.TP
+.I /var/cache/dwww
+Directory, where are placed various cache files generated and used by dwww.
+.TP
+.I /var/cache/dwww/db
+Cache for the converted documents.
+.TP
+.I /usr/share/dwww
+Templates for the dwww web pages (used by
+.BR dwww\-build (8)
+and others).
+.TP
+.I /var/lib/dwww
+The dwww pages.
+The server's document root directory should have a link to
+this directory.
+.SH "SEE ALSO"
+.BR dwww (1),
+.BR dwww\-build (8),
+.BR dwww\-build\-menu (8),
+.BR dwww\-cache (8),
+.BR dwww\-convert (8),
+.BR dwww\-find (8),
+.BR dwww\-format\-man (8),
+.BR dwww\-index++ (8),
+.BR dwww\-quickfind (8),
+.BR dwww\-refresh\-cache (8),
+.BR dwww\-txt2html (8).
+.SH AUTHOR
+Originally by Lars Wirzenius <liw@iki.fi>.
+Modified by Jim Pick <jim@jimpick.com> and Robert Luberda <robert@debian.org>.
+Bugs should be reported via the normal Debian bug reporting system, see
+.I /usr/share/doc/debian/bug\-reporting.txt
+file or
+.BR reportbug (1)
+man page.
+.PP
+dwww is licensed via the GNU General Public License.
+While it has been written for Debian, porting it to other
+systems is strongly encouraged.

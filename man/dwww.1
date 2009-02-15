@@ -1,5 +1,5 @@
-.\" $Id: dwww.1,v 1.11 2005-04-03 22:16:21 robert Exp $
-.TH DWWW 1 "July 27th, 2003" "dwww 1.9.4" "Debian"
+.\" $Id: dwww.1 531 2009-02-15 12:54:08Z robert $
+.TH DWWW 1 "February 15th, 2009" "dwww 1.11.1" "Debian"
 .SH NAME
 dwww \- access documentation via WWW
 .SH SYNOPSIS
@@ -8,7 +8,7 @@ http://localhost/dwww/index.html
 .B dwww
 .br
 .B dwww
-.IR programname " | " packagename
+.IR program-name " | " package-name
 .SH DESCRIPTION
 A typical Linux system has documentation in many formats (manual pages,
 info files, READMEs, and so on).
@@ -28,13 +28,13 @@ Otherwise,
 .B dwww
 first tries to use browser specified by
 DWWW_BROWSER or DWWW_X11_BROWSER configuration variable (cf.
-.BR dwww (8)),
+.BR dwww (7)),
 than will use
 .BR sensible\-browser (1)
 command.
 .PP
 If optional argument
-.IR programname  " or " packagename
+.IR program-name  " or " package-name
 is specified,
 .B dwww
 will search all documentation related to given program or package.
@@ -47,7 +47,7 @@ Program used to load the above mentioned URL.
 Configuration file for dwww.
 .SH "SEE ALSO"
 .BR dwww\-find (8),
-.BR dwww (8),
+.BR dwww (7),
 .BR sensible\-browser (1).
 .SH AUTHOR
 Lars Wirzenius <liw@iki.fi>. Modified by Robert Luberda <robert@debian.org>.

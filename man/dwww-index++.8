@@ -1,6 +1,6 @@
-.\" "$Id: dwww-index++.8,v 1.7 2007-12-16 09:27:33 robert Exp $"
+.\" "$Id: dwww-index++.8 531 2009-02-15 12:54:08Z robert $"
 .\"
-.TH DWWW\-INDEX++ 8 "December 16th, 2007" "dwww 1.10.10" "Debian"
+.TH DWWW\-INDEX++ 8 "February 15th, 2009" "dwww 1.11.1" "Debian"
 .SH NAME
 dwww\-index++ \- build index of registered Debian documentation.
 .\"
@@ -59,7 +59,7 @@ dwww\-index++ \-\- \-v4
 If this variable is set to
 .B "yes" 
 (default), then the documentation index is generated.
-This setting can be overriden with the
+This setting can be overridden with the
 .B \-f
 option.
 .IP DWWW_MERGE_MAN2HTML_INDEX
@@ -71,14 +71,14 @@ man2html package (if it is available).
 .\"
 .IP DWWW_INDEX_FULL_TIME_INTERVAL
 Specifies how often (in days) 
-.BR dwww-index++ (8)
-will generate full index of documentaion. 
+.BR dwww\-index++ (8)
+will generate full index of documentation. 
 The default value is 
 .BR 28 .
 .\"
 .IP DWWW_INDEX_INCREMENTAL_TIME_INTERVAL
 Specifies how often (in days) 
-.BR dwww-index++ (8)
+.BR dwww\-index++ (8)
 will run incremental indexing of new documentation files.
 The default value is 
 .BR 7 .
@@ -106,7 +106,7 @@ List of already indexed files.
 Timestamps of the latest full and incremental index generations.
 .\"
 .SH "SEE ALSO"
-.BR dwww (8),
+.BR dwww (7),
 .BR dwww\-find (8),
 .BR index++ (1),
 .BR install\-docs (8),
@@ -115,5 +115,5 @@ Timestamps of the latest full and incremental index generations.
 .SH AUTHOR
 Robert Luberda <robert@debian.org>.
 See
-.BR dwww (8)
+.BR dwww (7)
 for copyrights and stuff.

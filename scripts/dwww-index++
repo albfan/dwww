@@ -1,0 +1,472 @@
+#!/usr/bin/perl
+# vim:ft=perl:cindent:ts=4:sts=4:sw=4:et:fdm=marker:cms=\ #\ %s
+#
+#    dwww-index++ - create index of registered documentation using index++ command
+#    Copyright (C) 2003 Robert Luberda <robert@debian.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#
+# $Id: dwww-index++ 511 2009-01-10 23:59:42Z robert $
+#
+
+use strict;
+
+use Debian::Dwww::Utils;
+use Debian::Dwww::Version;
+use Debian::Dwww::DocBase;
+use Debian::Dwww::Initialize;
+use File::Glob ':glob';
+use File::Copy;
+use Getopt::Std;
+
+$| = 1;
+
+
+# Global variables
+my @index_formats=(
+	'html',
+	'text',
+	'rtf',
+	'latex'
+	);
+
+# files we never index, checked before stat() call
+my $stopfiles = qr(\.(css|dsl|ico|gif|jpe?g|lfig|mp[34]|sasl|png|svg)$)o;
+# files we actually index, after stat() call
+my $indexfiles = qr(\.([sx]?html?|te?xt?|rtf|[ja]sp|[1-9n][^\.]*)(\.gz|\.bz2|\.Z)?$)o;
+
+my $dwww_url 				= "/cgi-bin/dwww";
+my $dwww_swish_conf   	  	= "/usr/share/dwww/swish++.conf";
+my $dwww_swish_index  	  	= "/var/cache/dwww/dwww.swish++.index";
+my $dwww_indexed_files_db	= "/var/cache/dwww/index.files.db";
+my $dwww_lastrun_info		= "/var/cache/dwww/index.runinfo";
+my $path_to_index			= '/usr/bin/index++';
+my $MAX_RECURS_SUBDIRS_LVL  = 10;
+
+our($opt_v, $opt_f, $opt_i, $opt_l);				# set by getopt
+
+
+my $RUN_MODE_SKIP			= 0;
+my $RUN_MODE_FULL 			= 1;
+my $RUN_MODE_INCREMENTAL 	= 2;
+
+if (! -x $path_to_index) {
+	&Inform( "Cannot find index++ command.\n" .
+			 "Do you have swish++ package installed?", 1);
+	exit(1);
+}
+
+my $dwwwconf   		= &DwwwInitialize("/etc/dwww/dwww.conf");
+&DwwwSetupDirs($dwwwconf);
+
+$Getopt::Std::STANDARD_HELP_VERSION=1;
+&getopts('vfli');
+&CheckOptions();
+
+$ErrorProc = \&ErrorHandle;
+
+my %old_files_hash = ( );
+my %new_files_hash = ( );
+
+&Main();
+
+exit 0;
+
+
+#########################################################################
+#
+# Main function
+#
+sub Main() { # {{{
+	my $do_index	=	$dwwwconf->{'DWWW_INDEX_DOCUMENTATION'};
+	if (!$opt_f and !$opt_i and !$opt_l
+		and defined $do_index and lc($do_index) eq "no") {
+		&Inform("Building index disabled in configuration");
+		exit(0);
+	}
+
+	my %last_run_info  	= ();
+	&ReadLastRunInfo(\%last_run_info);
+	my $run_mode  		= &FindRunMode(\%last_run_info);
+
+
+	if ($run_mode == $RUN_MODE_SKIP) {
+		&Inform("Skipping indexing"); # FIXME
+		exit(0);
+	}
+	&Inform("Incremental index will be build") 	if $run_mode == $RUN_MODE_INCREMENTAL;
+	&Inform("Full index will be build") 		if $run_mode == $RUN_MODE_FULL;
+
+	# set current time
+	$last_run_info{$run_mode} = time();
+
+	&Inform("Parsing doc-base files");
+
+	&ReadIndexedFileNames() if $run_mode == $RUN_MODE_INCREMENTAL;
+
+	&FilesFromDocBaseDir("/var/lib/doc-base/documents");
+
+	if ($opt_l) {
+		&WriteListOfFilesToIndex(\*STDOUT, 0);
+		exit 0;
+	 }
+
+	&PerformIndexing($run_mode);
+	&SaveIndexedFileNames($run_mode == $RUN_MODE_INCREMENTAL)
+	&SaveLastRunInfo(\%last_run_info);
+
+} # }}}
+
+#########################################################################
+#
+# Local functions
+#
+
+# Finds out if we need to build incremental or full indexing
+sub FindRunMode($) { # {{{
+	my $run_info = shift;
+
+	return $RUN_MODE_FULL 			if $opt_f or ! -f $dwww_swish_index
+										or ! -f $dwww_indexed_files_db;
+	return $RUN_MODE_INCREMENTAL	if $opt_i;
+
+	my $secondsPerDay	= 24 * 3600;
+	my $now 			= time();
+	my $endday	 		= $now - $now % $secondsPerDay + $secondsPerDay - 1;
+
+	foreach my $run_mode ($RUN_MODE_FULL, $RUN_MODE_INCREMENTAL) {
+		my $itv = $dwwwconf->{ ($run_mode == $RUN_MODE_FULL)
+									? 'DWWW_INDEX_FULL_TIME_INTERVAL'
+									: 'DWWW_INDEX_INCREMENTAL_TIME_INTERVAL' };
+		$itv *= $secondsPerDay;
+
+		if ($itv < $secondsPerDay) {
+			return $run_mode if $run_info->{$run_mode} + $itv < $now;
+		} else {
+			return $run_mode if $run_info->{$run_mode} + $itv < $endday;
+		}
+	}
+
+	return $RUN_MODE_SKIP;
+} # }}}
+
+
+# Runs index++
+sub PerformIndexing($) { # {{{
+	my $run_mode = shift;
+
+	my $tmpfile 	= $dwww_swish_index.".tmp";
+	my $resultfile	= $tmpfile;
+
+	my @index_command 	= ($path_to_index, 
+                            '--follow-links', '--no-recurse',
+							'--config-file', $dwww_swish_conf,
+		     				'--index-file',  $tmpfile);
+
+	if ($run_mode == $RUN_MODE_INCREMENTAL) {
+        copy($dwww_swish_index, $tmpfile) or 
+            die("Cannot copy $dwww_swish_index to $tmpfile:$!\n");
+    }        
+    
+
+
+	if ($run_mode == $RUN_MODE_INCREMENTAL or
+		($run_mode = $RUN_MODE_FULL and &CopyMan2HTMLIndex($tmpfile) ) ) {
+		$resultfile  = $tmpfile . '.new';
+		push(@index_command, '--incremental');
+	}
+
+	push (@index_command, @ARGV) if ($#ARGV > -1);
+	push (@index_command, '-');
+
+	Inform("Executing: " . join(' ', @index_command));
+	open (INDEX, '|-')
+		|| exec { $index_command[0] } @index_command;
+
+	&WriteListOfFilesToIndex(\*INDEX, 1);
+
+	close INDEX;
+
+	wait;
+
+	if ( -s $resultfile ) {
+		unlink($dwww_swish_index);
+		rename($resultfile, $dwww_swish_index);
+	}
+
+	if ( -e $tmpfile ) {
+		unlink($tmpfile)
+	}
+} # }}}
+
+# Write to filehandle list of files we need to index
+sub WriteListOfFilesToIndex($$ ) { # {{{
+	my $FH 			= shift;
+	my $do_sleep	= shift;
+
+	foreach my $f (sort keys %new_files_hash) {
+    	syswrite $FH, "$new_files_hash{$f}\n";
+		# sleep 150 ms
+        select(undef, undef, undef, 0.15) if $do_sleep;
+	}
+} # }}}
+
+
+# Read information about last full & incremental index run
+sub ReadLastRunInfo($) { # {{{
+	my $run_info_ref = shift;
+	my @ri = ();
+
+	if (-f $dwww_lastrun_info) {
+		open (RUNINFO, "<", $dwww_lastrun_info) or
+			die "Cannot open $dwww_lastrun_info for reading: $!\n";
+		binmode RUNINFO;
+
+		my $values;
+		sysread(RUNINFO, $values, 8192);
+		close RUNINFO;
+		@ri = grep { $_ = 0 + $_; 1 } split (/\0/, $values, 2);
+		push @ri, 0;
+	}
+	$run_info_ref->{$RUN_MODE_FULL} 		= $ri[0];
+	$run_info_ref->{$RUN_MODE_INCREMENTAL} 	= $ri[1];
+	undef @ri;
+} # }}}
+
+
+# Write information about last full & incremental index run
+sub SaveLastRunInfo($) { # {{{
+	my $run_info_ref = shift;
+
+	open (RUNINFO, ">", $dwww_lastrun_info . ".tmp") or
+		die "Cannot open $dwww_lastrun_info.tmp for writing: $!\n";
+	binmode RUNINFO;
+
+	syswrite(RUNINFO,
+				$run_info_ref->{$RUN_MODE_FULL} . "\0" . $run_info_ref->{$RUN_MODE_INCREMENTAL});
+	close RUNINFO;
+
+	rename $dwww_lastrun_info.".tmp", $dwww_lastrun_info
+		or die ("Cannot rename  $dwww_lastrun_info.tmp to $dwww_lastrun_info: $!\n");
+} # }}}
+
+# Read list of already indexed filesand add them to %old_files_hash
+sub ReadIndexedFileNames() { # {{{
+	my $file = $dwww_indexed_files_db;
+	return unless -f $file;
+	open (IDXDB, "<", $file) or die "Cannot open $file for reading: $!\n";
+
+	binmode IDXDB;
+	my $values = "";
+
+	while (sysread(IDXDB, $values, 8192, length($values))) {
+		my @fnames =  grep { s/\001/\/usr\/share\/doc\//o; 1 } split(/\0/, $values);
+
+		$values = (substr($values, length($values) -1, 1) eq "\0") ? "" : pop(@fnames);
+
+		&AddToFileHash({}, \%old_files_hash, \@fnames, 0);
+	}
+	close IDXDB;
+	die "Invalid db file $file\n" if $values;
+} # }}}
+
+
+# Write list of indexed files
+sub SaveIndexedFileNames() { # {{{
+	my $append  	= shift;
+	my $file		= $dwww_indexed_files_db;
+	my $tmpfile 	= $file.".tmp";
+	my $openmode	= ">";
+
+	if ($append) {
+		copy($file, $tmpfile) or die "Cannot copy $file to $tmpfile: $!\n";
+		$openmode = ">>";
+	}
+
+	open (IDXDB, $openmode, $tmpfile) or die "Cannot open $tmpfile for writting: $!\n";
+	binmode IDXDB;
+
+	foreach my $hashref (\%old_files_hash, \%new_files_hash) {
+		my $values = join("\0",  values %{$hashref}) . "\0";
+		$values =~ s/\/usr\/share\/doc\//\001/g;
+		my ($len, $offset) = (length($values), 0);
+		while ($offset < $len) {
+			syswrite(IDXDB, $values, 8192, $offset) or
+				die "Cannot write to $tmpfile: $!\n";
+			$offset += 8192;
+		}
+	}
+	close IDXBD;
+
+	rename ($tmpfile, $file) or die "Cannot rename $tmpfile to $file: $!\n";
+} # }}}
+
+
+sub ErrorHandle { # {{{
+	my $file = shift;
+	my $msg  = shift;
+
+	print STDERR "$file: $msg\n" if $opt_v;
+} # }}}
+
+
+# Copy index file created by man2html
+# Returns 1 on success
+sub CopyMan2HTMLIndex($) { # {{{
+	my $destfile 		= shift;
+	my $m2h_merge 		= $dwwwconf->{'DWWW_MERGE_MAN2HTML_INDEX'};
+	my $m2h_idx_file 	= '/var/cache/man2html/man2html.swish++.index';
+
+	if (defined $m2h_merge and lc($m2h_merge) eq "yes" and -r $m2h_idx_file) {
+		return 1 if (copy($m2h_idx_file, $destfile));
+	}
+	return 0;
+ } # }}}
+
+
+# adds files to %old_files_hash or %new_files_hash (passed as local references)
+sub AddToFileHash($$$$) { # {{{
+	my ($old_hash, $new_hash,$reffiles,$max_recursion_subdirs) = @_;
+	my $key;
+
+	foreach my $file (@{$reffiles}) {
+		next if $file =~ $stopfiles;
+		my @stat = stat $file ;
+
+		if (-f _) {
+			next unless $file =~ $indexfiles;
+			my $key = sprintf("%d:%10.10d", $stat[0], $stat[1]);
+
+			next if $old_hash->{$key};
+			next if $new_hash->{$key};
+			$new_hash->{$key} = $file;
+
+		}
+
+		# recurse though subdir
+		next unless ($max_recursion_subdirs > 0) and -d _;
+		if (not opendir DOCSUBDIR, $file) {
+			&Inform("Cannot open directory $file: $!");
+			next;
+		}
+
+		$file =~ s/\/*$/\//; # add trailing slash
+		my @files = grep { $_ !~ /^\./ and $_ = $file.$_ } readdir (DOCSUBDIR);
+		closedir DOCSUBDIR;
+		&AddToFileHash($old_hash, $new_hash, \@files, $max_recursion_subdirs - 1);
+	}
+} # }}}
+
+
+sub FilesFromDocBaseDir($) { # {{{
+	my $dir = shift;
+
+	if (not opendir DOCBASEDIR, $dir) {
+		&Inform("Cannot open directory $dir: $!");
+		return;
+	}
+
+	while (my $f = readdir(DOCBASEDIR))
+	{
+		next if $f =~ /^\./;
+		next if -d $f;
+
+		if (defined (my $entry = &ParseDocBaseFile("$dir/$f"))) {
+			&FilesFromDocBaseEntry("$dir/$f", $entry);
+			undef %{$entry};
+		}
+	}
+	closedir DOCBASEDIR;
+} # }}}
+
+
+sub FilesFromDocBaseEntry() { # {{{
+	my $file = shift;
+	my $entry = shift;
+	my $doc_entry = { };
+	my $known = 0;
+
+	if (exists $entry->{'dwww-section'}) {
+		&DwwwSection2Section($entry);
+	}
+
+
+	foreach my $f (@index_formats) {
+		my @globbed = ();
+		my $ei = defined $entry->{'formats'}->{$f}->{'index'} ?
+		$entry->{'formats'}->{$f}->{'index'} : '';
+		my $ef = defined $entry->{'formats'}->{$f}->{'files'} ?
+		$entry->{'formats'}->{$f}->{'files'} : '';
+
+
+		if ($ei ne '' && -r $ei) {
+			push(@globbed, $ei);
+		}
+		if ($ef ne '') {
+			foreach my $f (split(/\s+/, $ef)) {
+				push(@globbed, &bsd_glob($f, GLOB_NOSORT)) unless ($f eq $ei);
+			}
+		}
+
+		&AddToFileHash(\%old_files_hash,\%new_files_hash, \@globbed, $MAX_RECURS_SUBDIRS_LVL);
+
+	}
+
+} # }}}
+
+# Print message to stderr
+sub Inform($;$) { # {{{
+	my $message = shift;
+	my $force	= shift;
+
+	print STDERR $message."\n" if $force or $opt_v;
+} # }}}
+
+# Check if valid options were passed to program
+sub CheckOptions() { # {{{
+
+		if ($opt_i and $opt_f) {
+			&Inform("Options -i and -f cannot be used together", 1);
+			exit 1;
+		}
+
+		if ($opt_i and !(-f $dwww_swish_index and -f $dwww_indexed_files_db)) {
+			&Inform("Cannot build incremental index until full index is built", 1);
+			exit 1;
+		}
+} # }}}
+
+#########################################################################
+#
+# GetOpt callbacks
+#
+sub VERSION_MESSAGE() { # {{{
+	my $prog = $0;
+	$prog 	 =~ s/^.*\///;
+	print STDOUT "$prog version $Debian::Dwww::Version::version\n";
+} # }}}
+
+sub HELP_MESSAGE() { # {{{
+	my $prog = $0;
+	$prog 	 =~ s/^.*\///;
+	print STDOUT "Usage: $prog [-v] [-f] [-- swish_option [...]]\n";
+	print STDOUT "   -v     be more verbose\n";
+	print STDOUT "   -f     build the index (full) even if it's disabled in the configuration file\n";
+	print STDOUT "   -i     build the index (incremental) even if it's disabled in the configuration file\n";
+	print STDOUT "   -l     do not really index, only output the list of files to index\n";
+	print STDOUT "   -- opt option passed to swish's index++ program\n";
+} # }}}
+

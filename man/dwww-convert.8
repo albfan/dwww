@@ -1,5 +1,5 @@
-.\" $Id: dwww-convert.8,v 1.9 2006-06-04 14:38:18 robert Exp $
-.TH DWWW\-CONVERT 8 "June 4th, 2006" "dwww 1.10.0" "Debian"
+.\" $Id: dwww-convert.8 531 2009-02-15 12:54:08Z robert $
+.TH DWWW\-CONVERT 8 "February 15th, 2009" "dwww 1.11.1" "Debian"
 .SH NAME
 dwww\-convert \- convert files to HTML for dwww
 .SH SYNOPSIS
@@ -55,7 +55,7 @@ The name must not contain any symbolic links (cf.
 .BR realpath (1)).
 The file must be located in or below a directory that has been allowed
 by the system administrator; see
-.BR dwww (8)
+.BR dwww (7)
 for more info.
 .PP
 The file may be compressed with
@@ -68,17 +68,17 @@ Compression is indicated by a filename that ends in `.gz' or `.bz2'.
 .TP
 .B \-\-no\-path\-info
 Internal option used by the dwww's CGI script to let 
-.B dwww-convert 
+.B dwww\-convert 
 know, that the arguments following the option do not come from
 the PATH_INFO variable, but from the QUERY_STRING.
 .SH FILES
 .TP
 .I /etc/dwww/dwww.conf
 Configuration file for dwww.  See
-.BR dwww (8)
+.BR dwww (7)
 for more information.
 .SH "SEE ALSO"
-.BR dwww (8),
+.BR dwww (7),
 .BR dwww\-txt2html (8),
 .BR dwww\-build (8),
 .BR dwww\-cache (8).
@@ -87,5 +87,5 @@ Lars Wirzenius.
 Modified by Robert Luberda.
 .br
 See
-.BR dwww (8)
+.BR dwww (7)
 for copyrights and stuff.

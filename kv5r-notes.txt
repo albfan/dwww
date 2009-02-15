@@ -1,0 +1,57 @@
+Some notes on customizing DWWW with css. Rev. 26 Nov. 2008 -- 7 Jan. 2009
+
+My css and other changes are not copyrighted, and should these changes be
+incorporated into the DWWW package(s), such are a contribution and fall under 
+the existing GPL for DWWW. I ask that my link kv5r.com remain in the css file.
+
+Purpose: Update DWWW to HTML 4.01 Strict and CSS2 standards, improve 
+appearance and usability, and make it easy to customize via css.
+
+DWWW's output is themed by the css, including processed man pages.
+Info pages are themed if my modified info2www is used.
+Debian docs are not themed (that'd be a rather gigantic project).
+
+Overview of mods to DWWW 1.10.15:
+* Added css file manuals.css
+* Change most dwww template files in /usr/share/dwww
+* Minor changes in /cgi-bin/dwww (commented therein)
+   and a customized /cgi-bin/info2www for use with dwww's new css (not cmtd),
+* Minor changes to /usr/sbin/dwww-build (to copy the css file);
+* Minor changes in dwww-build-menu, -find, -convert, and Utils.pm (output-related).
+* Changed iso-8859-1 to UTF-8 in all files, for compatibility with some
+   of the newer documentation (some were displaying wacky characters).
+* Logos: created a ubuntu.png; recreated a better debian.png.
+
+CSS file manuals.css is in the templates directory /usr/share/dwww, and it
+gets copied to {webserver}/dwww by dwww-build -- edit the css in 
+/usr/share/dwww then run dwww-build (or copy it manually), else editing the
+copy in /var/www/dwww it'll get overwritten by the next dwww cron event.
+
+The logos (either debian or ubuntu) png files are also copied; logo is set
+in the body descriptor in the css file, as a page background image. Note that
+long titles on narrow displays may overlap the logo -- if this is a problem,
+the logo will need to be moved to the headers in the template files.
+Logo files should be 150x40 px, transparent bg png. dwww-build copies *.png,
+so other file formats won't work.
+
+The CSS file includes some extras that are not used, but may be if desired.
+
+Template files rewritten to HTML 4.01 Strict, UTF-8, en_us.
+This means:
+* removing all deprecated tag attribs such as FONT, ALIGN, etc.
+* lowercasing all tags
+* adding appropriate css hooks to divs, etc.
+Note that XHTML was not used, as it is will soon be deprecated, and serves no 
+useful purpose. (HUH? See http://www.webdevout.net/articles/beware-of-xhtml)
+
+Various html formatting was removed from the templates and the cgi script,
+such as <br><hr><br> as these are handled with margin and border-bottom
+in the css. Also fixed Utils.pm table functions to make compliant markup. 
+
+Anomaly: The file dwww.man.template does not seem to be used. Remove?
+
+The manuals.css file may be copied and renamed into any doc directories whose 
+html files include a css file link, to improve their appearance.
+
+--kv5r--
+

@@ -1,6 +1,6 @@
 # vim:ft=perl:cindent:ts=4:sts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Utils.pm,v 1.11 2007-12-15 17:10:59 robert Exp $
+# $Id: Utils.pm 507 2009-01-10 15:37:23Z robert $
 #
 package Debian::Dwww::Utils;
 
@@ -12,6 +12,7 @@ use File::Path qw/rmtree mkpath/;
 use File::NCopy qw/copy/;
 
 use strict;
+#use warnings;
 
 use vars qw(@ISA @EXPORT);
 @ISA = qw(Exporter);
@@ -69,7 +70,10 @@ sub TemplateFile { # {{{
     open TEMPLATE , "<$file" or die "Can't open $file: $!";
     while (<TEMPLATE>) {
         foreach my $k (keys %{$vars}) {
-            s/\%$k\%/$vars->{$k}/g
+#            my $subst = (defined $vars->{$k} ? $vars->{$k} : '');
+#            print STDERR "k = $k ". $vars->{'SECTION'} . "\n" if defined $vars->{'SECTION'} ;
+            my $subst = $vars->{$k};
+            s/\%$k\%/$subst/g;
         }
         s/\%VERSION\%/$Debian::Dwww::Version::version/o;
         s/\%DATE\%/&GetDate()/eg;
@@ -83,59 +87,67 @@ sub TemplateFile { # {{{
 
 sub BeginTable { # {{{
     my $filehandle = shift;
-        my $caption = shift;
-        my $columns = shift;
+    my $caption = shift;
+    my $columns = shift;
     my $desc    = shift;
     my $widths  = shift;
-        my $table = {};
+    my $table = {};
 
     $desc = '' unless (defined $desc);
 
-        $table->{'columns'}   = $columns + 0;
-        $table->{'widths'}    = $widths;
-        $table->{'in_column'} = 0;
-        $table->{'in_row'}    = 0;
+    $table->{'columns'}   = $columns + 0;
+    $table->{'widths'}    = $widths;
+    $table->{'in_column'} = 0;
+    $table->{'in_row'}    = 0;
 
-        print $filehandle "<P align=\"left\">\n";
-        print $filehandle "<STRONG>$caption</STRONG>$desc\n";
-        print $filehandle "<TABLE border=\"0\" width=\"98%\" align=\"center\">\n";
-        return $table;
+#  kv5r: updated to Strict html:
+    print $filehandle "<p><strong>$caption</strong>$desc</p>\n";
+#  kv5r: table controlled in css, no addnl stuff needed here:
+    print $filehandle "<table class=\"wide\">\n";
+    return $table;
 } # }}}
 
 sub AddToTable { # {{{
     my $filehandle = shift;
     my $table = shift;
     my $what = shift;
-    my ($wdth, $c, $r);
-
-    $c = $table->{'in_column'};
-    $r = $table->{'in_row'};
+    my ($wdth, $c, $r) = ('', $table->{'in_column'}, $table->{'in_row'});
 
 
     if ($c == 0) {
-        print $filehandle "<TR>\n"
+        print $filehandle " <tr>\n"
+    }
+    
+# kv5r: added inline css herein:
+
+    # Add width="..." for all columns  except the last one
+    # iff we are in first row and:
+    # - if $table->{'widths'} are undefined => add 100/number_of_columns%
+    # - if$table->{'widths'} are empty  => don't add widths, allow browsers
+    #     to calculate them themselfs in hope they will output equal widths
+    # - if $table->{'widths'} are nonempty, then it should contain widths for
+    #      all, but the last, columns, so use the provided values
+    if (!defined $table->{'widths'} || @{$table->{'widths'}})
+    {
+        if ($r == 0 && $c + 1 < $table->{'columns'}) {
+            if (defined $table->{'widths'}) {
+                $wdth = ' style="width:' . $table->{'widths'}[int($c)] .'%;"';
+            } else  {
+                $wdth = ' style="width:' . int(100 / $table->{'columns'}) . '%;"';
+            }
+        }
     }
 
-    if ($r == 0 && $c + 1 < $table->{'columns'}) {
-    if (defined $table->{'widths'}) {
-        $wdth = ' width="' . $table->{'widths'}[int($c)] .'%"';
-    } else  {
-        $wdth = ' width="' . int(100 / $table->{'columns'}) . '%"';
-    }
-    } else {
-        $wdth = '';
-    }
-
-    print $filehandle "<TD align=\"left\"$wdth>$what</TD>\n";
+    print $filehandle "  <td$wdth>$what</td>\n";
 
     if (++$c >= $table->{'columns'}) {
-        print $filehandle "</TR>\n";
+        print $filehandle " </tr>\n";
         $c = 0;
         $r++;
     }
     $table->{'in_column'} = $c;
     $table->{'in_row'}    = $r;
-} # }}}
+} #  }}}
 
 
 sub EndTable { # {{{
@@ -145,10 +157,11 @@ sub EndTable { # {{{
     while ($table->{'in_column'} != 0) {
         &AddToTable($filehandle, $table, '');
     }
-    print $filehandle "</TABLE>\n";
+    print $filehandle "</table>\n";
 
     undef %{$table};
 } # }}}
+
 
 # strips any '.' and '..' components from path
 sub StripDirs { # {{{
@@ -176,20 +189,20 @@ sub StripDirs { # {{{
 sub ErrorMsg { # {{{
     my $status  = shift;
     my $title   = shift;
-    my $message     = shift;
+    my $message = shift;
 
     print "Status: $status\n";
-    print "Content-type: text/html; charset=iso-8895-1\n";
+    print "Content-type: text/html; charset=UTF-8\n";
     print "\n";
-    print "<HTML>\n";
-    print "<HEAD>\n";
-    print " <TITLE>$title</TITLE>\n";
-    print "</HEAD>";
-    print "<BODY>";
-    print " <H1 align=\"center\">$title</H1>\n";
+    print "<html>\n";
+    print "<head>\n";
+    print " <title>$title</title>\n";
+    print "</head>";
+    print "<body>";
+    print " <h1 style=\"center\">$title</H1>\n";
     print "$message\n";
-    print "</BODY>\n";
-    print "</HTML>\n";
+    print "</body>\n";
+    print "</body>\n";
     exit 1;
 } # }}}
 

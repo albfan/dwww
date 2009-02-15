@@ -1,0 +1,100 @@
+/* dwww.css by KV5R. Ver 02/15/09 for dwww. 
+   by Harold Melton, KV5R Web Designs. http://kv5r.com
+   - font-family specs are fully Windows/Mac/Linux/W3C-compatible.
+   - font sizes relative, not constrained (1em=16px in most browsers) 
+
+   To override these settings, please see the section "CUSTOMISING DWWW PAGES 
+   LAYOUT" in dwww(7) man page.
+
+   $Id: dwww.css.in 531 2009-02-15 12:54:08Z robert $
+*/
+
+body	{ font-family:Verdana, Geneva, "Bitstream Vera Sans", "DejaVu Sans", sans-serif;
+          margin:20px; background-color:#FFEEDD; }
+
+p,li	{ margin:0 0 0.5em 0; color:#404040; }
+
+a         { color:#000099; text-decoration:none; }
+a:visited { color:#660066; }
+a:active  { color:#CC0000; }
+a:hover   { color:#AA0000; background-color:#EEEEEE; }
+
+a.nohref  { color:#000099; text-decoration:inherit; background-color:inherit; }
+
+table { border-collapse:collapse; border:0; background:#FFF9F0;
+        margin:1em auto 1em auto; } /* centers them if < 100% */
+table.wide { width:100% }
+th, td     { border:#FFEEDD 1px solid; padding:1px 5px 2px 5px; vertical-align:top; }
+td.w15     { width:15%; }
+td.w33     { width:33%; }
+th         { text-align:left; }
+
+h1,h2,h3,h4,h5 { margin:0.5em 0 0.25em 0; 
+ font-family:"Century Gothic", Futura, "URW Gothic L", sans-serif; }
+h1 { font-size:1.7em; color:#C6822F; font-weight:normal; }
+h2 { font-size:1.5em; color:#6666AA; font-weight:normal; }
+h3 { font-size:1.3em; color:#993300; font-weight:bold; }
+h4 { font-size:1.1em; color:#993300; font-weight:bold; }
+h5 { font-size:1.0em; color:#993300; font-weight:bold; }
+
+/* This arrangement evens out the line-spacing in nested lists. */
+ul,ol      { margin-top:0; margin-bottom:0.5em; line-height:1.5em; }
+li, li ul, li ol { margin-top:0; margin-bottom:0; }
+
+/* Most browsers render monospace at 13px - TOO SMALL! 
+    font-size:100% forces it to same size as body text. */
+pre,code {
+ margin-top:0; padding:3px; background-color:#FFF9F6; font-size:100%;
+ border-top:1px solid #DDDDDD; border-right:1px solid #999999;
+ border-bottom:1px solid #999999; border-left:1px solid #DDDDDD;
+ font-family:Consolas,'Lucida Console','Bitstream Vera Sans Mono','DejaVu Sans Mono',monospace;
+ white-space:pre-wrap; /* css-3 */
+ /* the validator complains about these and I don't care -- they work: */
+ word-wrap:break-word; /* Internet Explorer 5.5+ */
+ white-space:-moz-pre-wrap !important; /* Mozilla, since 1999 */
+ white-space:-pre-wrap; /* Opera 4-6 */
+ white-space:-o-pre-wrap; /* Opera 7 */ }
+
+tt { font-size:100%;
+ font-family:Consolas,'Lucida Console','Bitstream Vera Sans Mono','DejaVu Sans Mono',monospace; }
+
+hr      { size:1px; color:#996633; margin:0.5em auto; }
+hr.w15c { text-align:center; width:15%; }
+
+
+/* dwww template formatting (req. kv5r mods in templates) */
+form, input { margin:0.25em auto; }
+div#head    { min-height:45px; _height:45px;  /* ugly IE6 hack */
+              background: url('/dwww/#distributor#.png') no-repeat scroll top left; }
+div#head h1 { padding:10px 0 0 150px; text-align:center; }
+div#men p, div#men a { text-align:center;
+ border-top:1px solid #996633; border-bottom:1px solid #996633; }
+p.foot { 
+ margin:10px auto; border-top:1px solid #996633; color:#663300; 
+ font-size:12px; font-style:italic; text-align:center; }
+
+
+/* Image Control */
+img      { border:0; }
+.bdr     { border:4px ridge #e3b68c; }
+.ctr     { display:block; margin:0 auto 0 auto; text-align:center !important; }
+.fl      { margin:5px 20px 5px 0; float:left; }
+.fr      { margin:5px 0 5px 20px; float:right; }
+.clrboth { clear:both; }
+
+/* text formatting handies */
+.dcap  { font-size:2.3em; line-height:2.3ex; float:left; /* 2-line Drop-Cap  */
+         margin:0 3px 0 0; padding:0 0.1em 0.05em 0.1em;
+         background-color:#D2CCB7; color:#928c77; }
+.small { margin:0; color:#663300; font-size:12px !important; font-style:normal; font-weight:normal; }
+.tiny  { margin:0; color:#663300; font-size:10px !important; font-style:normal; font-weight:normal; }
+.b     { font-weight:bold !important; }
+.i     { font-style:italic !important; }
+.u     { text-decoration:underline !important; }
+.l     { text-align:left !important; }
+.c     { text-align:center !important; }
+.r     { text-align:right !important; }
+.j     { text-align:justify !important; }
+.close { margin-top:0px !important; margin-bottom:0px !important; line-height:1 !important; }
+.nomar { margin:0 !important; }
+.norap { white-space:nowrap; line-height:1 !important; }

@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- menu.errors.start -->
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <meta name="robots" content="noindex,nofollow">
+ <title>%TITLE% - List of dwww errors/warnings</title>
+ <link rel="stylesheet" type="text/css" href="/dwww/dwww.css">
+</head>
+<body>
+ <div id="head"><h1>%TITLE% - List of dwww errors/warnings</h1></div>
+ <div id="men"><p><a href="/dwww/">dwww Home</a> | <a href="/dwww/menu/">Each section in separate page</a></p></div>
+ <dl>
+ <!-- end menu.errors.start -->
+

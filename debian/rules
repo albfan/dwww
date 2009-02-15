@@ -1,24 +1,26 @@
 #!/usr/bin/make -f
 # Sample debian/rules that uses debhelper.
-# This file is public domain software, originally written by Joey Hess. 
+# This file is public domain software, originally written by Joey Hess.
+# $Id: rules 511 2009-01-10 23:59:42Z robert $
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 prefix=$(CURDIR)/debian/$(shell dh_listpackages)
 
-build: build-stamp
-build-stamp:
+build: _build/build-stamp
+_build/build-stamp:
 	dh_testdir
+	mkdir -p _build
 
 	# Add here commands to compile the package.
 	$(MAKE)
 
-	touch build-stamp
+	touch "$@"
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp
+	rm -rf _build
 
 	# Add here commands to clean up after the build process.
 	$(MAKE) clean
@@ -28,14 +30,12 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_installdirs
 
 	# Add here commands to install the package into debian/dwww.
-	$(MAKE) prefix=$(prefix) install
+	$(MAKE) DESTDIR=$(prefix) install
 
-	install -p -m 0644 apache.conf \
-                        $(prefix)/etc/dwww/apache.conf
 # Build architecture-independent files here.
 binary-indep: build install
 # We have nothing to do by default.
@@ -60,6 +60,7 @@ binary-arch: build install
 	dh_installcron
 #	dh_installinfo
 #	dh_undocumented
+	dh_desktop
 	dh_strip
 	dh_link
 	dh_compress

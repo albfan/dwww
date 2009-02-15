@@ -1,3 +1,74 @@
+dwww (1.11.1) unstable; urgency=low
+
+  * dwww.css.in: 
+    + move logo from main background to head background;
+    + apply a few additional Harold's fixes.
+  * dwww-build: add support for local user CSS file.
+  * Move the dwww man page from secion 8 to more appropriate section 7, 
+    update references in other pages and README file.
+  * dwww(7): describe how to customize dwww style sheets.
+  * debian/NEWS: announce the design changes.
+  * mozilla/dwww.png: converted from dwww.gif, made transparent.
+  * dwww-refresh-cache: don't exclude half-configured packages.
+  * dwww-txt2html.c: fix bug in utf8hyphen to '-' coversion, and remove
+    some debugging output, both introduced in previous version.
+  * common.mk: pass -Werror to gcc.
+  * Refer to GPL-2 in copyright (lintian). 
+
+ -- Robert Luberda <robert@debian.org>  Sun, 15 Feb 2009 18:51:39 +0100
+
+dwww (1.11.0) experimental; urgency=low
+
+  * Apply a patch from Harold Melton (kv5r at kv5r.com) for a better design 
+    of dwww-generated pages with a light peach background (closes: #180733),
+    menu bar, and larger pre/code/tt mono face for the man pages, much more 
+    suitable for the newer 1280x1024 LCD monitors with sub-pixel anti-aliasing.
+    His changes are:
+    + Added css file manuals.css;
+    + Change most dwww template files;
+    + Minor output-related  changes in dwww.cgi, dwww-build, dwww-build-menu, 
+      dwww-convert, dwww-find and Utils.pm;
+    + Changed iso-8859-1 to UTF-8 in all files, for compatibility with some
+      of the newer documentation (some were displaying wacky characters).
+    + Logos: created a ubuntu.png; recreated a better debian.png.
+   Many thanks for the patch, Harold!
+
+  * Rename manuals.css to dwww.css.
+  * Standardise menu bar in `by name' and `by section' man indices.
+  * dwww-txt2html.c: convert utf8hyphen to '-'.
+  * Add desktop file based on patch from the bug log (closes: #478845),
+    but with the following changes:
+    + remove encoding line (lintian);
+    + exec dwww(1) instead of x-www-browser (lintian).
+  * dwww-build-menu: don't display "..." when menu section is expanded.
+  * dwww-build, Utils.pm: don't specify widths for cells of `man by name'
+    table.
+  * Fix minus as hyphen usage in dwww-index++(8), dwww-convert(8), dwww(8),
+    and dwww-build-menu(8) man pages.
+  * Reorganise source tree:
+    + rename lib to data;
+    + make dirs src and scripts and move there files from top-level directory;
+    + move templates to data/templates;
+    + move mozilla-dwww.* files to data/mozilla;
+    + remove dwww.man.template, it's no used;
+    + compile with -Wextra, fix warnings;
+    + use build system from doc-base.
+  * dwww-text2html: add support for LP: tags.
+  * dwww-convert: ignore broken links in BuiltinDwww2HTML().
+  * Reorganise binary tree:
+    + move template files to new templates sub-directory of /usr/share/dwww;
+    + move mozilla files to new mozilla sub-dir.
+  * dwww-links: put link into /usr/share/iceape instead of /usr/lib/mozilla.
+  * Made binary package a bit different when compiled on Ubuntu:
+    + use theirs logo on the dwww pages;
+    + install searchplugins in unbranded directories.
+  * Update copyright.
+  * Standards-Version: 3.8.0 (no changes).
+  * Remove 2nd "Section: doc" line from control file (lintian).
+  * Bump debhelper compat version to 7. 
+
+ -- Robert Luberda <robert@debian.org>  Fri, 30 Jan 2009 22:10:54 +0100
+
 dwww (1.10.15) unstable; urgency=low
 
   * Upload to unstable.

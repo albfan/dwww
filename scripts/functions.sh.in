@@ -1,0 +1,102 @@
+# Common functions used by dwww shell scripts
+#
+# $Id: functions.sh.in 511 2009-01-10 23:59:42Z robert $
+#
+
+readonly dwww_config="/etc/dwww/dwww.conf"
+readonly dwww_libdir="/usr/share/dwww"
+readonly dwww_version="#VERSION#"
+readonly dwww_cache_dir="/var/cache/dwww"
+
+#
+# Initialize dwww: set default variables, read config file, set umask & PATH
+#
+dwww_initialize() {
+
+	
+	#DWWWVARS#
+
+	
+	if [ -r "$dwww_config" ]  ; then
+		. "$dwww_config"
+	fi
+
+	umask 022
+	PATH="/usr/sbin:/usr/bin:/bin:$PATH"
+}
+
+#
+# Recreate /var/cache/dwww if it's removed
+#
+dwww_setup_cache_dir() {
+	if [ ! -d "$dwww_cache_dir" ]; then
+		mkdwww_cache_dir "$dwww_cache_dir"
+		chmod 755 "$dwww_cache_dir"
+		chown root "$dwww_cache_dir"
+	fi		
+	if [ ! -d "$dwww_cache_dir/db" ]; then
+		mkdwww_cache_dir "$dwww_cache_dir/db"
+		chmod 755 "$dwww_cache_dir/db"
+		chown "$DWWW_CGIUSER" "$dwww_cache_dir/db"
+	fi
+}	
+	
+#
+# Encode URLs
+#
+urlencode() {
+	echo "$@" | perl -pe 'chomp(); s/([^A-Za-z0-9\ \_\-\.\/])/"%" . unpack("H*", $1)/eg; tr/ /+/;'
+}
+
+
+#
+# Format as table
+#
+table_it()
+{
+	state=A
+	w1=' WIDTH="33%"'
+	w2=''
+	
+	echo '<TABLE BORDER="0" WIDTH="95%" ALIGN="center">'
+	
+	while read line ; do
+		
+		case "$state" in
+			A)
+				state=B
+				echo "<TR>"
+				echo "<TD$w1 ALIGN=\"LEFT\">$line</TD>"
+			;;
+			B)
+				state=C
+				echo "<TD$w1 ALIGN=\"LEFT\">$line</TD>"
+				w1=""
+			;;
+			C)
+				state=A
+				echo "<TD$w2 ALIGN=\"LEFT\">$line</TD>"
+				echo "</TR>"
+				w2=""
+			;;
+		esac
+		
+	done
+
+	case "$state" in
+		A)
+		;;
+		B)
+			echo "<TD$w1></TD><TD$w2></TD></TR>"
+		;;
+		C)
+			echo "<TD$w2></TD></TR>"
+		;;
+	esac
+	
+	if [ "$first_line" != A ]; then
+		echo '</TABLE>'
+	fi		
+}
+
+

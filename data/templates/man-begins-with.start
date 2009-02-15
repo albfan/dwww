@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- man-begins-with.start -->
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <meta name="robots" content="noindex,nofollow">
+ <title>%TITLE% - Man pages starting with %LETTER%</title>
+ <link rel="stylesheet" type="text/css" href="/dwww/dwww.css">
+</head>
+<body>
+ <div id="head"><h1>%TITLE% - Man pages starting with %LETTER%</h1></div>
+ <div id="men"><p><a href="/dwww/">dwww Home</a> | <a href="index.html#%HREFLETTER%">Man pages by name</a></p></div>
+ <form method="get" action="/cgi-bin/dwww">
+  <p>
+   <input name="search" size="30">
+   <input type="submit" name="programsubmit" value="Search">
+   <br>
+   <label accesskey="p"><input type="radio" name="searchtype" checked value="p">programs</label>
+   <label accesskey="m"><input type="radio" name="searchtype" value="m">menu</label>
+   <label accesskey="d"><input type="radio" name="searchtype" value="d">registered docs</label>
+  </p>
+ </form>
+ <!-- SECTIONS -->
+ <h5 class="c">%SECTIONS%</h5>
+ <h3>Man pages starting with %LETTER%</h3>
+ <!-- end man-begins-with.start -->
+

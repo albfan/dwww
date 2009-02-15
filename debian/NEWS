@@ -1,3 +1,15 @@
+dwww (1.11.1) unstable; urgency=low
+
+  * New design of the dwww-generated web pages introduced in 1.11.0.
+
+    Thanks to Harold Melton (kv5r at kv5r.com), now the pages have light
+    peach background menu bar, and larger mono face fonts for the man pages,
+    much more suitable for the newer LCD monitors with sub-pixel anti-aliasing.
+
+  * The layout can be customised by a user, please see dwww(7) for details.
+    
+ -- Robert Luberda <robert@debian.org>  Sun, 15 Feb 2009 13:53:54 +0100
+
 dwww (1.10.0) unstable; urgency=low
 
   * dwww no longer touches links in the request HTML files, but just passes

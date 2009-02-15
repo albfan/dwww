@@ -1,0 +1,26 @@
+<SEARCH
+   version = "3.1"
+   name = "dwww"
+   description = "Debian Documentation on localhost"
+   method = "GET"
+   action = "http://localhost/cgi-bin/dwww"
+   searchForm = "http://localhost/cgi-bin/dwww"
+   queryCharset="UTF-8"
+   queryEncoding="UTF-8"
+>
+
+<INPUT NAME="search" user>
+<INPUT NAME="searchtype" VALUE="d">
+
+# searching all
+<INTERPRET
+   browserResultType = "result"
+   charset = "UTF-8"
+   resultListStart = "<dl>"
+   resultListEnd = "</dl>"
+   resultItemStart = "<dt>"
+   resultItemEnd = "</dt>"
+>
+
+</SEARCH>
+

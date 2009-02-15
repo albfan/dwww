@@ -1,0 +1,16 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- dwww-convert.start -->
+<html>
+<head>
+ <meta http-equiv="Content-Language" content="en-us">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <meta name="robots" content="noindex,nofollow">
+ <title>%TITLE%</title>
+ <link rel="stylesheet" type="text/css" href="/dwww/dwww.css">
+</head>
+<body>
+ <div id="head"><h1>%TITLE%</h1></div>
+ <!-- MENUADD -->
+ <div id="men"><p><a href="/dwww/">dwww Home</a>%MENUADD% | <a href="/cgi-bin/dwww?search=%FILEURL%&amp;searchtype=f">Find package</a></p></div>
+ <!-- end dwww-convert.start -->
+
