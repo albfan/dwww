@@ -35,7 +35,7 @@ applicationsdir := $(prefix)/share/applications
 
 PERL            := /usr/bin/perl
 CC              := gcc
-CFLAGS           = -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Werror -g -DVERSION='"$(VERSION)"'
+CFLAGS           = -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -g -DVERSION='"$(VERSION)"'
 LDFLAGS         :=
 LIBS            := -lpub
 

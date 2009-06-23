@@ -1,7 +1,8 @@
 Source: dwww
 Section: doc
 Priority: optional
-Maintainer: Robert Luberda <robert@debian.org>
+Maintainer: Ubuntu MOTU Developers <ubuntu-motu@lists.ubuntu.com>
+XSBC-Original-Maintainer: Robert Luberda <robert@debian.org>
 Build-Depends: debhelper (>= 7), publib-dev
 Standards-Version: 3.8.0
 

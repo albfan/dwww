@@ -1,3 +1,11 @@
+dwww (1.11.1ubuntu1) karmic; urgency=low
+
+  * Fix FTBFS by removing -Werror in common.mk
+  * debian/control:
+    + Modify Maintainer value to match DebianMaintainerField spec.
+
+ -- Ying-Chun Liu (PaulLiu) <grandpaul@gmail.com>  Tue, 23 Jun 2009 22:24:29 +0800
+
 dwww (1.11.1) unstable; urgency=low
 
   * dwww.css.in: 
