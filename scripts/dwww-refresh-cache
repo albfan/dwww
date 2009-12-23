@@ -5,7 +5,7 @@
 #
 # Part of the dwww package.  Written by Robert Luberda.
 #
-# "@(#)dwww:$Id: dwww-refresh-cache 531 2009-02-15 12:54:08Z robert $"
+# "@(#)dwww:$Id: dwww-refresh-cache 538 2009-12-23 16:34:02Z robert $"
 
 set -e
 
@@ -44,7 +44,7 @@ if [ -n "$DWWW_KEEPDAYS" ] ; then
                 -type f -print0 | xargs -0 rm -f
         echo done
 
-        su -s /bin/sh "$DWWW_CGIUSER" -c '/usr/sbin/dwww-cache --clean' || true
+        su -s /bin/sh "$DWWW_CGIUSER" -c '/usr/sbin/dwww-cache --clean' < /dev/null || true
 
 fi
 

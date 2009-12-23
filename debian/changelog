@@ -1,10 +1,15 @@
-dwww (1.11.1ubuntu1) karmic; urgency=low
+dwww (1.11.2) unstable; urgency=low
 
-  * Fix FTBFS by removing -Werror in common.mk
-  * debian/control:
-    + Modify Maintainer value to match DebianMaintainerField spec.
+  * DwwInitialize.pm: convert DWWW_DOCPATH to array even if dwww.conf file 
+    does not exist or is not readable (closes: #560422).
+  * dwww-refresh-cache: ignore dpkg-query errors (closes: #561653).
+  * Upgrade Suggests into Recommends on  swish++  (closes: #530282).
+  * dwww-cache.c: small refactoring, hopefully fix FTBFS on Ubuntu.
+  * Bump Standards-Version to 3.8.3.
+  * rules: remove dh_desktop call (lintian).
+  * Install lintian overrides for bogus `unused debconf template' infos.
 
- -- Ying-Chun Liu (PaulLiu) <grandpaul@gmail.com>  Tue, 23 Jun 2009 22:24:29 +0800
+ -- Robert Luberda <robert@debian.org>  Wed, 23 Dec 2009 17:39:04 +0100
 
 dwww (1.11.1) unstable; urgency=low
 

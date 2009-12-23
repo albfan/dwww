@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 # Sample debian/rules that uses debhelper.
 # This file is public domain software, originally written by Joey Hess.
-# $Id: rules 511 2009-01-10 23:59:42Z robert $
+# $Id: rules 539 2009-12-23 17:00:03Z robert $
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -60,7 +60,7 @@ binary-arch: build install
 	dh_installcron
 #	dh_installinfo
 #	dh_undocumented
-	dh_desktop
+	dh_lintian
 	dh_strip
 	dh_link
 	dh_compress
