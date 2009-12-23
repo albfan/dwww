@@ -1,0 +1,6 @@
+# The templates are used in debian/config. It seems lintian doesn't handle Perl scripts well.
+dwww: unused-debconf-template dwww/nosuchdir
+dwww: unused-debconf-template dwww/nosuchuser
+dwww: unused-debconf-template dwww/badport
+dwww: unused-debconf-template dwww/index_docs
+

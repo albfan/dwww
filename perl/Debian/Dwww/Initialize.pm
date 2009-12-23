@@ -1,6 +1,6 @@
 # vim:ft=perl:cindent:ts=4:sts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Initialize.pm,v 1.13 2007-12-15 17:10:59 robert Exp $
+# $Id: Initialize.pm 538 2009-12-23 16:34:02Z robert $
 #
 package Debian::Dwww::Initialize;
 
@@ -42,17 +42,19 @@ sub DwwwInitialize() {
     umask (022);
     $ENV{'PATH'} = "/usr/sbin:/usr/bin:$ENV{'PATH'}";
 
-    return $dwwwvars  unless defined $filename;
-    return $dwwwvars  unless -r $filename;
+    if ($filename && -r $filename)
+    {
 
-    open DWWWCONF, "<$filename" or die "Can't open $filename: $!\n";
-    while (<DWWWCONF>) {
-        chomp();
-        if (m/^\s*([^=]+)\s*=\s*(\S+)\s*$/) {
-            $dwwwvars->{$1} = $2;
+        open DWWWCONF, "<$filename" or die "Can't open $filename: $!\n";
+        while (<DWWWCONF>) {
+            chomp();
+            if (m/^\s*([^=]+)\s*=\s*(\S+)\s*$/) {
+                $dwwwvars->{$1} = $2;
+            }
         }
-    }
-    close DWWWCONF or die "Can't close $filename: $!\n";
+        close DWWWCONF or die "Can't close $filename: $!\n";
+    } 
+
     foreach my $k ( 'DWWW_DOCPATH', 'DWWW_ALLOWEDLINKPATH' ) {
         my @paths =  split( /:/, $dwwwvars->{$k} );
         $dwwwvars->{$k} = \@paths;

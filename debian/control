@@ -3,13 +3,13 @@ Section: doc
 Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
 Build-Depends: debhelper (>= 7), publib-dev
-Standards-Version: 3.8.0
+Standards-Version: 3.8.3
 
 Package: dwww
 Architecture: any
 Depends: apache2 | httpd-cgi, man-db (>> 2.5.2), file, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}, doc-base (>= 0.8.12), debianutils (>= 2.5), libmime-types-perl (>= 1.15), mime-support, libfile-ncopy-perl
-Recommends: info2www, dlocate (>= 0.5-0.1), apt
-Suggests: links | www-browser, doc-debian, swish++, dpkg-www
+Recommends: info2www, dlocate (>= 0.5-0.1), apt, swish++
+Suggests: links | www-browser, doc-debian, dpkg-www
 Description: Read all on-line documentation with a WWW browser
  All installed on-line documentation will be served via a local HTTP
  server. When possible, dwww converts the documentation to HTML.
