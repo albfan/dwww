@@ -1,3 +1,10 @@
+dwww (1.11.3) unstable; urgency=low
+
+  * Really ignore dpkg-query errors (closes: #561653).
+  * Remove asterisks from Debian.NEWS (lintian).
+
+ -- Robert Luberda <robert@debian.org>  Wed, 06 Jan 2010 23:19:48 +0100
+
 dwww (1.11.2) unstable; urgency=low
 
   * DwwInitialize.pm: convert DWWW_DOCPATH to array even if dwww.conf file 
