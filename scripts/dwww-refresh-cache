@@ -5,7 +5,7 @@
 #
 # Part of the dwww package.  Written by Robert Luberda.
 #
-# "@(#)dwww:$Id: dwww-refresh-cache 538 2009-12-23 16:34:02Z robert $"
+# "@(#)dwww:$Id: dwww-refresh-cache 542 2010-01-06 22:10:35Z robert $"
 
 set -e
 
@@ -52,7 +52,7 @@ pkglist="$dwww_cache_dir/pkglist.tmp.$$"
 
 if [ -n "$DWWW_QUICKFIND_DB" ] || [ -n "$DWWW_DOCBASE2PKG_DB" ] ; then
         echo -n "generating installed packages and programs list..."
-        LC_ALL=C dpkg-query --search '*bin/*' '/usr/games/*' '/usr/share/doc-base/*' > "$pkglist"
+        LC_ALL=C dpkg-query --search '*bin/*' '/usr/games/*' '/usr/share/doc-base/*' > "$pkglist" 2>/dev/null || true
         echo "done"
 fi
 
