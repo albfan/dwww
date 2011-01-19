@@ -1,3 +1,16 @@
+dwww (1.11.4) experimental; urgency=low
+
+  * dwww.cgi, dwww-find, dwww-build-menu: when a single doc-base file registers
+    multiple files in a format that doesn't provide any index file, show a list 
+    of all such files (closes: #191534).
+  * functions.sh: fix functions used to re-creating cache directory.
+
+  * Set source format to `3.0 (native)'.
+  * Bump debhelper compat mode to 8.
+  * Standards-Version: 3.9.1 (no changes).
+
+ -- Robert Luberda <robert@debian.org>  Wed, 19 Jan 2011 20:39:37 +0100
+
 dwww (1.11.3) unstable; urgency=low
 
   * Really ignore dpkg-query errors (closes: #561653).

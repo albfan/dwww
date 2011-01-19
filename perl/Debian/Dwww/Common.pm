@@ -1,6 +1,6 @@
 # vim:ft=perl:cindent:ts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Common.pm,v 1.2 2006-05-07 18:30:08 robert Exp $
+# $Id: Common.pm 547 2011-01-15 15:29:55Z robert $
 # 
 package Debian::Dwww::Common;
 
@@ -33,14 +33,16 @@ my %href  = # {{{
         'dwww-url'      =>   "",
         'text'          =>   "$dwww_url#FILE#?type=text/plain",
         'pkgsearch'     =>   "$dwww_url?search=",
-        'man'           => '/cgi-bin/dwww#FILE#?type=man', 
-        'runman'        => '/cgi-bin/dwww?type=runman&amp;location=',
-        'dir'           => '/cgi-bin/dwww#FILE#/?type=dir',
-        'info'          => '/cgi-bin/info2www?file=',
-        'file'          => '/cgi-bin/dwww',
-        'menu'          => '/dwww/menu/',
-        'search'        => '/cgi-bin/dwww?search=',
-        'dpkg'          => '/cgi-bin/dpkg?query='
+        "man"           =>   "$dwww_url#FILE#?type=man", 
+        "runman"        =>   "$dwww_url?type=runman&amp;location=",
+        'doc-base'      =>   "$dwww_url?search=#FILE#&amp;searchtype=b",
+        "dir"           =>   "$dwww_url#FILE#/?type=dir",
+        "info"          =>   "/cgi-bin/info2www?file=",
+        "file"          =>   "$dwww_url",
+        "menu"          =>   "/dwww/menu/",
+        "search"        =>   "$dwww_url?search=",
+        "dpkg"          =>   "/cgi-bin/dpkg?query=",
+
     ); # }}}
 
 sub GetURL{ # {{{

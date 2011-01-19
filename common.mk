@@ -1,6 +1,6 @@
 # vim:ts=2:et
 # common includes for dwww
-# $Id: common.mk 532 2009-02-15 15:16:37Z robert $
+# $Id: common.mk 548 2011-01-16 20:41:44Z robert $
 #
 
 getCurrentMakefileName := $(CURDIR)/$(lastword $(MAKEFILE_LIST))
@@ -237,7 +237,9 @@ $(bdir)/%: %.in | $(bdir) $(MAKEFILE_LIST)
 	'	$$v="";					'\
 	'	foreach $$k (sort keys %{$$d}) {	'\
 	'		$$v.="\t$$k=\"$$d->{$$k}\"\n"	'\
-	'			if $$k ne "DWWW_TITLE";	'\
+	'			if $$k !~ /(TITLE|PATH)$$/;	'\
+	'		$$v.="\t$$k=\"".join(":",@{$$d->{$$k}})."\"\n"	'\
+	'			if $$k =~ /PATH$$/;	'\
 	'	}					'\
 	'	while (<>) {				'\
 	'		s/#VERSION#/$(VERSION)/g;  	'\
