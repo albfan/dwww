@@ -2,8 +2,8 @@ Source: dwww
 Section: doc
 Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
-Build-Depends: debhelper (>= 7), publib-dev
-Standards-Version: 3.8.3
+Build-Depends: debhelper (>= 8), publib-dev
+Standards-Version: 3.9.1
 
 Package: dwww
 Architecture: any

@@ -1,1 +1,0 @@
-dwww: symlink-should-be-relative var/www/dwww /var/lib/dwww/html

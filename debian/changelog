@@ -1,3 +1,35 @@
+dwww (1.11.5) unstable; urgency=low
+
+  * Upload to unstable.
+  * dwww-refresh-cache: while generating list of packages, do not exclude
+    packages in triggers-pending/triggers-awaited state.
+  * dwww-find:
+    + call dpkg-query directly instead of dpkg when dlocate is not available;
+    + quote special regexp characters for `dlocate/dpkg-query -S' arguments;
+    + split arguments passed to the program on whitespaces.
+  * debian/rules: 
+    + use minimised debhelper rules files;
+    + set CFLAGS and LDFLAGS from dpkg-buildflags;
+    + add build-{arch,indep} targets.
+  * Makefile: don't create /var/lib/dwww/html directory.
+  * dwww.preinst, dwww.lintian, dwww.install: removed, no longer needed.
+  * dwww.config: Fix path to dwww.swish++.index file.
+
+ -- Robert Luberda <robert@debian.org>  Tue, 08 Feb 2011 23:30:59 +0100
+
+dwww (1.11.4) experimental; urgency=low
+
+  * dwww.cgi, dwww-find, dwww-build-menu: when a single doc-base file registers
+    multiple files in a format that doesn't provide any index file, show a list 
+    of all such files (closes: #191534).
+  * functions.sh: fix functions used to re-creating cache directory.
+
+  * Set source format to `3.0 (native)'.
+  * Bump debhelper compat mode to 8.
+  * Standards-Version: 3.9.1 (no changes).
+
+ -- Robert Luberda <robert@debian.org>  Wed, 19 Jan 2011 20:39:37 +0100
+
 dwww (1.11.3) unstable; urgency=low
 
   * Really ignore dpkg-query errors (closes: #561653).
@@ -24,13 +56,13 @@ dwww (1.11.1) unstable; urgency=low
     + move logo from main background to head background;
     + apply a few additional Harold's fixes.
   * dwww-build: add support for local user CSS file.
-  * Move the dwww man page from secion 8 to more appropriate section 7, 
+  * Move the dwww man page from section 8 to more appropriate section 7, 
     update references in other pages and README file.
-  * dwww(7): describe how to customize dwww style sheets.
+  * dwww(7): describe how to customise dwww style sheets.
   * debian/NEWS: announce the design changes.
   * mozilla/dwww.png: converted from dwww.gif, made transparent.
   * dwww-refresh-cache: don't exclude half-configured packages.
-  * dwww-txt2html.c: fix bug in utf8hyphen to '-' coversion, and remove
+  * dwww-txt2html.c: fix bug in utf8hyphen to '-' conversion, and remove
     some debugging output, both introduced in previous version.
   * common.mk: pass -Werror to gcc.
   * Refer to GPL-2 in copyright (lintian). 
@@ -81,7 +113,7 @@ dwww (1.11.0) experimental; urgency=low
   * dwww-links: put link into /usr/share/iceape instead of /usr/lib/mozilla.
   * Made binary package a bit different when compiled on Ubuntu:
     + use theirs logo on the dwww pages;
-    + install searchplugins in unbranded directories.
+    + install search plugins in unbranded directories.
   * Update copyright.
   * Standards-Version: 3.8.0 (no changes).
   * Remove 2nd "Section: doc" line from control file (lintian).

@@ -1,6 +1,6 @@
 # Common functions used by dwww shell scripts
 #
-# $Id: functions.sh.in 511 2009-01-10 23:59:42Z robert $
+# $Id: functions.sh.in 548 2011-01-16 20:41:44Z robert $
 #
 
 readonly dwww_config="/etc/dwww/dwww.conf"
@@ -30,12 +30,12 @@ dwww_initialize() {
 #
 dwww_setup_cache_dir() {
 	if [ ! -d "$dwww_cache_dir" ]; then
-		mkdwww_cache_dir "$dwww_cache_dir"
+		mkdir "$dwww_cache_dir"
 		chmod 755 "$dwww_cache_dir"
 		chown root "$dwww_cache_dir"
 	fi		
 	if [ ! -d "$dwww_cache_dir/db" ]; then
-		mkdwww_cache_dir "$dwww_cache_dir/db"
+		mkdir "$dwww_cache_dir/db"
 		chmod 755 "$dwww_cache_dir/db"
 		chown "$DWWW_CGIUSER" "$dwww_cache_dir/db"
 	fi
