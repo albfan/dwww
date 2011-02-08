@@ -6,12 +6,12 @@
 #           HAS THE CGI SUPPORT ENABLED
 #  (if you are using apache2, please run `a2enmod cgi')
 #
-# $Id: dwww.cgi 511 2009-01-10 23:59:42Z robert $
+# $Id: dwww.cgi 547 2011-01-15 15:29:55Z robert $
 #
 
 $doc2html       = '/usr/sbin/dwww-convert'; # Document-to-HTML converter
 $search2html    = '/usr/sbin/dwww-find';    # Search and output results as HTML
-@searchargs     = ('--package');            # Default argument for $search2html 
+@searchargs     = ('--package');            # Default argument for $search2html
 $ENV{PATH}      = '/bin:/usr/bin:/usr/sbin';
 delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'}; # Delete unsafe variables
 
@@ -27,13 +27,16 @@ $FALSE = 0;
 if ($in{'search'} ne '') {
     $search = $TRUE;
     @searchstring = split(/,/, $in{'search'});
-    
+
     if ($in{'searchtype'} eq 'm') {
         @searchargs = ('--menu');
-    } 
-    if ($in{'searchtype'} eq 'f') {
+    }
+    elsif ($in{'searchtype'} eq 'f') {
         @searchargs = ('--docfile');
-    } 
+    }
+    elsif ($in{'searchtype'} eq 'b') {
+        @searchargs = ('--doc-base-list');
+    }
     elsif ($in{'searchtype'} eq 'd') {
         @searchargs = ('--documentation');
         if (defined $in{'skip'}) {
@@ -41,19 +44,19 @@ if ($in{'search'} ne '') {
         }
     }
     push(@searchargs, "--");
-} 
+}
 else {
         $search   = $FALSE;
         $type     = $in{'type'};     # This document is formated in $type.
-        $type     = 'file' unless defined $type;        
+        $type     = 'file' unless defined $type;
         $location = $in{'location'}; # It is located at $location.
         $no_pi    = '--no-path-info';
         if ($location eq "") {
             &CheckForBrokenThttpd() if $type eq "dir";
             $location = $in{'path_info'};
             $no_pi    = '';
-    }       
-        
+    }
+
 }
 
 sub CheckForBrokenThttpd() {
@@ -66,14 +69,14 @@ sub CheckForBrokenThttpd() {
 
 #
 # Ok, now that we know the type, we need to perform the search or
-# send them the requested document.  
+# send them the requested document.
 #
 
 if ($search == $TRUE) {
 
     exec { "$search2html" } "$search2html", @searchargs, @searchstring;
     &error($TRUE, "Couldn't search for @searchstring! ($!)");
-} 
+}
 
 elsif (($type eq "") or ($location eq "")) {
     my $port     = $ENV{'SERVER_PORT'} ? ':' . $ENV{'SERVER_PORT'} : '';
@@ -82,15 +85,15 @@ elsif (($type eq "") or ($location eq "")) {
 
     print "Location: $protocol://$ENV{'SERVER_NAME'}$port/dwww/\n\n";
 
-} 
+}
 
 else {
 
     # Execute $doc2html, telling it that the format is of type $type, and the
-    # requested document at $location. 
+    # requested document at $location.
     my @args = ("--", $type, $location);
     unshift (@args, $no_pi) if $no_pi ne '';
- 
+
     exec { $doc2html } $doc2html, @args;
     &error($TRUE, "Couldn't convert document $location! ($!)");
 }
@@ -109,12 +112,12 @@ sub ReadParse {
         # Read in text
     if ($ENV{'REQUEST_METHOD'} eq "GET") { # a GET -- data in encoded string
         $in = $ENV{'QUERY_STRING'};
-    } 
+    }
     elsif ($ENV{'REQUEST_METHOD'} eq "POST") { # a POST -- data in variables
         for ($i = 0; $i < $ENV{'CONTENT_LENGTH'}; $i++) {
             $in .= getc;
         }
-    } 
+    }
     elsif ($ENV{'REQUEST_METHOD'} eq "HEAD") {
         $in = $ENV{'QUERY_STRING'};
     }
@@ -141,16 +144,16 @@ sub ReadParse {
         # we do not do this again!
         push(@in, "path_info=$val");
     }
-        
 
-    # Untaint arguments and check for invalid characters 
+
+    # Untaint arguments and check for invalid characters
         foreach $i (0 .. $#in) {
         if ($in[$i] =~ m/^([-:a-zA-Z0-9+.=_\/ \[]*)$/) {
             $in[$i] = $1;  # untaint
-        } 
+        }
         else {
-            $in[$i] =~ s/&/&amp;/g; 
-            $in[$i] =~ s/</&lt;/g;  
+            $in[$i] =~ s/&/&amp;/g;
+            $in[$i] =~ s/</&lt;/g;
             $in[$i] =~ s/>/&gt;/g;
             &error ($TRUE, "Invalid characters in input: $in[$i]" );
         }

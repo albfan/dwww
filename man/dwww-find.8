@@ -1,11 +1,11 @@
-.\" $Id: dwww-find.8 531 2009-02-15 12:54:08Z robert $
+.\" $Id: dwww-find.8 547 2011-01-15 15:29:55Z robert $
 .\"
-.TH DWWW\-FIND 8 "February 15th, 2009" "dwww 1.11.1" "Debian"
+.TH DWWW\-FIND 8 "January 15th, 2011" "dwww 1.11.4" "Debian"
 .SH NAME
 dwww\-find \- find documentation related to a search argument
 .SH SYNOPSIS
 .B "dwww-find" 
-.RB [ \-\-program | \-\-menu | \-\-documentation | \-\-docfile ] 
+.RB [ \-\-program | \-\-menu | \-\-documentation | \-\-docfile | \-\-doc-base-list ] 
 .RB [ \-\-skip=\fInumber\fP ]
 .IR "argument " [ ... ]
 .SH DESCRIPTION
@@ -44,6 +44,18 @@ The file must be located in or below a directory that has been allowed
 by the system administrator; see
 .BR dwww (7)
 for more info.
+.TP
+.B \-\-doc\-base\-list
+Show list of registerered doc-base files for given
+.IR argument ,
+which should be specified as 
+.IR format/document\-id ,
+where
+.I document\-id
+is an identificator of registered doc\-base document, and
+.I format 
+is a name of format (e.g. text or pdf) registered by the document, for which
+the list list is to be generated.
 .TP
 .BI \-\-skip= number
 Works only with

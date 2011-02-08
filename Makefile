@@ -1,6 +1,6 @@
 # vim:ts=2
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile 516 2009-01-15 19:51:36Z robert $"
+# "@(#)dwww:$Id: Makefile 555 2011-02-08 22:31:39Z robert $"
 #
 ALL_TARGET  :=
 SUBDIRS     := data man perl scripts src
@@ -11,6 +11,6 @@ docfiles    := README TODO
 install-local:
 	$(call msg,$@)
 	$(call install,$(docdir),$(docfiles))
-	$(call install,$(libdir)/html)
+	$(call install,$(libdir))
 	$(call install,$(webdocrootdir))
 	$(call install,$(cachedir))
