@@ -1,59 +1,28 @@
 # vim:ft=perl:cindent:ts=4:sts=4:sw=4:et:fdm=marker:cms=\ #\ %s
 #
-# $Id: Initialize.pm 538 2009-12-23 16:34:02Z robert $
-#
 package Debian::Dwww::Initialize;
 
 use Exporter();
 use Sys::Hostname;
+use Debian::Dwww::ConfigFile;
 use strict;
 
 use vars qw(@ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(DwwwInitialize DwwwSetupDirs);
 
-sub DwwwInitialize() {
+sub DwwwInitialize($) {
     my $filename = shift;
     my $hostname = &hostname();
     $hostname    =~ s/\..*$//;
-    my $dwwwvars = {
-        'DWWW_DOCPATH' => "/usr/share/doc:/usr/doc:/usr/share/info:/usr/info:"
-                        . "/usr/share/man:/usr/man:/usr/X11R6/man:/usr/local/man:"
-                        . "/usr/local/doc:/usr/local/info:/usr/share/common-licenses",
-        'DWWW_ALLOWEDLINKPATH'                  => "/usr/share:/usr/lib:/var/www",
-        'DWWW_TMPDIR'                           => "/var/lib/dwww",
-        'DWWW_USE_CACHE'                        => "yes",
-        'DWWW_KEEPDAYS'                         => 10,
-        'DWWW_QUICKFIND_DB'                     => "/var/cache/dwww/quickfind.dat",
-        'DWWW_REGDOCS_DB'                       => "/var/cache/dwww/regdocs.dat",
-        'DWWW_DOCBASE2PKG_DB'                   => "/var/cache/dwww/docbase2pkg.dat",
-        'DWWW_TITLE'                            => 'dwww: ' . $hostname,
-        'DWWW_DOCROOTDIR'                       => '/var/www',
-        'DWWW_CGIDIR'                           => '/usr/lib/cgi-bin',
-        'DWWW_CGIUSER'                          => 'www-data',
-        'DWWW_USEHTTPS'                         => 'no',
-        'DWWW_SERVERNAME'                       => 'localhost',
-        'DWWW_SERVERPORT'                       => 80,
-        'DWWW_INDEX_FULL_TIME_INTERVAL'         => 28,
-        'DWWW_INDEX_INCREMENTAL_TIME_INTERVAL'  => 7
+    my $cfgvars  = ReadConfigFile($filename);
+    my $dwwwvars = {};
 
-    };
+    map +{ $dwwwvars->{$_} = $cfgvars->{$_}->{'cfgval'} ? $cfgvars->{$_}->{'cfgval'}
+                                                       : $cfgvars->{$_}->{'defval'} }, keys %$cfgvars;
 
     umask (022);
     $ENV{'PATH'} = "/usr/sbin:/usr/bin:$ENV{'PATH'}";
-
-    if ($filename && -r $filename)
-    {
-
-        open DWWWCONF, "<$filename" or die "Can't open $filename: $!\n";
-        while (<DWWWCONF>) {
-            chomp();
-            if (m/^\s*([^=]+)\s*=\s*(\S+)\s*$/) {
-                $dwwwvars->{$1} = $2;
-            }
-        }
-        close DWWWCONF or die "Can't close $filename: $!\n";
-    } 
 
     foreach my $k ( 'DWWW_DOCPATH', 'DWWW_ALLOWEDLINKPATH' ) {
         my @paths =  split( /:/, $dwwwvars->{$k} );

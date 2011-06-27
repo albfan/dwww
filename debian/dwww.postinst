@@ -1,100 +1,107 @@
 #!/usr/bin/perl -w
-# vim:ft=perl:cindent:ts=8
-# 
+# vim:ft=perl:cindent:ts=4:sts=4:et:sw
+#
 # postinst for dwww
-# $Id: dwww.postinst 490 2008-05-13 20:17:13Z robert $
 #
 
 use Debconf::Client::ConfModule qw(:all);
+use Debian::Dwww::ConfigFile qw(ReadConfigFile WriteConfigFile);
+use strict;
 
-$stdcgidir = '/usr/lib/cgi-bin';
-$cfgfile   = '/etc/dwww/dwww.conf';
+my $stdcgidir    = '/usr/lib/cgi-bin';
+my $cfgfile      = '/etc/dwww/dwww.conf';
+my $newcfgfile   = '/etc/dwww/dwww.conf.dpkg-new';
 $|=1;
 version('2.0');
 
 
 if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
 {
+    my $dwwwcfg = ReadConfigFile($cfgfile);
 
-	&ScanDwwwConfFile ( "$cfgfile" );
+    # docrootdir
+    my $old_docdir = $dwwwcfg->{DWWW_DOCROOTDIR}->{cfgval} ? canondir($dwwwcfg->{DWWW_DOCROOTDIR}->{cfgval}) : '';
+    my $old_cgidir = $dwwwcfg->{DWWW_CGIDIR}->{cfgval} ? canondir($dwwwcfg->{DWWW_CGIDIR}->{cfgval}): '';
 
-	# docrootdir
-	$old_docdir = defined $dwwwcfg{'docrootdir'} ? canondir($dwwwcfg{'docrootdir'}) : '';
-	$old_cgidir = defined $dwwwcfg{'cgidir'} ? canondir($dwwwcfg{'cgidir'}): '';
+    $dwwwcfg->{DWWW_DOCROOTDIR}->{cfgval} = canondir(scalar get('dwww/docrootdir'));
+    $dwwwcfg->{DWWW_CGIDIR}->{cfgval}     = canondir(scalar get('dwww/cgidir'));
+    $dwwwcfg->{DWWW_CGIUSER}->{cfgval}    = get('dwww/cgiuser');
+    $dwwwcfg->{DWWW_SERVERPORT}->{cfgval} = get('dwww/serverport');
+    $dwwwcfg->{DWWW_SERVERNAME}->{cfgval} = get('dwww/servername');
 
-	$dwwwcfg{'docrootdir'} = canondir(scalar get('dwww/docrootdir'));
-	$dwwwcfg{'cgidir'}     = canondir(scalar get('dwww/cgidir'));
-	$dwwwcfg{'cgiuser'}    = get('dwww/cgiuser');
-	$dwwwcfg{'serverport'} = get('dwww/serverport');
-	$dwwwcfg{'servername'} = get('dwww/servername');
-	
-	my $do_index = (-x '/usr/bin/index++' 
-		        and not -s '/var/cache/dwww/dwww.swish++.index'
-			and scalar get('dwww/index_docs') eq 'true') ? 1 : 0;
+    my $do_index = (-x '/usr/bin/index++'
+                and not -s '/var/cache/dwww/dwww.swish++.index'
+            and scalar get('dwww/index_docs') eq 'true') ? 1 : 0;
 
-	stop(); # stop debconf
+    &SetupDwwwLinks ($old_docdir, $dwwwcfg->{DWWW_DOCROOTDIR}->{cfgval},
+                     $old_cgidir, $dwwwcfg->{DWWW_CGIDIR}->{cfgval});
 
-	&SetupDwwwLinks ("$old_docdir", "$dwwwcfg{'docrootdir'}",
-	 		 "$old_cgidir", "$dwwwcfg{'cgidir'}");
+    WriteConfigFile($newcfgfile, $dwwwcfg);
+    my @cmd = ("ucf","--debconf-ok", "--three-way", $newcfgfile, $cfgfile);
+    system (@cmd) == 0 or die "system @cmd failed: $!\n";
+    @cmd    = ("ucfr", "dwww", $cfgfile);
+    system (@cmd) == 0 or die "system @cmd failed: $!\n";
+    unlink ($newcfgfile);
 
-	&WriteDwwwConfFile( "$cfgfile" );
+    stop(); # stop debconf
 
-	if ( ! -d "/var/cache/dwww" ) {
-		mkdir "/var/cache/dwww", 0755 or die "Cannot create directory /var/cache/dwww: $!\n";
-		chown 0, 0, "/var/cache/dwww";
-	} else {			
-		system("rm", "-rf", "/var/cache/dwww/db");
-	}
-	mkdir "/var/cache/dwww/db", 0755 or die "Cannot create directory /var/cache/dwww/db: $!\n";
-	my $uid = (getpwnam("$dwwwcfg{'cgiuser'}"))[2] ;
-	defined $uid or die "User $dwwwcfg{'cgiuser'} does not exist\n";
-	$uid or die "You DON'T want to run the dwww CGI script as root!\n";
-	chown $uid, 0, "/var/cache/dwww/db";
+    if ( ! -d "/var/cache/dwww" ) {
+        mkdir "/var/cache/dwww", 0755 or die "Cannot create directory /var/cache/dwww: $!\n";
+        chown 0, 0, "/var/cache/dwww";
+    } else {
+        system("rm", "-rf", "/var/cache/dwww/db");
+    }
+    mkdir "/var/cache/dwww/db", 0755 or die "Cannot create directory /var/cache/dwww/db: $!\n";
+    my $cgiuser = $dwwwcfg->{DWWW_CGIUSER}->{cfgval};
+    my $uid = (getpwnam($cgiuser))[2] ;
+    defined $uid or die "User $cgiuser does not exist\n";
+    $uid or die "You DON'T want to run the dwww CGI script as root!\n";
+    chown $uid, 0, "/var/cache/dwww/db";
 
-	if ( -r "/etc/dwww/apache.conf") {
-		foreach my $apache ("apache","apache-perl", "apache-ssl", "apache2") {
-			my $confd="/etc/$apache/conf.d";
-			 if (-d $confd)  {
-				symlink ("../../dwww/apache.conf", "$confd/dwww") 
-					unless -e "$confd/dwww"; 
-				# restart the web server
-				system ("invoke-rc.d $apache restart 1>&2") 
-					if (-x "/usr/sbin/invoke-rc.d" && -x "/etc/init.d/$apache");
-			 }
-		}
-	}
+    if ( -r "/etc/dwww/apache.conf") {
+        foreach my $apache ("apache","apache-perl", "apache-ssl", "apache2") {
+            my $confd="/etc/$apache/conf.d";
+             if (-d $confd)  {
+                symlink ("../../dwww/apache.conf", "$confd/dwww")
+                    unless -e "$confd/dwww";
+                # restart the web server
+                system ("invoke-rc.d $apache restart 1>&2")
+                    if (-x "/usr/sbin/invoke-rc.d" && -x "/etc/init.d/$apache");
+             }
+        }
+    }
 
-	if ( -x "/etc/cron.daily/dwww" )
-	{
-		print STDERR "\nBuilding dwww pages in the background...\n";
-		system("setsid /etc/cron.daily/dwww &");
-	}
+    if ( -x "/etc/cron.daily/dwww" )
+    {
+        print STDERR "\nBuilding dwww pages in the background...\n";
+        system("setsid /etc/cron.daily/dwww &");
+    }
 
-	if ($do_index and -x "/usr/sbin/dwww-index++")	
-	{	
-		print STDERR "\nIndexing documentation files in the background...\n";
-		system("dwww-index++ &");
-	}
-	
+    if ($do_index and -x "/usr/sbin/dwww-index++")
+    {
+        print STDERR "\nIndexing documentation files in the background...\n";
+        system("dwww-index++ &");
+    }
+
 }
 else
 {
-	stop(); # stop debconf
+    stop(); # stop debconf
 }
 
 
-my $dh_commands="set -- @ARGV\\n" . << 'EOF';
+my $dh_commands="set -- @ARGV\n" . << 'EOF';
 set -e
 if [ "$1" = "configure" ] && dpkg --compare-versions "$2" lt-nl "1.10.14"; then
     rm -f /etc/cron.daily/dwww.saved_by_dwww_preinst \
           /etc/menu-methods/dwww.saved_by_dwww_preinst \
-	  /etc/menu-methods/dwww 
+      /etc/menu-methods/dwww
    rm -rf /var/lib/dwww/menu-method
 fi
 #DEBHELPER#
 EOF
 system ($dh_commands) / 256 == 0
-	or die "Problem with shell scripts: $!";
+    or die "Problem with shell scripts: $!";
 
 exit 0;
 
@@ -106,138 +113,30 @@ exit 0;
 
 sub SetupDwwwLinks
 {
-	my ($olddocdir, $newdocdir, $oldcgidir, $newcgidir) = @_;
+    my ($olddocdir, $newdocdir, $oldcgidir, $newcgidir) = @_;
 
-	if (($olddocdir ne "") and ($olddocdir ne $newdocdir))
-	{
-		system("rm", "-rf", "$olddocdir/dwww");
-	}
+    if (($olddocdir ne "") and ($olddocdir ne $newdocdir))
+    {
+        system("rm", "-rf", "$olddocdir/dwww");
+    }
 
-	if (($oldcgidir ne $stdcgidir) and ($oldcgidir ne ""))
-	{
-		unlink "$oldcgidir/dwww";
-	}
+    if (($oldcgidir ne $stdcgidir) and ($oldcgidir ne ""))
+    {
+        unlink "$oldcgidir/dwww";
+    }
 
-	if (($newcgidir ne $stdcgidir) and ( -d $newcgidir ))
-	{
-		unlink "$newcgidir/dwww";
-		system("cp","-p","$stdcgidir/dwww", "$newcgidir/dwww");
-	}
+    if (($newcgidir ne $stdcgidir) and ( -d $newcgidir ))
+    {
+        unlink "$newcgidir/dwww";
+        system("cp","-p","$stdcgidir/dwww", "$newcgidir/dwww");
+    }
 }
-
-
-
-
-
-# Subroutine to Scan Dwww configuration file
-# Configfile to parse is the argument to the subroutine
-sub ScanDwwwConfFile
-{
-
-	if ( ! -r "$_[0]" ) { return; };
-	open(DWWWCONFFILE,"<$_[0]") || die "Could not open $_[0]";
-
-    # set defaults
-    #     $dwwwcfg{'serverport'}  = 80;
-
-	while (<DWWWCONFFILE>)
-	{
-		# Check for DWWW_DOCROOTDIR
-		if( s/^\s*DWWW_DOCROOTDIR=//)
-		{
-			chomp($dwwwcfg{'docrootdir'}=$_);
-		}
-
-		# Check for DWWW_CGIDIR
-		if( s/^\s*DWWW_CGIDIR=//)
-		{
-			chomp($dwwwcfg{'cgidir'}=$_);
-		}
-
-		# Check for DWWW_CGIUSER
-		if( s/^\s*DWWW_CGIUSER=//)
-		{
-			chomp($dwwwcfg{'cgiuser'}=$_);
-		}
-
-		# Check for DWWW_SERVERNAME
-		if( s/^\s*DWWW_SERVERNAME=//)
-		{
-			chomp($dwwwcfg{'servername'}=$_);
-			# some compatibility code: assume that everything after i
-			# the last : is  a port number
-
-			if ($dwwwcfg{'servername'} =~ /^(.*):(\d+)$/)
-			{
-				$dwwwcfg{'servername'} = $1;
-				$dwwwcfg{'serverport'} = $2;
-			}
-		}
-
-
-		# Check for DWWW_SERVERPORT
-		if( s/^\s*DWWW_SERVERPORT=//)
-		{
-			chomp($dwwwcfg{'serverport'}=$_);
-		}
-
-	}
-	close DWWWCONFFILE;
-}
-
-
-
-# Write /etc/dwww/dwww.conf
-sub WriteDwwwConfFile
-{
-	# First, build up array of entries
-	my $filename 	 = "$_[0]";
-	my @dwwwconffile = ();
-
-
-	if ( -r "$filename" )
-	{
-
-		open(DWWWCONFFILE,"< $filename") ||	die "Could not open $filename for reading";
-
-		while (<DWWWCONFFILE>)
-		{
-			next if ( /^\s*DWWW_DOCROOTDIR/ ||
-					  /^\s*DWWW_CGIDIR/ ||
-					  /^\s*DWWW_CGIUSER/ ||
-					  /^\s*DWWW_SERVERNAME/ ||
-					  /^\s*DWWW_SERVERPORT/
-					);
-			push @dwwwconffile, "$_";
-		}
-		close DWWWCONFFILE;
-	}
-
-	open(DWWWCONFFILE,"> $filename") ||
-			die "Could not open $filename for writing";
-
-	foreach $i ( @dwwwconffile )
-	{
-		print DWWWCONFFILE "$i";
-	}
-
-	print DWWWCONFFILE "DWWW_DOCROOTDIR=$dwwwcfg{'docrootdir'}\n";
-	print DWWWCONFFILE "DWWW_CGIDIR=$dwwwcfg{'cgidir'}\n";
-	print DWWWCONFFILE "DWWW_CGIUSER=$dwwwcfg{'cgiuser'}\n";
-	print DWWWCONFFILE "DWWW_SERVERNAME=$dwwwcfg{'servername'}\n";
-	print DWWWCONFFILE "DWWW_SERVERPORT=$dwwwcfg{'serverport'}\n";
-
-	close DWWWCONFFILE;
-}
-
 
 sub canondir
 {
-	my $dir = $_[0];
-	
-	$dir =~ s|/+|/|g;
-	$dir =~ s|/$||;
-	return $dir;
+    my $dir = $_[0];
+
+    $dir =~ s|/+|/|g;
+    $dir =~ s|/$||;
+    return $dir;
 }
-
-

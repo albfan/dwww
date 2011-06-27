@@ -1,0 +1,160 @@
+# Danish translation dwww.
+# Copyright (C) 2011 dwww & nedenstående oversættere.
+# This file is distributed under the same license as the dwww package.
+# Joe Hansen <joedalton2@yahoo.dk>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dwww\n"
+"Report-Msgid-Bugs-To: robert@debian.org\n"
+"POT-Creation-Date: 2007-04-03 01:36+0200\n"
+"PO-Revision-Date: 2011-05-03 17:30+01:00\n"
+"Last-Translator: Joe Hansen <joedalton2@yahoo.dk>\n"
+"Language-Team: Danish <debian-l10n-danish@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:1001
+msgid "Location of web server's document root:"
+msgstr "Placering af internetserverens dokumentrod:"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:1001
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's document root. The web standard suggests /var/www."
+msgstr ""
+"dwww skal kende stien på mappen som indeholder din internetservers "
+"dokumentrod. Internetstandarden foreslår /var/www."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:2001
+msgid "Location of web server's cgi directory:"
+msgstr "Placering af internetserverens cgi-mappe:"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:2001
+msgid ""
+"dwww needs to know the path of the directory which contains your web "
+"server's CGI scripts.  The web standard suggests /usr/lib/cgi-bin, but your "
+"web server may already be configured for a different location."
+msgstr ""
+"dwww skal kende stien på mappen, som indeholder din internetservers CGI-skript. "
+"Internetstandarden foreslår /usr/lib/cgi-bin, men din internetserver er måske "
+"allerede konfigureret til en anden placering."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:3001
+msgid "Name of CGI user:"
+msgstr "Navn på CGI-bruger:"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:3001
+msgid ""
+"dwww needs to know what user will be running the dwww CGI script, as the "
+"cache directory must be owned by that user."
+msgstr ""
+"dwww skal kende brugeren, som vil køre dwww CGI-skriptet, da mappen til "
+"mellemlageret skal være ejet af den bruger."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4001
+msgid "Host name of the web server:"
+msgstr "Værtsnavn på internetserveren:"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:4001
+msgid "dwww needs to know the host name of your web server."
+msgstr "dwww skal vide værtsnavnet på din internetserver."
+
+#. Type: string
+#. Description
+#: ../dwww.templates:5001
+msgid "Web server's port:"
+msgstr "Internetserveres port:"
+
+#. Type: string
+#. Description
+#: ../dwww.templates:5001
+msgid ""
+"dwww needs to know what port your web server is running on.  Normally web "
+"servers run on port 80."
+msgstr ""
+"dwww skal vide hvilken port din internetserver kører på. Normale internetservere "
+"kører på port 80."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:6001
+msgid "Directory does not exist!"
+msgstr "Mappe findes ikke!"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:6001
+msgid "Directory ${dir} does not exist."
+msgstr "Mappe ${dir} findes ikke."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:7001
+msgid "User not found!"
+msgstr "Bruger ikke fundet!"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:7001
+msgid "User ${user} does not exist."
+msgstr "Bruger ${user} findes ikke."
+
+#. Type: note
+#. Description
+#: ../dwww.templates:8001
+msgid "Port value should be a number!"
+msgstr "Portværdi skal være et nummer!"
+
+#. Type: note
+#. Description
+#: ../dwww.templates:8001
+msgid "Value entered for port: ${port} is invalid."
+msgstr "Værdien indtastet for port: ${port} er ugyldig."
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:9001
+msgid "Should post-installation script index your documentation files?"
+msgstr "Skal et efterinstallationsskript indeksere dine dokumentationsfiler?"
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:9001
+msgid ""
+"dwww-index++(8) program will be run once a week to index your documentation "
+"files registered with doc-base package."
+msgstr ""
+"Programmet dwww-index++(8) vil køre en gang om ugen og indeksere dine "
+"dokumentationsfiler registreret med pakken doc-base."
+
+#. Type: boolean
+#. Description
+#: ../dwww.templates:9001
+msgid ""
+"The index can also be generated (in the background) by the post-installation "
+"script. This process needs quite a lot of computer resources, and can take "
+"several minutes so you can choose now if you would like to do this."
+msgstr ""
+"Indekset kan også oprettes (i baggrunden) af efterinstallationsskriptet. Denne "
+"proces kræver en del computerressourcer og kan vare flere minutter, så du "
+"kan nu vælge, om du ønsker at udføre opgaven."
+
+

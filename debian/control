@@ -2,18 +2,29 @@ Source: dwww
 Section: doc
 Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
-Build-Depends: debhelper (>= 8), publib-dev
-Standards-Version: 3.9.1
+Build-Depends: debhelper (>= 8), lsb-release, publib-dev
+Standards-Version: 3.9.2
+Vcs-Git: git://anonscm.debian.org/users/robert/dwww.git
+Vcs-Browser: http://anonscm.debian.org/git/users/robert/dwww.git
 
 Package: dwww
 Architecture: any
-Depends: apache2 | httpd-cgi, man-db (>> 2.5.2), file, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}, doc-base (>= 0.8.12), debianutils (>= 2.5), libmime-types-perl (>= 1.15), mime-support, libfile-ncopy-perl
-Recommends: info2www, dlocate (>= 0.5-0.1), apt, swish++
-Suggests: links | www-browser, doc-debian, dpkg-www
+Depends: apache2 | httpd-cgi,
+         debianutils (>= 2.5),
+         doc-base (>= 0.8.12),
+         file,
+         libfile-ncopy-perl,
+         libmime-types-perl (>= 1.15),
+         man-db (>> 2.5.2),
+         mime-support,
+         ucf (>= 3.12),
+         ${misc:Depends},
+         ${perl:Depends},
+         ${shlibs:Depends}
+Recommends: apt, dlocate (>= 0.5-0.1), info2www, swish++
+Suggests: doc-debian, dpkg-www, links | www-browser
 Description: Read all on-line documentation with a WWW browser
  All installed on-line documentation will be served via a local HTTP
  server. When possible, dwww converts the documentation to HTML.
  You need to install both a CGI-capable HTTP server and a WWW
  browser to read the documentation.
-
-

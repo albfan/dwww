@@ -1,3 +1,24 @@
+dwww (1.11.6) unstable; urgency=low
+
+  * Add Italian translation of the debconf templates (closes: #620530).
+  * Add Danish translation of the debconf templates (closes: #626301).
+  * Improve configuration file management:
+    + include all supported variables and provide theirs descriptions
+      (closes: #622892);
+    + add a ConfigFile.pm utility module;
+    + update maintainer scripts and use ucf to manage changes in the file.
+  * Remove references to non-FHS dirs like /usr/doc from programs and
+    documentation. Use /usr/local/share/{doc,man,info} hierarchy instead of
+    /usr/local/{doc,man,info}.
+  * debian/control: 
+    + sort dependency fields with wrap-and-sort from the devscripts package;
+    + add build dependency on lsb-release;
+    + bump Standards-Version to 3.9.2 (no changes);
+    + add VCS-* fields;
+    + add dependency on ucf.
+
+ -- Robert Luberda <robert@debian.org>  Mon, 27 Jun 2011 20:10:10 +0200
+
 dwww (1.11.5) unstable; urgency=low
 
   * Upload to unstable.

@@ -1,16 +1,21 @@
 #!/bin/sh
+# vim:ft=sh:cindent:ts=4:sts=4:et:sw
 #
 # Debian postrm script for dwww.
-# "@(#)dwww:$Id: dwww.postrm,v 1.2 2005-09-15 22:30:26 robert Exp $"
 #
 
 set -e
 
-if [ "X$1" = "Xpurge" ] && [ -d /etc/dwww ] ; then
-	echo -n "Purging configuration data in /etc/dwww/ ... "
-	rm -rf /etc/dwww
-	echo "done."
+if [ "X$1" = "Xpurge" ]; then
+    ! which ucf  > /dev/null || ucf --purge /etc/dwww/dwww.conf
+    ! which ucfr > /dev/null || ucfr --purge dwww /etc/dwww/dwww.conf
+    if [ -d /etc/dwww ] ; then
+        echo -n "Purging configuration data in /etc/dwww/ ... "
+        rm -rf /etc/dwww
+        echo "done."
+    fi
 fi
+
 
 #DEBHELPER#
 

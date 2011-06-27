@@ -1,6 +1,4 @@
-.\" "$Id: dwww.7 532 2009-02-15 15:16:37Z robert $"
-.\"
-.TH DWWW 7 "February 15th, 2009" "dwww 1.11.1" "Debian"
+.TH DWWW 7 "June 26th, 2011" "dwww 1.11.6" "Debian"
 .SH NAME
 dwww \- access documentation via WWW
 .SH SYNOPSIS
@@ -143,15 +141,15 @@ Colon\-delimited list of directories from which
 supplies files.  For security reasons, it will refuse to convert files
 outside the directories named by this variable.
 Default is
-.I /usr/share/doc : /usr/doc : /usr/share/info : /usr/info :
-.I /usr/share/man : /usr/man : /usr/X11R6/man : /usr/local/man :
-.IR "/usr/local/doc : /usr/local/info : /usr/share/common\-licenses" .
+.I /usr/share/doc:/usr/share/info:/usr/share/man:
+.I /usr/local/share/doc:/usr/local/share/info:/usr/local/share/man:
+.IR "/usr/share/common\-licenses" .
 .\"
 .IP DWWW_ALLOWEDLINKPATH
 Colon-delimited list of directories which can be targets of symlinks from
 files from directories inside DWWW_DOCPATH.
 Default value is
-.IR /usr/share:/usr/lib:/var/www .
+.IR /usr/share:/usr/lib:/usr/local/share:/var/www .
 .br
 For example, \fI/usr/share/doc/package/foo.html\fR may be symlinked to a file
 \fI/usr/share/package/foo.html\fR, and this file can be displayed by

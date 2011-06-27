@@ -232,14 +232,12 @@ $(bdir)/%: %.in | $(bdir) $(MAKEFILE_LIST)
 	PERL5LIB="$(TOPDIR)/perl" $(PERL)  -e \
 	'exec ("'$(PERL)'", "-e", join("",@ARGV)) if $$#ARGV >-1; '\
 	'	$$|=1;					'\
-	'	use Debian::Dwww::Initialize; 		'\
-	'	$$d=&DwwwInitialize;			'\
+	'	use Debian::Dwww::ConfigFile; 		'\
+	'	$$d=ReadConfigFile("/dev/null");			'\
 	'	$$v="";					'\
 	'	foreach $$k (sort keys %{$$d}) {	'\
-	'		$$v.="\t$$k=\"$$d->{$$k}\"\n"	'\
-	'			if $$k !~ /(TITLE|PATH)$$/;	'\
-	'		$$v.="\t$$k=\"".join(":",@{$$d->{$$k}})."\"\n"	'\
-	'			if $$k =~ /PATH$$/;	'\
+	'		$$v.="\t$$k=\"$$d->{$$k}->{defval}\"\n"	'\
+	'			if $$k !~ /(TITLE)$$/;	'\
 	'	}					'\
 	'	while (<>) {				'\
 	'		s/#VERSION#/$(VERSION)/g;  	'\

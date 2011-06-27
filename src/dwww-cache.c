@@ -1,9 +1,8 @@
 /* vim:ft=c:cindent:ts=4:sts=4:sw=4:et:fdm=marker
- * 
+ *
  * File:    dwww-cache.c
  * Purpose: Manage the dwww cache of converted documents.
  * Author:  Lars Wirzenius
- * Version: "(#)dwww:$Id: dwww-cache.c 538 2009-12-23 16:34:02Z robert $"
  * Description: See the manual page for how to use this program.
  *
  *      Basically, what we do is read in a file from stdin,
@@ -22,7 +21,7 @@
  *
  *      One way to make it smaller than it is is to compress
  *      the filenames, since they contain a lot of common
- *      strings ("/usr/man/" for example).  We'll see.
+ *      strings ("/usr/share/man/" for example).  We'll see.
  */
 
 
@@ -54,12 +53,8 @@ static const char *prefs[] = {/* prefs[] {{{*/
     "",     /* MUST BE EMPTY STRING */
     "/usr/lib/",
     "/usr/share/doc/",
-    "/usr/doc/",
-    "/usr/local/doc/",
     "/usr/share/info/",
     "/usr/share/common-licenses/",
-    "/usr/info/",
-    "/usr/local/info/",
     "/usr/share/man/man1/",
     "/usr/share/man/man2/",
     "/usr/share/man/man3/",
@@ -69,30 +64,17 @@ static const char *prefs[] = {/* prefs[] {{{*/
     "/usr/share/man/man7/",
     "/usr/share/man/man8/",
     "/usr/share/",
-    "/usr/X11R6/man/man1/",
-    "/usr/X11R6/man/man2/",
-    "/usr/X11R6/man/man3/",
-    "/usr/X11R6/man/man4/",
-    "/usr/X11R6/man/man5/",
-    "/usr/X11R6/man/man6/",
-    "/usr/X11R6/man/man7/",
-    "/usr/X11R6/man/man8/",
-    "/usr/local/man/man1/",
-    "/usr/local/man/man2/",
-    "/usr/local/man/man3/",
-    "/usr/local/man/man4/",
-    "/usr/local/man/man5/",
-    "/usr/local/man/man6/",
-    "/usr/local/man/man7/",
-    "/usr/local/man/man8/",
-    "/usr/man/man1/",
-    "/usr/man/man2/",
-    "/usr/man/man3/",
-    "/usr/man/man4/",
-    "/usr/man/man5/",
-    "/usr/man/man6/",
-    "/usr/man/man7/",
-    "/usr/man/man8/",
+    "/usr/local/share/doc/",
+    "/usr/local/share/info/",
+    "/usr/local/share/man/man1/",
+    "/usr/local/share/man/man2/",
+    "/usr/local/share/man/man3/",
+    "/usr/local/share/man/man4/",
+    "/usr/local/share/man/man5/",
+    "/usr/local/share/man/man6/",
+    "/usr/local/share/man/man7/",
+    "/usr/local/share/man/man8/",
+    "/usr/local/share/"
 };/*}}}*/
 static int nprefs = sizeof(prefs) / sizeof(*prefs);
 
@@ -191,7 +173,7 @@ static int rebuild_db(struct dochash *);
 static bool check_mtimes(const char * const origname,
                         const char * const cachedname);
 static int find_pref(const char *);
-static int set_modtime_from_orig(const char * const , const char * const); 
+static int set_modtime_from_orig(const char * const , const char * const);
 
 int main(int argc, char **argv) {/*{{{*/
     static struct {
@@ -214,7 +196,7 @@ int main(int argc, char **argv) {/*{{{*/
 
     if (parse_options(argc, argv, options, &first_nonopt) == -1)
         return EXIT_FAILURE;
-        
+
     for (i = 0; actions[i].action != action_error; ++i)
         if (actions[i].action == action)
             break;
@@ -262,9 +244,9 @@ static bool list(char *type UNUSED, char *location) {/*{{{*/
     if (!read_db(db, &hash))
         return close_db(db, false);
     i = lookup_db(&hash, location);
-    if (i == -1) 
+    if (i == -1)
         return close_db(db, false);
-    
+
     data = hash.tab.data;
     snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
     snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
@@ -294,16 +276,16 @@ static bool list_all(char *type UNUSED, char *location UNUSED) {/*{{{*/
     if (!read_db(db, &hash))
         return close_db(db, false);
     data = hash.tab.data;
-    
+
     for (i = 0; i < hash.tab.used; ++i) {
         snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
         snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
-        if (check_mtimes(orig, buf)) 
+        if (check_mtimes(orig, buf))
             printf("%s %s %s %s\n", int_to_type(data[i].type),
                 orig, data[i].converted,
                 data[i].permanent ? "y" : "n");
     }
-    
+
     return close_db(db, true);
 }/*}}}*/
 
@@ -338,7 +320,7 @@ static bool lookup(char *type UNUSED, char *location) {/*{{{*/
 }/*}}}*/
 
 
-static bool internal_store(char * type, 
+static bool internal_store(char * type,
                            char * location,
                            char * tmp_file,
                            const int fd,
@@ -349,20 +331,20 @@ static bool internal_store(char * type,
     char filename[BUF_SIZE];
     char buf[BUF_SIZE];
 
-    
+
     if (copy_fd_to_fd(STDIN_FILENO, fd, STDOUT_FILENO) == -1) {
         errormsg(0, -1, "can't copy stdin to %s", *tmp_file ? tmp_file : "stdout");
         return false;
     }
-    
+
     if (!*tmp_file)
         return false;
-    
+
 
     if (!read_db(db, &hash)) {
         return false;
-    }   
-        
+    }
+
     i = lookup_db(&hash, location);
     if (i != -1) {
         data =  hash.tab.data;
@@ -373,11 +355,11 @@ static bool internal_store(char * type,
             return false;
         }
         snprintf(filename, sizeof(filename), "%s%s", SPOOL_DIR, buf);
-        
+
         init_entry(&new, type, location, buf, 0);
 
         if (insert_db(&hash, &new) == -1)
-        { 
+        {
             return false;
         }
     }
@@ -395,7 +377,7 @@ static bool internal_store(char * type,
         (void) unlink(filename);
         return false;
     }
-            
+
     return true;
 }/*}}}*/
 
@@ -418,7 +400,7 @@ static bool store(char *type, char *location) {/*{{{*/
 
     if (fd < 0)
     {
-        /* failed to open database or create temporary file, thus 
+        /* failed to open database or create temporary file, thus
            output to stdout only & don't cache */
         *tmp_file = 0;
         fd = STDOUT_FILENO;
@@ -435,7 +417,7 @@ static bool store(char *type, char *location) {/*{{{*/
         errormsg(0, -1, "can't remove temporary file %s", tmp_file);
         retval = false;
     }
-    
+
     if (fd != STDOUT_FILENO && close(fd) < 0)
     {
         errormsg(0, -1, "can't close file");
@@ -461,19 +443,19 @@ static bool clean(char *type UNUSED, char *location UNUSED) {/*{{{*/
     db = open_db_writing();
     if (db == -1 || !read_db(db, &hash))
         return false;
-        
+
     data = hash.tab.data;
     j = 0;
     for (i = 0; i < hash.tab.used; ++i) {
         snprintf(orig, sizeof(orig), "%s%s", prefs[data[i].pref], data[i].original);
         snprintf(buf,  sizeof(buf),  "%s%.20s", SPOOL_DIR, data[i].converted);
-        if (check_mtimes(orig, buf)) 
+        if (check_mtimes(orig, buf))
             data[j++] = data[i];
         else
             (void) unlink(buf);
     }
     hash.tab.used = j;
-    
+
     if (!rebuild_db(&hash)   ||
         !write_db(db, &hash))
         return close_db(db, false);
@@ -492,9 +474,9 @@ static int open_db_reading(void) {/*{{{*/
             if (errno != ENOENT)
                 errormsg(0, -1, "can't check cache database");
         return -1;
-    }               
+    }
 
-    while (--tries && flock(db, LOCK_SH | LOCK_NB) < 0) 
+    while (--tries && flock(db, LOCK_SH | LOCK_NB) < 0)
             sleep(1);
 
     if (!tries)
@@ -503,7 +485,7 @@ static int open_db_reading(void) {/*{{{*/
         errormsg(0, -1, "can't create shared lock on cache database");
         return -1;
     }
-        
+
     return db;
 }/*}}}*/
 
@@ -517,9 +499,9 @@ static int open_db_writing(void) {/*{{{*/
     {
         errormsg(0, -1, "can't update cache database");
         return -1;
-    }       
-                    
-    while (--tries && flock(db, LOCK_EX | LOCK_NB) < 0) 
+    }
+
+    while (--tries && flock(db, LOCK_EX | LOCK_NB) < 0)
             sleep(1);
 
     if (!tries)
@@ -548,12 +530,12 @@ static bool read_db(int db, struct dochash *hash) {/*{{{*/
         errormsg(0, -1, "out of memory");
         return false;
     }
-    
+
     if (read(db, p, (size_t)st.st_size) != st.st_size) {
         errormsg(0, -1, "couldn't read database");
         return false;
     }
-    
+
     hash->db = p;
     hash->db_size = (size_t) st.st_size;
     dynarr_init(&hash->tab, sizeof(struct cache_entry));
@@ -577,7 +559,7 @@ static bool read_db(int db, struct dochash *hash) {/*{{{*/
     }
 
     sort_db(hash);
-    
+
     return true;
 }/*}}}*/
 
@@ -586,7 +568,7 @@ static int compare_entry(const void *a, const void *b) {/*{{{*/
     const struct cache_entry *aa = a;
     const struct cache_entry *bb = b;
     int i;
-    
+
     i = aa->pref - bb->pref;
     if (i == 0)
         i = strcmp(aa->original, bb->original);
@@ -649,7 +631,7 @@ static int rebuild_db(struct dochash *hash) {/*{{{*/
         errormsg(0, -1, "out of memory");
         return -1;
     }
-    
+
     qq = q;
     for (i = 0; i < hash->tab.used; ++i) {
         *qq++ = data[i].type;
@@ -662,7 +644,7 @@ static int rebuild_db(struct dochash *hash) {/*{{{*/
         memcpy(qq, data[i].converted, n);
         qq += n;
     }
-    
+
     free(hash->db);
     hash->db = q;
     hash->db_size = qsize;
@@ -676,17 +658,17 @@ static int write_db(int db, struct dochash *hash) {/*{{{*/
         errormsg(0, -1, "can't update cache database");
         return -1;
     }
-    
+
     if (ftruncate(db, 0) == -1) {
         errormsg(0, -1, "can't truncate cache database");
         return -1;
     }
-    
+
     if (write(db, hash->db, hash->db_size) == -1) {
         errormsg(0, -1, "can't update cache database");
         return -1;
     }
-    
+
     return 0;
 }/*}}}*/
 
@@ -724,18 +706,18 @@ char *conv, char perm)
 
 static int output_file(char *name) {/*{{{*/
     int fd;
-    
+
     fd = open(name, O_RDONLY);
     if (fd == -1) {
         errormsg(0, -1, "can't read file %s", name);
         return -1;
     }
-    
+
     if (copy_fd_to_fd(fd, 1, 1) == -1) {
         (void) close(fd);
         return -1;
     }
-    
+
     close(fd);
     return 0;
 }/*}}}*/
@@ -747,33 +729,33 @@ static int copy_fd_to_fd(int from, int to_prim, int to_sec) {/*{{{*/
     ssize_t n_prim = 0;
     ssize_t n_sec  = 0;
 
-    
+
     if (to_prim == to_sec)
         n_sec = -100; /* *must* be less then 0 */
-    
+
     while ((n = read(from, buf, sizeof(buf))) > 0) {
         if (n_prim >= 0)
             n_prim = write(to_prim, buf, (size_t)n) - n;
         if (n_sec >= 0)
             n_sec = write(to_sec, buf, (size_t)n) - n;
         if (n_prim < 0 && n_sec < 0)
-        {   
+        {
             errormsg(0, -1, "error writing");
             return -1;
         }
     }
-    
+
     if (n_prim < 0)
-    {   
+    {
         errormsg(0, -1, "error writing");
         return -1;
     }
-    
+
     if (n < 0) {
         errormsg(0, -1, "error reading");
         return -1;
     }
-    
+
     return 0;
 }/*}}}*/
 
@@ -783,7 +765,7 @@ static int create_tmp_file(char * dir, char * full, size_t size) {/*{{{*/
 
     snprintf(full, size,  "%s/tmp%d.%ld", dir, (int) getpid(), (long int)time(NULL));
     fd = open(full, O_CREAT | O_EXCL | O_RDWR, 0664);
-    
+
     return fd;
 }/*}}}*/
 
@@ -795,9 +777,9 @@ static int get_new_filename(char * location, char * dir, char * buf, size_t buf_
         char c = '_';
 
         tmp = basename(location);
-        if (tmp != NULL) 
+        if (tmp != NULL)
                 c = *tmp;
-        
+
         snprintf(full, sizeof(full), "%s/%c", dir, c);
         if (mkdir(full, 0775) == -1 && errno != EEXIST)
         {
@@ -818,7 +800,7 @@ static int get_new_filename(char * location, char * dir, char * buf, size_t buf_
         }
         return -1;
 }/*}}}*/
-        
+
 
 static const struct {/*typetab[] {{{*/
     char *str;
@@ -872,18 +854,18 @@ static bool check_mtimes(const char * const origname,
     if (!cachedmtime)
     {
       /* cached file does not exist or is empty  (or some bad gay intentionally set its mtime to 0...) */
-        return false; 
+        return false;
     }
 
     if (mtime(origname) == cachedmtime)
         return true;
 
     /* Don't care if truncate fails or not... It could fail mostly because of EPERM, but it's OK
-       Normally I would write 
+       Normally I would write
           (void) truncate(cachedname, 0);
-       but compilers tries to be too smart, see 
-       http://launchpadlibrarian.net/28344578/buildlog_ubuntu-karmic-amd64.dwww_1.11.1ubuntu1_FULLYBUILT.txt.gz   
-   */    
+       but compilers tries to be too smart, see
+       http://launchpadlibrarian.net/28344578/buildlog_ubuntu-karmic-amd64.dwww_1.11.1ubuntu1_FULLYBUILT.txt.gz
+   */
     if (truncate(cachedname, 0))
         return false;
     return false;
@@ -900,7 +882,7 @@ static int find_pref(const char *s) {/*{{{*/
 }/*}}}*/
 
 
-static int set_modtime_from_orig(const char * const cachedname, 
+static int set_modtime_from_orig(const char * const cachedname,
                                  const char * const origname) {/*{{{*/
     struct utimbuf ut;
 
@@ -909,5 +891,5 @@ static int set_modtime_from_orig(const char * const cachedname,
         return -1;
     ut.actime  = time(NULL);
 
-    return utime(cachedname, &ut);            
+    return utime(cachedname, &ut);
 }/*}}}*/

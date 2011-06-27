@@ -1,6 +1,5 @@
 /* vim:ft=c:cindent:ts=4:sts=4:sw=4:et:fdm=marker
  * dwww-txt2html.c
- * "@(#)dwww:$Id: dwww-txt2html.c 532 2009-02-15 15:16:37Z robert $"
  *
  * A very simple converter from formatted manual pages to HTML. Handles
   * backspace characters. Converts `<', `>', and `&' properly. Does _NOT_ add
@@ -19,7 +18,7 @@
  * Lars Wirzenius.
  *
  * Robert Luberda, Jan 2002: also generates links for  http, ftp, mail, closes: and /usr/ dirs
- * Robert Luberda, Jan 2009 add support for LP: links 
+ * Robert Luberda, Jan 2009 add support for LP: links
  */
 
 
@@ -670,11 +669,8 @@ static const struct {/* dirs[] {{{*/
     { "/usr/share/doc/",            sizeof("/usr/share/doc/") - 1               },
     { "/usr/share/man/",            sizeof("/usr/share/man/") - 1               },
     { "/usr/share/common-licenses/",sizeof("/usr/share/common-licenses/") - 1   },
-    { "/usr/doc/",                  sizeof("/usr/doc/") - 1                     },
-    { "/usr/man/",                  sizeof("/usr/man/") - 1                     },
-    { "/usr/X11R6/man/",            sizeof("/usr/X11R6/man/") - 1               },
-    { "/usr/local/man/",            sizeof("/usr/local/man/") - 1               },
-    { "/usr/local/doc/",            sizeof("/usr/local/doc/") - 1               }
+    { "/usr/local/share/man/",      sizeof("/usr/local/share/man/") - 1         },
+    { "/usr/local/share/doc/",      sizeof("/usr/local/share/doc/") - 1         }
 };/*}}}*/
 
 static const int ndirs = (int) sizeof(dirs)/sizeof(*dirs);
@@ -947,7 +943,7 @@ static int check_cve_uri(char * buf, char * url, int uri_no UNUSED, int loc, int
                     return 0;
             *begin = loc;
             loc += patsize;
-        } 
+        }
         else
         {
                 return 0;
