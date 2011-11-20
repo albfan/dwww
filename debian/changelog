@@ -1,3 +1,18 @@
+dwww (1.11.7) unstable; urgency=low
+
+  * debian/templates: set dwww/index_docs default to false (closes: #645240).
+  * debian/config: check if @ret is initialized before referencing
+    it (closes: #646988).
+  * Switch to debhelper v9 for dpkg-buildflags support.
+  * Fix errors found by cppcheck:
+    + dwww-cache.c: memory leak;
+    + dwww-txt2html.c: undefined behavior: variable is used as parameter
+      and destination in s[n]printf().
+  * makefile_common: define msg variable also when MAKE_VERBOSE is set.
+  * debian/control: correct Vcs-Browser field.
+
+ -- Robert Luberda <robert@debian.org>  Sun, 20 Nov 2011 23:49:42 +0100
+
 dwww (1.11.6) unstable; urgency=low
 
   * Add Italian translation of the debconf templates (closes: #620530).
@@ -10,7 +25,7 @@ dwww (1.11.6) unstable; urgency=low
   * Remove references to non-FHS dirs like /usr/doc from programs and
     documentation. Use /usr/local/share/{doc,man,info} hierarchy instead of
     /usr/local/{doc,man,info}.
-  * debian/control: 
+  * debian/control:
     + sort dependency fields with wrap-and-sort from the devscripts package;
     + add build dependency on lsb-release;
     + bump Standards-Version to 3.9.2 (no changes);
@@ -28,7 +43,7 @@ dwww (1.11.5) unstable; urgency=low
     + call dpkg-query directly instead of dpkg when dlocate is not available;
     + quote special regexp characters for `dlocate/dpkg-query -S' arguments;
     + split arguments passed to the program on whitespaces.
-  * debian/rules: 
+  * debian/rules:
     + use minimised debhelper rules files;
     + set CFLAGS and LDFLAGS from dpkg-buildflags;
     + add build-{arch,indep} targets.
@@ -41,7 +56,7 @@ dwww (1.11.5) unstable; urgency=low
 dwww (1.11.4) experimental; urgency=low
 
   * dwww.cgi, dwww-find, dwww-build-menu: when a single doc-base file registers
-    multiple files in a format that doesn't provide any index file, show a list 
+    multiple files in a format that doesn't provide any index file, show a list
     of all such files (closes: #191534).
   * functions.sh: fix functions used to re-creating cache directory.
 
@@ -60,7 +75,7 @@ dwww (1.11.3) unstable; urgency=low
 
 dwww (1.11.2) unstable; urgency=low
 
-  * DwwInitialize.pm: convert DWWW_DOCPATH to array even if dwww.conf file 
+  * DwwInitialize.pm: convert DWWW_DOCPATH to array even if dwww.conf file
     does not exist or is not readable (closes: #560422).
   * dwww-refresh-cache: ignore dpkg-query errors (closes: #561653).
   * Upgrade Suggests into Recommends on  swish++  (closes: #530282).
@@ -73,11 +88,11 @@ dwww (1.11.2) unstable; urgency=low
 
 dwww (1.11.1) unstable; urgency=low
 
-  * dwww.css.in: 
+  * dwww.css.in:
     + move logo from main background to head background;
     + apply a few additional Harold's fixes.
   * dwww-build: add support for local user CSS file.
-  * Move the dwww man page from section 8 to more appropriate section 7, 
+  * Move the dwww man page from section 8 to more appropriate section 7,
     update references in other pages and README file.
   * dwww(7): describe how to customise dwww style sheets.
   * debian/NEWS: announce the design changes.
@@ -86,20 +101,20 @@ dwww (1.11.1) unstable; urgency=low
   * dwww-txt2html.c: fix bug in utf8hyphen to '-' conversion, and remove
     some debugging output, both introduced in previous version.
   * common.mk: pass -Werror to gcc.
-  * Refer to GPL-2 in copyright (lintian). 
+  * Refer to GPL-2 in copyright (lintian).
 
  -- Robert Luberda <robert@debian.org>  Sun, 15 Feb 2009 18:51:39 +0100
 
 dwww (1.11.0) experimental; urgency=low
 
-  * Apply a patch from Harold Melton (kv5r at kv5r.com) for a better design 
+  * Apply a patch from Harold Melton (kv5r at kv5r.com) for a better design
     of dwww-generated pages with a light peach background (closes: #180733),
-    menu bar, and larger pre/code/tt mono face for the man pages, much more 
+    menu bar, and larger pre/code/tt mono face for the man pages, much more
     suitable for the newer 1280x1024 LCD monitors with sub-pixel anti-aliasing.
     His changes are:
     + Added css file manuals.css;
     + Change most dwww template files;
-    + Minor output-related  changes in dwww.cgi, dwww-build, dwww-build-menu, 
+    + Minor output-related  changes in dwww.cgi, dwww-build, dwww-build-menu,
       dwww-convert, dwww-find and Utils.pm;
     + Changed iso-8859-1 to UTF-8 in all files, for compatibility with some
       of the newer documentation (some were displaying wacky characters).
@@ -138,7 +153,7 @@ dwww (1.11.0) experimental; urgency=low
   * Update copyright.
   * Standards-Version: 3.8.0 (no changes).
   * Remove 2nd "Section: doc" line from control file (lintian).
-  * Bump debhelper compat version to 7. 
+  * Bump debhelper compat version to 7.
 
  -- Robert Luberda <robert@debian.org>  Fri, 30 Jan 2009 22:10:54 +0100
 
@@ -154,13 +169,13 @@ dwww (1.10.14) experimental; urgency=low
 
   * Remove menu-method file and completely drop support for registering docs
     with menu files.
-  * dwww-txt2html.c: 
+  * dwww-txt2html.c:
     + better support for UTF8-encoded documents;
     + add --utf8 option;
     + refactor code;
     + handle basic CSI sequences.
   * dwww-txt2html(8): updated.
-  * dwww-refresh-cache: remove dwww-build-menu* temporary dirs. 
+  * dwww-refresh-cache: remove dwww-build-menu* temporary dirs.
   * dwww-quickfind, dwww-refresh-cache, dwww-find: add support for displaying
     other packages built from the same source (closes: #49353, as all other
     things mentioned is have been already fixed).
@@ -301,7 +316,7 @@ dwww (1.10.0-0.1) unstable; urgency=high
   * NMU to fix RC, important and l10n bugs
   * Change firefox to iceweasel in dwww.links.  This broke installing
     iceweasel when dwww was present, hence the urgency. (closes: #404775,
-    #404662) 
+    #404662)
   * In postinst, restart apache2 if it is running (closes: #374665)
   * Use readlink -f instead of realpath, which isn't available in the
     packages dwww depends on (closes: #404666)
@@ -331,7 +346,7 @@ dwww (1.9.95) experimental; urgency=low
   * debian/*: bump to debhelper v5.
   * README: remove the note about apache2.
   * Remove realpath sources.
-  * dwww.templates, po/*: fix `malformed-prompt-in-templates' lintian 
+  * dwww.templates, po/*: fix `malformed-prompt-in-templates' lintian
     warning by replacing ending dots with colons.
   * Standards-Version: 3.7.2 (no changes needed).
   * Remove unneeded source.linian-overrides file.
@@ -377,8 +392,8 @@ dwww (1.9.92) experimental; urgency=low
 
 dwww (1.9.91) experimental; urgency=low
 
-  * dwww-build, dwww-build-menu: generate dwww HTML dir directly 
-    in DWWW_DOCROOTDIR (i.e. /var/www/) (closes: #337158) to make 
+  * dwww-build, dwww-build-menu: generate dwww HTML dir directly
+    in DWWW_DOCROOTDIR (i.e. /var/www/) (closes: #337158) to make
     dwww work with thttpd.
   * lib/*: use GET instead of POST for form submission (closes: #356023).
   * dwww.menu-method: add removemenu entry (closes: #358046).

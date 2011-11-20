@@ -817,7 +817,8 @@ static int check_man_uri(char * buf, char * url, int uri_no UNUSED, int loc, int
 
         for (i = *begin; i < loc; i++)
                 strcat(url, urlenc(buf[i]));
-        sprintf(url, "%s/%s", url, section);
+        strcat(url, "/");
+        strcat(url, section);
 
 
         return (loc - *begin) && ((*end - loc) > 1) ;

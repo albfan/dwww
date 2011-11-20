@@ -1,17 +1,4 @@
 #!/usr/bin/make -f
-# $Id: rules 557 2011-03-04 21:25:33Z robert $
 
-export CFLAGS  := $(shell dpkg-buildflags --get CFLAGS)
-export LDFLAGS := $(shell dpkg-buildflags --get LDFLAGS)
-
-binary binary-arch build build-arch clean:
+%:
 	dh $@
-
-binary-indep build-indep: # Nothing to do
-
-.PHONY: clean                                   \
-	build-indep   build-arch   build        \
-	binary-indep  binary-arch  binary
-
-DEFAULT_GOAL := binary
-

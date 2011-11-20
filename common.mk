@@ -1,6 +1,5 @@
 # vim:ts=2:et
 # common includes for dwww
-# $Id: common.mk 548 2011-01-16 20:41:44Z robert $
 #
 
 getCurrentMakefileName := $(CURDIR)/$(lastword $(MAKEFILE_LIST))
@@ -122,6 +121,8 @@ ifndef MAKE_VERBOSE
         ;;                                                      \
     esac; fi
   endef
+else
+  msg := :
 endif
 
 msgprefix         := *$(subst * ,*,$(wordlist 1,$(MAKELEVEL),* * * * * * * * * * * * * * * * * *))

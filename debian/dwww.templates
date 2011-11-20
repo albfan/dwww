@@ -50,7 +50,7 @@ _Description: Port value should be a number!
 
 Template: dwww/index_docs
 Type: boolean
-Default: true
+Default: false
 _Description: Should post-installation script index your documentation files?
  dwww-index++(8) program will be run once a week to index your documentation files
  registered with doc-base package.

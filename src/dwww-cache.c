@@ -532,6 +532,7 @@ static bool read_db(int db, struct dochash *hash) {/*{{{*/
     }
 
     if (read(db, p, (size_t)st.st_size) != st.st_size) {
+        free(p);
         errormsg(0, -1, "couldn't read database");
         return false;
     }
