@@ -505,18 +505,19 @@ sub Apropos { # {{{
 } # }}}
 
 sub PkgDescription () { # {{{
-    my $pkg     = shift;
+    my $pkg         = shift;
     my $descr       = '';    # long description
     my $synopsis    = undef; # short description
     my $hpage       = undef; # homepage
     my $fdescr      = 0;
-    my $res     = 0;
+    my $res         = 0;
     my $table       = undef;
 
     return 0 unless (-x $aptcache);
     open PKGDESC, "-|", ($aptcache, "show", "-o", "APT::Cache::AllVersions=0", "--", $pkg);
     while (<PKGDESC>) {
-        if (!$fdescr && s/^Description:\s+//) {
+        next if /^Description-md5:/;
+        if (!$synopsis && !$fdescr && s/^Description(-[^:]+)?:\s+//) {
             chomp();
             $synopsis = $_;
             $fdescr = 1;

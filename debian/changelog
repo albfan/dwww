@@ -1,3 +1,11 @@
+dwww (1.11.8) unstable; urgency=low
+
+  * dwww-find: Make regexp used to get packages' description from apt-cache
+    output aware of the new `Description-xx' fields.
+  * Bump build-dependency on debhelper for v9 (lintian).
+
+ -- Robert Luberda <robert@debian.org>  Sat, 11 Feb 2012 23:57:16 +0100
+
 dwww (1.11.7) unstable; urgency=low
 
   * debian/templates: set dwww/index_docs default to false (closes: #645240).

@@ -2,7 +2,7 @@ Source: dwww
 Section: doc
 Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
-Build-Depends: debhelper (>= 8.9.8~), lsb-release, publib-dev
+Build-Depends: debhelper (>= 9), lsb-release, publib-dev
 Standards-Version: 3.9.2
 Vcs-Git: git://anonscm.debian.org/users/robert/dwww.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=users/robert/dwww.git
