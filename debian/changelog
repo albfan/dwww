@@ -1,3 +1,26 @@
+dwww (1.12.0) unstable; urgency=low
+
+  * Apache 2.4 transition (closes: #669745):
+    + move configuration file for apache into /etc/apache2/conf-available
+      dir with dpkg-mainscript-helper, and add preinst script as work-around
+      for the tool's bug #711598;
+    + update the file with new `Require' directives;
+    + enable `Require local' only by default to restrict access to dwww
+      to localhost only (closes: #328906);
+    + use dh-apache2 for handling apache2 in maintainer scripts;
+    + require (via Breaks and Build-Conflicts) version 2.2.4-6~ or later
+      of apache2 packages (see #711479, #711483).
+  * Fix FTBFS with clang.
+  * dwww.cron.weekly: pass `-t' option to ionice to ignore eventual failures
+    to set the priority (closes: #690398).
+  * Update Makefiles to properly handle CFLAGS from environment and make build
+    process more verbose.
+  * Standards-Version: 3.9.4 (no changes).
+  * Build with large file support (lintian).
+  * Add Keywords field to desktop file (lintian).
+
+ -- Robert Luberda <robert@debian.org>  Wed, 12 Jun 2013 07:52:48 +0200
+
 dwww (1.11.8) unstable; urgency=low
 
   * dwww-find: Make regexp used to get packages' description from apt-cache

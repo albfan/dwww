@@ -17,7 +17,7 @@ install_link    := ln -sf
 compress        := gzip -9f
 
 prefix          := /usr
-etcdir          := /etc/$(PACKAGE)
+etcdir          := /etc
 bindir          := $(prefix)/bin
 sbindir         := $(prefix)/sbin
 mandir          := $(prefix)/share/man
@@ -32,16 +32,14 @@ webdocrootdir 	:= /var/www
 webcgidir	      := $(prefix)/lib/cgi-bin
 applicationsdir := $(prefix)/share/applications
 
-PERL            := /usr/bin/perl
-CC              := gcc
-CFLAGS           = -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Werror -g -DVERSION='"$(VERSION)"'
-LDFLAGS         :=
-LIBS            := -lpub
-
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-  CFLAGS += -O0
-else
-  CFLAGS += -O2
+PERL            = /usr/bin/perl
+ifndef COMPILER_FLAGS_ALREADY_SET
+export CC       ?= gcc
+export CPPFLAGS += -DVERSION='"$(VERSION)"'
+export CFLAGS   += -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Werror -g $(shell getconf LFS_CFLAGS)
+export LDFLAGS  +=
+export LIBS     += -lpub
+export COMPILER_FLAGS_ALREADY_SET := 1
 endif
 
 
@@ -75,7 +73,7 @@ ifndef VERSION
     ifneq ($(DESTDIR),$(abspath $(DESTDIR)))
       $(error DESTDIR "$(DESTDIR)" is not an absolute path)
     endif
-    override ddirshort  :=  DESTDIR
+    override ddirshort  :=  [DESTDIR]
     export ddirshort
   endif
 endif
@@ -99,40 +97,18 @@ XGETTEXT_COMMON_OPTIONS   := --msgid-bugs-address $(PACKAGE)@packages.debian.org
                             --copyright-holder='Robert Luberda <robert@debian.org>'
 
 
-
 ifndef MAKE_VERBOSE
-  override MAKEFLAGS      += --silent --no-print-directory
-  define msg
-    if [ -n "$2" ] ; then                                       \
-      echo "$(msgprefix) $2 $1 ...";                            \
-    else case "$1" in                                           \
-      ""|all|all-local|build-local)                             \
-        ;;                                                      \
-      install|install-local)                                    \
-        echo "$(msgprefix) Installing files from $(DIR) ..." ;  \
-        [ -z "$(DESTDIR)" ] ||                                  \
-          echo "$(msgprefix)   (DESTDIR=$(DESTDIR))";           \
-        ;;                                                      \
-      clean|clean-local)                                        \
-        echo "$(msgprefix) Cleaning $(DIR) ..."                 \
-        ;;                                                      \
-      *)                                                        \
-        echo "$(msgprefix) Making $(DIR)/$(1) ..."              \
-        ;;                                                      \
-    esac; fi
-  endef
+  MAKEFLAGS  += --no-print-directory
+  AT         := @
 else
-  msg := :
+  AT         :=
 endif
-
-msgprefix         := *$(subst * ,*,$(wordlist 1,$(MAKELEVEL),* * * * * * * * * * * * * * * * * *))
-emptyprefix       := $(subst *, ,$(msgprefix))
 
 
 #SHELL:=/bin/echo
 # install(dir,files,mode=compress|script|notdir)
 define install
-  set -e;                                                           \
+  $(AT) set -e;                                                     \
   tgt="$1"; dir="$1"; files="$2";  prg="$(install_file)";           \
   doCompress=0;  bfile=""; what="file  ";                           \
   set -- $3;                                                        \
@@ -145,19 +121,22 @@ define install
     elif [ "$$1" = "script" ] ; then                                \
       prg="$(install_script)";                                      \
       what="script";                                                \
+    else                                                            \
+     echo "Unknown parameter for install $$files: $$1"  >&2;        \
+     exit 1;                                                        \
     fi;                                                             \
     shift;                                                          \
   done;                                                             \
   [ -n "$$files" ] ||                                               \
-    echo "$(emptyprefix) installing dir    $(ddirshort)$$dir";      \
+    echo "installing dir    $(ddirshort)$$dir";                     \
   $(install_dir) "$(DESTDIR)/$$dir";                                \
   for file in $$files; do                                           \
       [ -n "$$bfile" ] && tgt="$$dir/$$bfile"  ||                   \
         tgt="$$dir/`basename "$$file"`";                            \
-      echo "$(emptyprefix) installing $$what $(ddirshort)$$tgt";    \
+      echo "installing $$what $(ddirshort)$$tgt";                   \
       $$prg "$$file" "$(DESTDIR)/$$tgt";                            \
       if [ "$$doCompress" -eq 1 ] ; then                            \
-        echo "$(emptyprefix) compressing file  $(ddirshort)$$tgt";  \
+        echo "compressing file  $(ddirshort)$$tgt";                 \
         $(compress) "$(DESTDIR)/$$tgt";                             \
       fi;                                                           \
   done;
@@ -165,9 +144,9 @@ endef
 
 # install(link_target,files)
 define install_links
-  set -e;                                                          \
+  $(AT) set -e;                                                    \
   for file in $2; do                                               \
-    echo "$(emptyprefix) installing link   $(ddirshort)$$file";    \
+    echo "installing link   $(ddirshort)$$file";                   \
     $(install_dir) $(DESTDIR)/`dirname "$$file"`;                  \
     rm -f "$(DESTDIR)/$$file";                                     \
     $(install_link) "$1" "$(DESTDIR)/$$file";                      \
@@ -176,7 +155,7 @@ endef
 
 
 define pochanged
-  set -e;                                                                       \
+  $(AT) set -e;                                                                 \
   [ ! -e $(1) ] && rename=1 || rename=0 ;                                       \
   if [ $$rename = 0 ] ; then                                                    \
     diff -q  -I'POT-Creation-Date:' -I'PO-Revision-Date:' $(1) $(2) >/dev/null  \
@@ -187,15 +166,15 @@ define pochanged
 endef
 
 define recurse
-  set -e;                                                                 \
-  for dir in $(SUBDIRS); do                                               \
-    $(MAKE) -C "$$dir" DIR="$(DIR)/$$dir" $(1);                               \
+  $(AT) set -e;                                                 \
+  for dir in $(SUBDIRS); do                                     \
+    $(MAKE) -C "$$dir" DIR="$(DIR)/$$dir" $(1);                 \
   done
 endef
 
 define podtoman
-    set -e;                                                     \
-    find $(1) -type f -name '*.pod' -path '*/man*'                \
+    $(AT) set -e;                                               \
+    find $(1) -type f -name '*.pod' -path '*/man*'              \
     | while read file; do                                       \
       sed -ne '1i=encoding utf8\n' -e '/^=head1/,$$p'  < $$file \
       | pod2man --utf8 --section=8 --center="Debian"            \
@@ -215,8 +194,8 @@ clean-local:
 install-local: $(ALL_TARGET)
 
 clean: clean-local
-	test -z "$(bdir)" || $(call msg,$@)
-	test -z "$(bdir)" || rm -rf $(bdir)
+	@ test -z "$(bdir)" || echo "removing $(CURDIR)/$(bdir)"
+	$(AT) test -z "$(bdir)" || rm -rf $(bdir)
 	$(call recurse,$@)
 
 install: install-local
@@ -224,35 +203,34 @@ install: install-local
 	$(AFTER_INSTALL)
 
 $(bdir):
-	$(call msg,$@)
-	test -z "$(bdir)" || mkdir -p $(bdir)
+	$(AT) test -z "$(bdir)" || mkdir -p $(bdir) 
 
 $(bdir)/%: %.in | $(bdir) $(MAKEFILE_LIST)
-	$(call msg,$@)
-	# try to be compatible with the both sarge and sid versions of make
-	PERL5LIB="$(TOPDIR)/perl" $(PERL)  -e \
+# try to be compatible with the both sarge and sid versions of make
+	$(AT) echo "creating $(CURDIR)/$@"
+	$(AT) PERL5LIB="$(TOPDIR)/perl" $(PERL)  -e  \
 	'exec ("'$(PERL)'", "-e", join("",@ARGV)) if $$#ARGV >-1; '\
-	'	$$|=1;					'\
-	'	use Debian::Dwww::ConfigFile; 		'\
-	'	$$d=ReadConfigFile("/dev/null");			'\
-	'	$$v="";					'\
-	'	foreach $$k (sort keys %{$$d}) {	'\
-	'		$$v.="\t$$k=\"$$d->{$$k}->{defval}\"\n"	'\
-	'			if $$k !~ /(TITLE)$$/;	'\
-	'	}					'\
-	'	while (<>) {				'\
-	'		s/#VERSION#/$(VERSION)/g;  	'\
-	'		s/#DISTRIBUTOR#/$(DISTRIBUTOR)/g; 	'\
-	'		s/#distributor#/$(distributor)/g; 	'\
-	'		s/^.*#DWWWVARS#.*$$/$$v/g;	'\
-	'		print;				'\
-	'	}					'\
+	' $$|=1;                                    '\
+	' use Debian::Dwww::ConfigFile;             '\
+	' $$d=ReadConfigFile("/dev/null");          '\
+	' $$v="";                                   '\
+	' foreach $$k (sort keys %{$$d}) {          '\
+	'   $$v.="\t$$k=\"$$d->{$$k}->{defval}\"\n" '\
+	'     if $$k !~ /(TITLE)$$/;                '\
+	' }                                         '\
+	' while (<>) {                              '\
+	'   s/#VERSION#/$(VERSION)/g;               '\
+	'   s/#DISTRIBUTOR#/$(DISTRIBUTOR)/g;       '\
+	'   s/#distributor#/$(distributor)/g;       '\
+	'   s/^.*#DWWWVARS#.*$$/$$v/g;              '\
+	'   print;                                  '\
+	' }                                         '\
 	  < $< > $@
-	touch -r $< $@
+	$(AT) touch -r $< $@
 
 # debug
 print-%:
-	 @echo "$* is >>$($*)<<"
+	 $(AT) echo "$* is >>$($*)<<"
 
 ifdef SHOW_DEPS
 OLD_SHELL := $(SHELL)

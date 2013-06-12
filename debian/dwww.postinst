@@ -58,19 +58,6 @@ if ($ARGV[0] eq 'configure' or $ARGV[0] eq 'reconfigure')
     $uid or die "You DON'T want to run the dwww CGI script as root!\n";
     chown $uid, 0, "/var/cache/dwww/db";
 
-    if ( -r "/etc/dwww/apache.conf") {
-        foreach my $apache ("apache","apache-perl", "apache-ssl", "apache2") {
-            my $confd="/etc/$apache/conf.d";
-             if (-d $confd)  {
-                symlink ("../../dwww/apache.conf", "$confd/dwww")
-                    unless -e "$confd/dwww";
-                # restart the web server
-                system ("invoke-rc.d $apache restart 1>&2")
-                    if (-x "/usr/sbin/invoke-rc.d" && -x "/etc/init.d/$apache");
-             }
-        }
-    }
-
     if ( -x "/etc/cron.daily/dwww" )
     {
         print STDERR "\nBuilding dwww pages in the background...\n";
@@ -92,11 +79,17 @@ else
 
 my $dh_commands="set -- @ARGV\n" . << 'EOF';
 set -e
-if [ "$1" = "configure" ] && dpkg --compare-versions "$2" lt-nl "1.10.14"; then
-    rm -f /etc/cron.daily/dwww.saved_by_dwww_preinst \
-          /etc/menu-methods/dwww.saved_by_dwww_preinst \
-      /etc/menu-methods/dwww
-   rm -rf /var/lib/dwww/menu-method
+if [ "$1" = "configure" ] && dpkg --compare-versions "$2" lt-nl "1.12.0~"; then
+    for apache in "apache" "apache-perl" "apache-ssl" "apache2"; do
+        confd="/etc/$apache/conf.d";
+        if [ -L "$confd/dwww" ] ; then
+            rm -f "$confd/dwww"
+            rmdir --ignore-fail-on-non-empty "$confd" "/etc/$apache"
+        elif [ -e "$confd/dwww" ]; then
+            echo "Warning: $confd/dwww exists, but it is not a symbolic link, " \
+                  "please remove it manually." >&2
+        fi
+    done
 fi
 #DEBHELPER#
 EOF
@@ -104,8 +97,6 @@ system ($dh_commands) / 256 == 0
     or die "Problem with shell scripts: $!";
 
 exit 0;
-
-
 
 
 # SOUBROUTINES

@@ -3,7 +3,6 @@
  * File:    dwww-quickfind.c
  * Purpose: Find quickly which package a program belongs to.
  * Author:  Lars Wirzenius <liw@iki.fi>
- * Version: "@(#)dwww:$Id: dwww-quickfind.c 516 2009-01-15 19:51:36Z robert $"
  * Description: Builds a database (--build):
  *          line pairs
  *          first is filename (reversed: /bin/ls -> sl/nib/)
@@ -293,7 +292,7 @@ static void build(const char * const dbfile) {/*{{{*/
 
 static void srcpkg_find(void ** t_root,/*{{{*/
                         void ** t_srcpkg_root,
-                        const struct file const * orig_key) {
+                        const struct file * const orig_key) {
     struct file key, **p;
     int count = 0;
 

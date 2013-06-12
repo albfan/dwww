@@ -6,4 +6,5 @@ X-MultipleArgs=false
 Type=Application
 Icon=gnome-touristinfo
 Categories=Application;Utility;
+Keywords=documentation;information;manual;
 StartupNotify=true

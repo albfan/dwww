@@ -1,6 +1,5 @@
 # vim ts=2
 # Makefile for dwww.
-# "@(#)dwww:$Id: Makefile 512 2009-01-11 10:27:45Z robert $"
 #
 ALL_TARGET    := all-local
 SUBDIRS       :=

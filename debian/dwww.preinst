@@ -1,0 +1,19 @@
+#!/bin/sh
+# vim:ft=sh:cindent:ts=4:sts=4:et:sw
+#
+# Debian preinst script for dwww.
+
+set -e
+
+#DEBHELPER#
+
+oldf=/etc/dwww/apache.conf
+newd=/etc/apache2/conf-available
+newf="$newd/dwww.conf"
+
+# Work-around for dpkg bug #711598
+if [ -f "$oldf" ] && [ ! -e "$newf" ] &&  [ "$1" = "install" -o "$1" = "upgrade" ] &&
+   dpkg --compare-versions "$2" le-nl "1.12.0~"; then
+   [ -d "$newd" ] || mkdir -p "$newd"
+   mv "$oldf" "$newf"
+fi

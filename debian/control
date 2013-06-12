@@ -2,8 +2,9 @@ Source: dwww
 Section: doc
 Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
-Build-Depends: debhelper (>= 9), lsb-release, publib-dev
-Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9), dh-apache2, lsb-release, publib-dev
+Build-Conflicts: apache2-dev (<< 2.4.4-6~)
+Standards-Version: 3.9.4
 Vcs-Git: git://anonscm.debian.org/users/robert/dwww.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=users/robert/dwww.git
 
@@ -21,7 +22,8 @@ Depends: apache2 | httpd-cgi,
          ${misc:Depends},
          ${perl:Depends},
          ${shlibs:Depends}
-Recommends: apt, dlocate (>= 0.5-0.1), info2www, swish++
+Breaks: apache2 (<< 2.4.4-6~)
+Recommends: apt, dlocate (>= 0.5-0.1), info2www, swish++, ${misc:Recommends}
 Suggests: doc-debian, dpkg-www, links | www-browser
 Description: Read all on-line documentation with a WWW browser
  All installed on-line documentation will be served via a local HTTP
