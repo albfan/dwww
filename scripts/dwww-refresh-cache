@@ -4,8 +4,6 @@
 # dwww-refresh-cache -- refreshes dwww cache directory
 #
 # Part of the dwww package.  Written by Robert Luberda.
-#
-# "@(#)dwww:$Id: dwww-refresh-cache 552 2011-02-08 21:59:22Z robert $"
 
 set -e
 
@@ -62,7 +60,7 @@ if [ -n "$DWWW_QUICKFIND_DB" ] || [ -n "$DWWW_DOCBASE2PKG_DB" ] ; then
                 perl -ne '
                                 chomp();
                                 my ($status, $package, $source, @provides) = split(/, /);
-                                next unless $status =~ /(installed|half-configured|triggers)$/;
+                                next unless $status =~ /(^install)|(installed$)/;
                                 next unless $package;
                                 $source =~ s/ \(.*\).*// if $source;
                                 print "$package: PKG-$package\n" unless $source;

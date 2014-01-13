@@ -1,3 +1,16 @@
+dwww (1.12.1) unstable; urgency=medium
+
+  * apache.conf: add an `Alias /dwww /var/www/dwww' line to accommodate
+    to the default document root change in apache 2.4.7 (closes: #734090).
+  * apache.conf: enclose `Require' lines with `<IfModule mod_authz_host.c>'
+    section (closes: #734957).
+  * dwww-refresh-cache: change regexp used to find installed packages to
+    include packages selected to install as well.
+  * Add support for cross-building.
+  * Standards-Version: 3.9.5 (no changes).
+
+ -- Robert Luberda <robert@debian.org>  Mon, 13 Jan 2014 23:09:58 +0100
+
 dwww (1.12.0) unstable; urgency=low
 
   * Apache 2.4 transition (closes: #669745):

@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Robert Luberda <robert@debian.org>
 Build-Depends: debhelper (>= 9), dh-apache2, lsb-release, publib-dev
 Build-Conflicts: apache2-dev (<< 2.4.4-6~)
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Vcs-Git: git://anonscm.debian.org/users/robert/dwww.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=users/robert/dwww.git
 
