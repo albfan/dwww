@@ -36,9 +36,10 @@ PERL            = /usr/bin/perl
 ifndef COMPILER_FLAGS_ALREADY_SET
 export CC       ?= gcc
 export CPPFLAGS += -DVERSION='"$(VERSION)"'
-export CFLAGS   += -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Werror -g $(shell getconf LFS_CFLAGS)
+export CFLAGS   += -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Werror -g $(shell getconf LFS_CFLAGS) -L../publib/lib -I../publib/include
 export LDFLAGS  +=
-export LIBS     += -lpub
+export LIBS     += -lpub -L../publib/lib -I../publib/include
+
 export COMPILER_FLAGS_ALREADY_SET := 1
 endif
 
