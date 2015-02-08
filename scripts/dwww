@@ -49,10 +49,21 @@ fi
 
 [ "$DWWW_USEHTTPS" = "yes" ] && prot="https" || prot="http"
 
-if [ -z "$1" ]
+if [ -z "$www_browser" ]
 then
-	exec "$www_browser" "$prot://$DWWW_SERVERNAME/dwww/"
+   if [ -z "$1" ]
+   then
+      xdg-open "$prot://$DWWW_SERVERNAME/dwww/"
+   else
+   	uri="`urlencode $1`"
+   	xdg-open "$prot://$DWWW_SERVERNAME/cgi-bin/dwww?search=$uri"
+   fi
 else
-	uri="`urlencode $1`"
-	exec "$www_browser" "$prot://$DWWW_SERVERNAME/cgi-bin/dwww?search=$uri"
+   if [ -z "$1" ]
+   then
+   	exec "$www_browser" "$prot://$DWWW_SERVERNAME/dwww/"
+   else
+   	uri="`urlencode $1`"
+   	exec "$www_browser" "$prot://$DWWW_SERVERNAME/cgi-bin/dwww?search=$uri"
+   fi
 fi
