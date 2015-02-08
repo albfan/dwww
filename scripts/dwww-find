@@ -691,7 +691,7 @@ sub SearchRegisteredDocumentation { # {{{
     my $searchfor  = shift;
     my $startwith  = shift;
     my $maxperpage = shift;
-    my @searchargs = ("/usr/bin/search++");
+    my @searchargs = ("/usr/bin/search");
     my $resultcnt  = undef;
     my $desc       = '';
 

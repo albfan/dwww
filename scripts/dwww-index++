@@ -53,7 +53,7 @@ my $dwww_swish_conf   	  	= "/usr/share/dwww/swish++.conf";
 my $dwww_swish_index  	  	= "/var/cache/dwww/dwww.swish++.index";
 my $dwww_indexed_files_db	= "/var/cache/dwww/index.files.db";
 my $dwww_lastrun_info		= "/var/cache/dwww/index.runinfo";
-my $path_to_index			= '/usr/bin/index++';
+my $path_to_index			= '/usr/bin/index';
 my $MAX_RECURS_SUBDIRS_LVL  = 10;
 
 our($opt_v, $opt_f, $opt_i, $opt_l);				# set by getopt
