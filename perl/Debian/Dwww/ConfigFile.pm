@@ -33,7 +33,7 @@ sub ReadConfigFile($) {
         },
         'DWWW_DOCROOTDIR'  => {
             sort   => 10,
-            defval => '/var/www',
+            defval => '/srv/http',
             descr  => 'The document root for web server.'
         },
         'DWWW_CGIDIR'  => {
@@ -66,7 +66,7 @@ sub ReadConfigFile($) {
         },
         'DWWW_ALLOWEDLINKPATH'  => {
             sort   => 35,
-            defval => '/usr/share:/usr/lib:/usr/local/share:/var/www',
+            defval => '/usr/share:/usr/lib:/usr/local/share:/srv/http',
             descr  => 'Colon-delimited list of directories that could be targets of symlinks.'
         },
         #  Cache files locations

@@ -28,7 +28,7 @@ docdir          := $(prefix)/share/doc/$(PACKAGE)
 libdir          := /var/lib/$(PACKAGE)
 nlsdir          := $(prefix)/share/locale
 cachedir 	      := /var/cache/$(PACKAGE)
-webdocrootdir 	:= /var/www
+webdocrootdir 	:= /srv/http
 webcgidir	      := $(prefix)/lib/cgi-bin
 applicationsdir := $(prefix)/share/applications
 
