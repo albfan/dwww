@@ -47,13 +47,9 @@ endif
 # determine our version number
 ifndef VERSION
   CHANGELOGFILE     := $(TOPDIR)/debian/changelog
-  VERSION           := $(shell LC_ALL=C dpkg-parsechangelog -l$(CHANGELOGFILE) \
-                        | sed -ne 's/^Version: *//p')
-###  DATE              := $(shell LC_ALL=C dpkg-parsechangelog -l$(CHANGELOGFILE) \
-###                        | sed -n 's/^Date: *//p')
-###  # pretty-print the date; I wish this was dynamic like the top-level makefile but oh well
-###  DATE_EN           := $(shell LC_ALL=C date --date="$(DATE)" '+%d %B, %Y')
-  export VERSION DATE DATE_EN
+  VERSION_COMMAND = cat debian/changelog | grep Version: | head -n 1 | sed -ne 's/.*Version: \(.*\) .*/\1/p'
+  VERSION        = $(shell $(VERSION_COMMAND))
+  export VERSION
 
   ifndef DISTIBUTOR
     ifneq (,$(findstring ubuntu,$(VERSION)))
